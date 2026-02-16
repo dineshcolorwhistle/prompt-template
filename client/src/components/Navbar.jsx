@@ -1,9 +1,34 @@
-import React from 'react';
-import { Link } from 'react-router-dom';
-import { Search, Menu, X, User } from 'lucide-react';
+
+import React, { useState, useEffect, useRef } from 'react';
+import { Link, useNavigate } from 'react-router-dom';
+import { Search, Menu, X, User, LogOut, LayoutDashboard, ChevronDown } from 'lucide-react';
+
+import { useAuth } from '../context/AuthContext';
 
 export default function Navbar() {
-    const [isMenuOpen, setIsMenuOpen] = React.useState(false);
+    const [isMenuOpen, setIsMenuOpen] = useState(false);
+    const [isProfileOpen, setIsProfileOpen] = useState(false);
+    const { userInfo, logout } = useAuth();
+    const profileRef = useRef(null);
+    const navigate = useNavigate();
+
+    useEffect(() => {
+        const handleClickOutside = (event) => {
+            if (profileRef.current && !profileRef.current.contains(event.target)) {
+                setIsProfileOpen(false);
+            }
+        };
+
+        document.addEventListener('mousedown', handleClickOutside);
+        return () => {
+            document.removeEventListener('mousedown', handleClickOutside);
+        };
+    }, []);
+
+    const handleLogout = () => {
+        logout();
+        navigate('/login');
+    };
 
     return (
         <nav className="fixed top-0 left-0 right-0 h-16 bg-white border-b border-gray-100 z-50">
@@ -35,10 +60,66 @@ export default function Navbar() {
                             />
                         </div>
 
-                        <Link to="/login" className="text-gray-600 hover:text-gray-900 font-medium text-sm">Log in</Link>
-                        <Link to="/register" className="bg-indigo-600 text-white px-4 py-2 rounded-lg text-sm font-medium hover:bg-indigo-700 transition-colors shadow-sm shadow-indigo-200">
-                            Sign up
-                        </Link>
+                        {userInfo ? (
+                            <div className="relative" ref={profileRef}>
+                                <button
+                                    onClick={() => setIsProfileOpen(!isProfileOpen)}
+                                    className="flex items-center space-x-2 text-gray-700 hover:text-indigo-600 focus:outline-none"
+                                >
+                                    <div className="w-8 h-8 rounded-full bg-indigo-100 flex items-center justify-center text-indigo-600 font-bold border border-indigo-200">
+                                        {userInfo.name ? userInfo.name.charAt(0).toUpperCase() : <User size={16} />}
+                                    </div>
+                                    <span className="font-medium text-sm max-w-[100px] truncate">{userInfo.name}</span>
+                                    <ChevronDown size={16} className={`transform transition-transform ${isProfileOpen ? 'rotate-180' : ''}`} />
+                                </button>
+
+                                {isProfileOpen && (
+                                    <div className="absolute right-0 mt-2 w-48 bg-white rounded-lg shadow-lg border border-gray-100 py-1 animate-in fade-in zoom-in-95 duration-200 origin-top-right">
+                                        <div className="px-4 py-2 border-b border-gray-50">
+                                            <p className="text-sm font-semibold text-gray-900 truncate">{userInfo.name}</p>
+                                            <p className="text-xs text-gray-500 truncate">{userInfo.email}</p>
+                                        </div>
+
+                                        {userInfo.role === 'Admin' && (
+                                            <Link
+                                                to="/admin/dashboard"
+                                                className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-50 hover:text-indigo-600 flex items-center"
+                                                onClick={() => setIsProfileOpen(false)}
+                                            >
+                                                <LayoutDashboard size={16} className="mr-2" />
+                                                Dashboard
+                                            </Link>
+                                        )}
+
+                                        <Link
+                                            to="/profile"
+                                            className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-50 hover:text-indigo-600 flex items-center"
+                                            onClick={() => setIsProfileOpen(false)}
+                                        >
+                                            <User size={16} className="mr-2" />
+                                            Profile
+                                        </Link>
+
+                                        <div className="border-t border-gray-50 mt-1">
+                                            <button
+                                                onClick={handleLogout}
+                                                className="block w-full text-left px-4 py-2 text-sm text-red-600 hover:bg-red-50 flex items-center"
+                                            >
+                                                <LogOut size={16} className="mr-2" />
+                                                Sign out
+                                            </button>
+                                        </div>
+                                    </div>
+                                )}
+                            </div>
+                        ) : (
+                            <>
+                                <Link to="/login" className="text-gray-600 hover:text-gray-900 font-medium text-sm">Log in</Link>
+                                <Link to="/signup" className="bg-indigo-600 text-white px-4 py-2 rounded-lg text-sm font-medium hover:bg-indigo-700 transition-colors shadow-sm shadow-indigo-200">
+                                    Sign up
+                                </Link>
+                            </>
+                        )}
                     </div>
 
                     {/* Mobile Menu Button */}
@@ -59,10 +140,45 @@ export default function Navbar() {
                         <Link to="/categories" className="text-gray-600 font-medium py-2">Categories</Link>
                         <Link to="/experts" className="text-gray-600 font-medium py-2">Experts</Link>
                         <hr className="border-gray-100" />
-                        <Link to="/login" className="text-gray-600 font-medium py-2">Log in</Link>
-                        <Link to="/register" className="bg-indigo-600 text-white px-4 py-2 rounded-lg text-center font-medium">
-                            Sign up
-                        </Link>
+
+                        {userInfo ? (
+                            <>
+                                <div className="flex items-center space-x-3 py-2 border-b border-gray-50 mb-2">
+                                    <div className="w-10 h-10 rounded-full bg-indigo-100 flex items-center justify-center text-indigo-600 font-bold border border-indigo-200">
+                                        {userInfo.name ? userInfo.name.charAt(0).toUpperCase() : <User size={20} />}
+                                    </div>
+                                    <div>
+                                        <p className="font-semibold text-gray-900">{userInfo.name}</p>
+                                        <p className="text-xs text-gray-500">{userInfo.email}</p>
+                                    </div>
+                                </div>
+
+                                {userInfo.role === 'Admin' && (
+                                    <Link to="/admin/dashboard" className="text-gray-600 font-medium py-2 flex items-center hover:text-indigo-600">
+                                        <LayoutDashboard size={18} className="mr-2" />
+                                        Dashboard
+                                    </Link>
+                                )}
+                                <Link to="/profile" className="text-gray-600 font-medium py-2 flex items-center hover:text-indigo-600">
+                                    <User size={18} className="mr-2" />
+                                    Profile
+                                </Link>
+                                <button
+                                    onClick={handleLogout}
+                                    className="text-red-600 font-medium py-2 text-left flex items-center hover:bg-red-50"
+                                >
+                                    <LogOut size={18} className="mr-2" />
+                                    Sign out
+                                </button>
+                            </>
+                        ) : (
+                            <>
+                                <Link to="/login" className="text-gray-600 font-medium py-2">Log in</Link>
+                                <Link to="/signup" className="bg-indigo-600 text-white px-4 py-2 rounded-lg text-center font-medium">
+                                    Sign up
+                                </Link>
+                            </>
+                        )}
                     </div>
                 </div>
             )}

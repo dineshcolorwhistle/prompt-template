@@ -22,6 +22,10 @@ mongoose.connect(process.env.MONGODB_URI)
   .catch(err => console.log(err));
 
 // Routes
+const userRoutes = require('./routes/userRoutes');
+
+app.use('/api/users', userRoutes);
+
 app.get('/', (req, res) => {
   res.send('API is running...');
 });
