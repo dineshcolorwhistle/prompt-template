@@ -8,6 +8,9 @@ import Home from './pages/Home';
 import DashboardLayout from './components/DashboardLayout';
 import DashboardOverview from './pages/DashboardOverview';
 import ExpertRequests from './pages/ExpertRequests';
+import Industries from './pages/Industries';
+import Categories from './pages/Categories';
+import Users from './pages/Users';
 import PlaceholderPage from './components/PlaceholderPage';
 import './App.css';
 
@@ -35,10 +38,10 @@ function App() {
           <Route path="/dashboard" element={<DashboardWrapper />}>
             <Route index element={<DashboardOverview />} />
             <Route path="requests" element={<ExpertRequests />} />
-            <Route path="users" element={<PlaceholderPage title="Manage Users" />} />
+            <Route path="users" element={<Users />} />
             <Route path="templates" element={<PlaceholderPage title="Approve Templates" />} />
-            <Route path="industries" element={<PlaceholderPage title="Manage Industries" />} />
-            <Route path="categories" element={<PlaceholderPage title="Manage Categories" />} />
+            <Route path="industries" element={<Industries />} />
+            <Route path="categories" element={<Categories />} />
             <Route path="comments" element={<PlaceholderPage title="Moderate Comments" />} />
             <Route path="analytics" element={<PlaceholderPage title="Analytics" />} />
             <Route path="settings" element={<PlaceholderPage title="Settings" />} />
