@@ -1,6 +1,7 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import TemplateCard from '../components/TemplateCard';
-import { Sparkles, TrendingUp, Grid } from 'lucide-react';
+import Pagination from '../components/Pagination';
+import { Sparkles, TrendingUp, Grid, Briefcase } from 'lucide-react';
 
 const MOCK_TEMPLATES = [
     {
@@ -59,11 +60,39 @@ const MOCK_TEMPLATES = [
     }
 ];
 
-const CATEGORIES = [
-    "Marketing", "Development", "Business", "Design", "Writing", "SEO", "Productivity"
-];
-
 export default function Home() {
+    const [industries, setIndustries] = useState([]);
+    const [loading, setLoading] = useState(true);
+    const [page, setPage] = useState(1);
+    const [totalPages, setTotalPages] = useState(1);
+    const [totalItems, setTotalItems] = useState(0);
+
+    useEffect(() => {
+        fetchIndustries();
+    }, [page]);
+
+    const fetchIndustries = async () => {
+        setLoading(true);
+        try {
+            // Fetch active industries only
+            const response = await fetch(`${import.meta.env.VITE_API_URL}/api/industries?page=${page}&limit=12&status=active`);
+            if (response.ok) {
+                const data = await response.json();
+                if (data.result) {
+                    setIndustries(data.result);
+                    setTotalPages(data.pages);
+                    setTotalItems(data.total);
+                } else {
+                    setIndustries(Array.isArray(data) ? data : []);
+                }
+            }
+        } catch (error) {
+            console.error('Failed to fetch industries:', error);
+        } finally {
+            setLoading(false);
+        }
+    };
+
     return (
         <div className="pb-16">
             {/* Hero Section */}
@@ -116,17 +145,41 @@ export default function Home() {
                 </div>
             </section>
 
-            {/* Categories */}
+            {/* Categories/Industries */}
             <section className="bg-gray-50/50 py-16 border-y border-gray-100">
                 <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
                     <h2 className="text-2xl font-bold text-gray-900 mb-8 text-center">Browse by Industry</h2>
-                    <div className="flex flex-wrap justify-center gap-4">
-                        {CATEGORIES.map(cat => (
-                            <button key={cat} className="px-6 py-3 bg-white rounded-lg border border-gray-200 text-gray-700 hover:border-indigo-300 hover:text-indigo-600 hover:shadow-sm transition-all font-medium">
-                                {cat}
-                            </button>
-                        ))}
-                    </div>
+
+                    {loading ? (
+                        <div className="flex justify-center py-12">
+                            <div className="w-8 h-8 border-4 border-indigo-200 border-t-indigo-600 rounded-full animate-spin"></div>
+                        </div>
+                    ) : industries.length > 0 ? (
+                        <>
+                            <div className="flex flex-wrap justify-center gap-4">
+                                {industries.map(ind => (
+                                    <button key={ind._id} className="px-6 py-3 bg-white rounded-lg border border-gray-200 text-gray-700 hover:border-indigo-300 hover:text-indigo-600 hover:shadow-sm transition-all font-medium flex items-center gap-2">
+                                        <Briefcase size={16} className="text-gray-400 group-hover:text-indigo-500" />
+                                        {ind.name}
+                                    </button>
+                                ))}
+                            </div>
+
+                            <div className="max-w-2xl mx-auto">
+                                <Pagination
+                                    currentPage={page}
+                                    totalPages={totalPages}
+                                    onPageChange={setPage}
+                                    totalItems={totalItems}
+                                    itemsPerPage={12}
+                                />
+                            </div>
+                        </>
+                    ) : (
+                        <div className="text-center text-gray-500 py-8">
+                            No industries found.
+                        </div>
+                    )}
                 </div>
             </section>
         </div>

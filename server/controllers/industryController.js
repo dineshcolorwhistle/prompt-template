@@ -15,7 +15,7 @@ const generateSlug = (text) => {
 // @access  Public (or Protected)
 const getIndustries = async (req, res) => {
     try {
-        const { search, status } = req.query;
+        const { search, status, page = 1, limit = 10 } = req.query;
         let query = {}; // Start with finding ALL (including inactive)
 
         if (search) {
@@ -30,9 +30,22 @@ const getIndustries = async (req, res) => {
             if (status === 'inactive') query.isActive = false;
         }
 
-        const industries = await Industry.find(query).sort({ createdAt: -1 });
+        const pageNum = parseInt(page);
+        const limitNum = parseInt(limit);
+        const skip = (pageNum - 1) * limitNum;
 
-        res.status(200).json(industries);
+        const totalItems = await Industry.countDocuments(query);
+        const industries = await Industry.find(query)
+            .sort({ createdAt: -1 })
+            .skip(skip)
+            .limit(limitNum);
+
+        res.status(200).json({
+            result: industries,
+            page: pageNum,
+            pages: Math.ceil(totalItems / limitNum),
+            total: totalItems
+        });
     } catch (error) {
         res.status(500).json({ message: error.message });
     }

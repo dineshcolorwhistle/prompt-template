@@ -7,19 +7,34 @@ const sendEmail = require('../utils/sendEmail');
 // @access  Private/Admin
 const getUsers = async (req, res) => {
     try {
-        const { search, role } = req.query;
+        const { search, role, page = 1, limit = 10 } = req.query;
         const query = {};
 
         if (search) {
             query.name = { $regex: search, $options: 'i' };
         }
 
-        if (role) {
+        if (role && role !== 'all') {
             query.role = role;
         }
 
-        const users = await User.find(query).select('-password').sort({ createdAt: -1 });
-        res.json(users);
+        const pageNum = parseInt(page);
+        const limitNum = parseInt(limit);
+        const skip = (pageNum - 1) * limitNum;
+
+        const totalItems = await User.countDocuments(query);
+        const users = await User.find(query)
+            .select('-password')
+            .sort({ createdAt: -1 })
+            .skip(skip)
+            .limit(limitNum);
+
+        res.json({
+            result: users,
+            page: pageNum,
+            pages: Math.ceil(totalItems / limitNum),
+            total: totalItems
+        });
     } catch (error) {
         console.error(error);
         res.status(500).json({ message: 'Server Error' });

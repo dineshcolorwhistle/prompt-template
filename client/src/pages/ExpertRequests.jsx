@@ -14,7 +14,7 @@ const ExpertRequests = () => {
 
     const fetchRequests = async () => {
         try {
-            const response = await fetch('http://localhost:5000/api/expert-requests', {
+            const response = await fetch(`${import.meta.env.VITE_API_URL}/api/expert-requests`, {
                 headers: {
                     Authorization: `Bearer ${userInfo.token}`,
                 },
@@ -31,7 +31,7 @@ const ExpertRequests = () => {
 
     const handleUpdateStatus = async (id, status) => {
         try {
-            const response = await fetch(`http://localhost:5000/api/expert-requests/${id}`, {
+            const response = await fetch(`${import.meta.env.VITE_API_URL}/api/expert-requests/${id}`, {
                 method: 'PUT',
                 headers: {
                     'Content-Type': 'application/json',

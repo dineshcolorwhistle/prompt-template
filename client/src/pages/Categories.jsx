@@ -5,6 +5,7 @@ import {
     Filter, Power, CheckCircle, Briefcase
 } from 'lucide-react';
 import Toast from '../components/Toast';
+import Pagination from '../components/Pagination';
 import ConfirmationModal from '../components/ConfirmationModal';
 
 const Categories = () => {
@@ -17,6 +18,9 @@ const Categories = () => {
     const [searchTerm, setSearchTerm] = useState('');
     const [statusFilter, setStatusFilter] = useState('all');
     const [industryFilter, setIndustryFilter] = useState('all');
+    const [page, setPage] = useState(1);
+    const [totalPages, setTotalPages] = useState(1);
+    const [totalItems, setTotalItems] = useState(0);
 
     // UI States
     const [toast, setToast] = useState(null);
@@ -36,9 +40,13 @@ const Categories = () => {
 
     // Initial Fetch
     useEffect(() => {
+        setPage(1); // Reset to page 1 on filter change
+    }, [searchTerm, statusFilter, industryFilter]);
+
+    useEffect(() => {
         fetchIndustries();
         fetchCategories();
-    }, [searchTerm, statusFilter, industryFilter]);
+    }, [page, searchTerm, statusFilter, industryFilter]);
 
     const showToast = (message, type = 'success') => {
         setToast({ message, type });
@@ -46,15 +54,17 @@ const Categories = () => {
 
     const fetchIndustries = async () => {
         try {
-            // We need active industries for the "Add New" dropdown, 
-            // but maybe all industries for the filter?
-            // For now, let's just fetch all and filter in UI if needed.
-            const response = await fetch('http://localhost:5000/api/industries?status=active', {
+            // For dropdowns, we want all active industries. Limit set high to cover most cases.
+            const response = await fetch(`${import.meta.env.VITE_API_URL}/api/industries?status=active&limit=1000`, {
                 headers: { Authorization: `Bearer ${userInfo.token}` }
             });
             if (response.ok) {
                 const data = await response.json();
-                setIndustries(data);
+                if (data.result) {
+                    setIndustries(data.result);
+                } else {
+                    setIndustries(Array.isArray(data) ? data : []);
+                }
             }
         } catch (err) {
             console.error("Failed to fetch industries", err);
@@ -64,7 +74,7 @@ const Categories = () => {
     const fetchCategories = async () => {
         setLoading(true);
         try {
-            let url = `http://localhost:5000/api/categories?`;
+            let url = `${import.meta.env.VITE_API_URL}/api/categories?page=${page}&limit=10&`;
             if (searchTerm) url += `search=${searchTerm}&`;
             if (statusFilter !== 'all') url += `status=${statusFilter}&`;
             if (industryFilter !== 'all') url += `industry=${industryFilter}&`;
@@ -74,8 +84,17 @@ const Categories = () => {
             });
 
             if (!response.ok) throw new Error('Failed to fetch categories');
+
             const data = await response.json();
-            setCategories(data);
+
+            // Handle pagination response structure
+            if (data.result) {
+                setCategories(data.result);
+                setTotalPages(data.pages);
+                setTotalItems(data.total);
+            } else {
+                setCategories(Array.isArray(data) ? data : []);
+            }
         } catch (err) {
             console.error(err);
             showToast('Failed to load categories', 'error');
@@ -139,8 +158,8 @@ const Categories = () => {
 
         try {
             const url = currentCategory
-                ? `http://localhost:5000/api/categories/${currentCategory._id}`
-                : 'http://localhost:5000/api/categories';
+                ? `${import.meta.env.VITE_API_URL}/api/categories/${currentCategory._id}`
+                : `${import.meta.env.VITE_API_URL}/api/categories`;
 
             const method = currentCategory ? 'PUT' : 'POST';
 
@@ -198,7 +217,7 @@ const Categories = () => {
             if (confirmModal.action === 'deactivate') {
                 // Deactivate: Update isActive to false (via PUT update logic implies passing full body or handling partial. 
                 // Our controller updateCategory handles partials)
-                const response = await fetch(`http://localhost:5000/api/categories/${confirmModal.id}`, {
+                const response = await fetch(`${import.meta.env.VITE_API_URL}/api/categories/${confirmModal.id}`, {
                     method: 'PUT',
                     headers: {
                         'Content-Type': 'application/json',
@@ -211,7 +230,7 @@ const Categories = () => {
                 showToast('Category deactivated successfully', 'success');
 
             } else if (confirmModal.action === 'delete') {
-                const response = await fetch(`http://localhost:5000/api/categories/${confirmModal.id}`, {
+                const response = await fetch(`${import.meta.env.VITE_API_URL}/api/categories/${confirmModal.id}`, {
                     method: 'DELETE',
                     headers: { Authorization: `Bearer ${userInfo.token}` }
                 });
@@ -354,8 +373,8 @@ const Categories = () => {
                                     </td>
                                     <td className="px-6 py-4">
                                         <span className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-medium border ${item.isActive
-                                                ? 'bg-green-50 text-green-700 border-green-200'
-                                                : 'bg-gray-100 text-gray-600 border-gray-200'
+                                            ? 'bg-green-50 text-green-700 border-green-200'
+                                            : 'bg-gray-100 text-gray-600 border-gray-200'
                                             }`}>
                                             <div className={`w-1.5 h-1.5 rounded-full ${item.isActive ? 'bg-green-500' : 'bg-gray-400'}`}></div>
                                             {item.isActive ? 'Active' : 'Inactive'}
@@ -399,6 +418,17 @@ const Categories = () => {
                     </table>
                 </div>
             </div>
+
+            {/* Pagination */
+                !loading && categories.length > 0 && (
+                    <Pagination
+                        currentPage={page}
+                        totalPages={totalPages}
+                        onPageChange={setPage}
+                        totalItems={totalItems}
+                        itemsPerPage={10}
+                    />
+                )}
 
             {/* Modal */}
             {isModalOpen && (

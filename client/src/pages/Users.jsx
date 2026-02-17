@@ -5,6 +5,7 @@ import {
     Plus, Search, User, Shield, Mail, Calendar, CheckCircle, X, Trash2
 } from 'lucide-react';
 import Toast from '../components/Toast';
+import Pagination from '../components/Pagination';
 import ConfirmationModal from '../components/ConfirmationModal';
 
 const Users = () => {
@@ -15,6 +16,9 @@ const Users = () => {
     // Filters
     const [searchTerm, setSearchTerm] = useState('');
     const [roleFilter, setRoleFilter] = useState('all');
+    const [page, setPage] = useState(1);
+    const [totalPages, setTotalPages] = useState(1);
+    const [totalItems, setTotalItems] = useState(0);
 
     // UI States
     const [toast, setToast] = useState(null);
@@ -30,8 +34,12 @@ const Users = () => {
 
     // Initial Fetch
     useEffect(() => {
-        fetchUsers();
+        setPage(1); // Reset to page 1 on filter change
     }, [searchTerm, roleFilter]);
+
+    useEffect(() => {
+        fetchUsers();
+    }, [page, searchTerm, roleFilter]);
 
     const showToast = (message, type = 'success') => {
         setToast({ message, type });
@@ -39,8 +47,9 @@ const Users = () => {
 
     const fetchUsers = async () => {
         setLoading(true);
+        setLoading(true);
         try {
-            let url = `http://localhost:5000/api/users?`;
+            let url = `${import.meta.env.VITE_API_URL}/api/users?page=${page}&limit=10&`;
             if (searchTerm) url += `search=${searchTerm}&`;
             if (roleFilter !== 'all') url += `role=${roleFilter}&`;
 
@@ -50,7 +59,15 @@ const Users = () => {
 
             if (!response.ok) throw new Error('Failed to fetch users');
             const data = await response.json();
-            setUsers(data);
+
+            // Handle pagination response structure
+            if (data.result) {
+                setUsers(data.result);
+                setTotalPages(data.pages);
+                setTotalItems(data.total);
+            } else {
+                setUsers(Array.isArray(data) ? data : []);
+            }
         } catch (err) {
             console.error(err);
             showToast('Failed to load users', 'error');
@@ -83,7 +100,7 @@ const Users = () => {
         setFormLoading(true);
 
         try {
-            const url = 'http://localhost:5000/api/users/admin';
+            const url = `${import.meta.env.VITE_API_URL}/api/users/admin`;
             const response = await fetch(url, {
                 method: 'POST',
                 headers: {
@@ -123,7 +140,7 @@ const Users = () => {
         if (!confirmModal.id) return;
 
         try {
-            const response = await fetch(`http://localhost:5000/api/users/${confirmModal.id}`, {
+            const response = await fetch(`${import.meta.env.VITE_API_URL}/api/users/${confirmModal.id}`, {
                 method: 'DELETE',
                 headers: { Authorization: `Bearer ${userInfo.token}` }
             });
@@ -281,6 +298,17 @@ const Users = () => {
                     </table>
                 </div>
             </div>
+
+            {/* Pagination */
+                !loading && users.length > 0 && (
+                    <Pagination
+                        currentPage={page}
+                        totalPages={totalPages}
+                        onPageChange={setPage}
+                        totalItems={totalItems}
+                        itemsPerPage={10}
+                    />
+                )}
 
             {/* Modal */}
             {isModalOpen && (

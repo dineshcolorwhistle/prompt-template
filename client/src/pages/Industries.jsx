@@ -5,6 +5,7 @@ import {
     Filter, MoreHorizontal, Power, CheckCircle, Info
 } from 'lucide-react';
 import Toast from '../components/Toast';
+import Pagination from '../components/Pagination';
 import ConfirmationModal from '../components/ConfirmationModal';
 
 const Industries = () => {
@@ -15,6 +16,9 @@ const Industries = () => {
     // Filters
     const [searchTerm, setSearchTerm] = useState('');
     const [statusFilter, setStatusFilter] = useState('all');
+    const [page, setPage] = useState(1);
+    const [totalPages, setTotalPages] = useState(1);
+    const [totalItems, setTotalItems] = useState(0);
 
     // UI States
     const [toast, setToast] = useState(null); // { message, type }
@@ -33,8 +37,12 @@ const Industries = () => {
 
     // Initial Fetch
     useEffect(() => {
-        fetchIndustries();
+        setPage(1); // Reset to page 1 on filter change
     }, [searchTerm, statusFilter]);
+
+    useEffect(() => {
+        fetchIndustries();
+    }, [page, searchTerm, statusFilter]);
 
     const showToast = (message, type = 'success') => {
         setToast({ message, type });
@@ -43,7 +51,7 @@ const Industries = () => {
     const fetchIndustries = async () => {
         setLoading(true);
         try {
-            let url = `http://localhost:5000/api/industries?`;
+            let url = `${import.meta.env.VITE_API_URL}/api/industries?page=${page}&limit=10&`;
             if (searchTerm) url += `search=${searchTerm}&`;
             if (statusFilter !== 'all') url += `status=${statusFilter}&`;
 
@@ -53,7 +61,16 @@ const Industries = () => {
 
             if (!response.ok) throw new Error('Failed to fetch industries');
             const data = await response.json();
-            setIndustries(data);
+
+            // Handle pagination response structure
+            if (data.result) {
+                setIndustries(data.result);
+                setTotalPages(data.pages);
+                setTotalItems(data.total);
+            } else {
+                // Fallback for non-paginated response (if API changes haven't propagated?)
+                setIndustries(Array.isArray(data) ? data : []);
+            }
         } catch (err) {
             console.error(err);
             showToast('Failed to load industries', 'error');
@@ -110,8 +127,8 @@ const Industries = () => {
 
         try {
             const url = currentIndustry
-                ? `http://localhost:5000/api/industries/${currentIndustry._id}`
-                : 'http://localhost:5000/api/industries';
+                ? `${import.meta.env.VITE_API_URL}/api/industries/${currentIndustry._id}`
+                : `${import.meta.env.VITE_API_URL}/api/industries`;
 
             const method = currentIndustry ? 'PUT' : 'POST';
 
@@ -170,7 +187,7 @@ const Industries = () => {
         try {
             if (confirmModal.action === 'deactivate') {
                 // Deactivate: Update isActive to false
-                const response = await fetch(`http://localhost:5000/api/industries/${confirmModal.id}`, {
+                const response = await fetch(`${import.meta.env.VITE_API_URL}/api/industries/${confirmModal.id}`, {
                     method: 'PUT',
                     headers: {
                         'Content-Type': 'application/json',
@@ -184,7 +201,7 @@ const Industries = () => {
 
             } else if (confirmModal.action === 'delete') {
                 // Delete: Hard Delete (only allowed for inactive)
-                const response = await fetch(`http://localhost:5000/api/industries/${confirmModal.id}`, {
+                const response = await fetch(`${import.meta.env.VITE_API_URL}/api/industries/${confirmModal.id}`, {
                     method: 'DELETE',
                     headers: { Authorization: `Bearer ${userInfo.token}` }
                 });
@@ -358,6 +375,17 @@ const Industries = () => {
                     </table>
                 </div>
             </div>
+
+            {/* Pagination */
+                !loading && industries.length > 0 && (
+                    <Pagination
+                        currentPage={page}
+                        totalPages={totalPages}
+                        onPageChange={setPage}
+                        totalItems={totalItems}
+                        itemsPerPage={10}
+                    />
+                )}
 
             {/* Modal */}
             {isModalOpen && (
