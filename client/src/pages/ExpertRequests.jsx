@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useAuth } from '../context/AuthContext';
-import { Check, X, Clock, AlertCircle } from 'lucide-react';
+import { Check, X, Clock, AlertCircle, Trash2 } from 'lucide-react';
 
 const ExpertRequests = () => {
     const [requests, setRequests] = useState([]);
@@ -48,6 +48,28 @@ const ExpertRequests = () => {
             }
         } catch (err) {
             console.error('Failed to update status', err);
+        }
+    };
+
+    const handleDeleteRequest = async (id) => {
+        if (!window.confirm('Are you sure you want to delete this request?')) return;
+
+        try {
+            const response = await fetch(`${import.meta.env.VITE_API_URL}/api/expert-requests/${id}`, {
+                method: 'DELETE',
+                headers: {
+                    Authorization: `Bearer ${userInfo.token}`,
+                },
+            });
+
+            if (response.ok) {
+                setRequests(requests.filter(req => req._id !== id));
+            } else {
+                const data = await response.json();
+                console.error(data.message);
+            }
+        } catch (err) {
+            console.error('Failed to delete request', err);
         }
     };
 
@@ -125,6 +147,13 @@ const ExpertRequests = () => {
                                                 </button>
                                             </>
                                         )}
+                                        <button
+                                            onClick={() => handleDeleteRequest(request._id)}
+                                            className="p-1.5 text-gray-400 hover:text-red-500 hover:bg-red-50 rounded-lg transition-colors ml-2"
+                                            title="Delete Request"
+                                        >
+                                            <Trash2 size={18} />
+                                        </button>
                                     </td>
                                 </tr>
                             ))}

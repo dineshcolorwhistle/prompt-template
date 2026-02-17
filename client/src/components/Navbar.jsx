@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import { Search, Menu, X, User, LogOut, LayoutDashboard, ChevronDown, CheckCircle } from 'lucide-react';
+import { Search, Menu, X, User, LogOut, LayoutDashboard, ChevronDown, CheckCircle, BadgeCheck } from 'lucide-react';
 
 import { useAuth } from '../context/AuthContext';
 import RequestExpertModal from './RequestExpertModal';
@@ -68,8 +68,13 @@ export default function Navbar() {
                                         onClick={() => setIsProfileOpen(!isProfileOpen)}
                                         className="flex items-center space-x-2 text-gray-700 hover:text-indigo-600 focus:outline-none"
                                     >
-                                        <div className="w-8 h-8 rounded-full bg-indigo-100 flex items-center justify-center text-indigo-600 font-bold border border-indigo-200">
+                                        <div className="w-8 h-8 rounded-full bg-indigo-100 flex items-center justify-center text-indigo-600 font-bold border border-indigo-200 relative">
                                             {userInfo.name ? userInfo.name.charAt(0).toUpperCase() : <User size={16} />}
+                                            {userInfo.isVerifiedExpert && (
+                                                <div className="absolute -bottom-1 -right-1 bg-white rounded-full">
+                                                    <BadgeCheck size={14} className="text-blue-600 fill-blue-50" />
+                                                </div>
+                                            )}
                                         </div>
                                         <span className="font-medium text-sm max-w-[100px] truncate">{userInfo.name}</span>
                                         <ChevronDown size={16} className={`transform transition-transform ${isProfileOpen ? 'rotate-180' : ''}`} />
@@ -158,8 +163,13 @@ export default function Navbar() {
                             {userInfo ? (
                                 <>
                                     <div className="flex items-center space-x-3 py-2 border-b border-gray-50 mb-2">
-                                        <div className="w-10 h-10 rounded-full bg-indigo-100 flex items-center justify-center text-indigo-600 font-bold border border-indigo-200">
+                                        <div className="w-10 h-10 rounded-full bg-indigo-100 flex items-center justify-center text-indigo-600 font-bold border border-indigo-200 relative">
                                             {userInfo.name ? userInfo.name.charAt(0).toUpperCase() : <User size={20} />}
+                                            {userInfo.isVerifiedExpert && (
+                                                <div className="absolute -bottom-1 -right-1 bg-white rounded-full">
+                                                    <BadgeCheck size={16} className="text-blue-600 fill-blue-50" />
+                                                </div>
+                                            )}
                                         </div>
                                         <div>
                                             <p className="font-semibold text-gray-900">{userInfo.name}</p>

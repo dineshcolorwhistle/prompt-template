@@ -31,6 +31,8 @@ const industryRoutes = require('./routes/industryRoutes');
 app.use('/api/industries', industryRoutes);
 const categoryRoutes = require('./routes/categoryRoutes');
 app.use('/api/categories', categoryRoutes);
+const templateRoutes = require('./routes/templateRoutes');
+app.use('/api/templates', templateRoutes);
 
 app.get('/', (req, res) => {
   res.send('API is running...');

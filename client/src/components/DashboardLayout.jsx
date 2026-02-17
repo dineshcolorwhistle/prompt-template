@@ -2,7 +2,8 @@ import React, { useState, useEffect } from 'react';
 import { useAuth } from '../context/AuthContext';
 import {
     Menu, LogOut, LayoutDashboard, FileText, Users, Settings,
-    FileCheck, Briefcase, Tags, MessageSquare, BarChart2, User
+    FileCheck, Briefcase, Tags, MessageSquare, BarChart2, User,
+    BadgeCheck
 } from 'lucide-react';
 import { Link, Outlet, useLocation, useNavigate } from 'react-router-dom';
 
@@ -35,7 +36,7 @@ const DashboardLayout = () => {
             { icon: Settings, label: 'Settings', path: '/dashboard/settings' }
         ] : []),
         ...(userInfo.role === 'Expert' ? [
-            { icon: FileText, label: 'My Models', path: '/dashboard/models' }
+            { icon: FileText, label: 'Template Management', path: '/dashboard/models' }
         ] : [])
     ];
 
@@ -62,8 +63,8 @@ const DashboardLayout = () => {
                             key={index} // key={item.path} might duplicate if paths are same, index is safer if duplicate paths exist temporarily
                             to={item.path}
                             className={`flex items-center px-3 py-2.5 rounded-lg transition-colors group ${location.pathname === item.path
-                                    ? 'bg-indigo-50 text-indigo-600 font-medium'
-                                    : 'text-gray-600 hover:bg-gray-50 hover:text-gray-900'
+                                ? 'bg-indigo-50 text-indigo-600 font-medium'
+                                : 'text-gray-600 hover:bg-gray-50 hover:text-gray-900'
                                 }`}
                         >
                             <item.icon size={20} className={`${location.pathname === item.path ? 'text-indigo-600' : 'text-gray-400 group-hover:text-gray-600'}`} />
@@ -75,8 +76,13 @@ const DashboardLayout = () => {
                 <div className="p-4 border-t border-gray-100 flex-shrink-0">
                     {isSidebarOpen && (
                         <div className="flex items-center gap-3 mb-4 px-2">
-                            <div className="w-8 h-8 rounded-full bg-indigo-100 flex items-center justify-center text-indigo-600 font-bold border border-indigo-200">
+                            <div className="w-8 h-8 rounded-full bg-indigo-100 flex items-center justify-center text-indigo-600 font-bold border border-indigo-200 relative">
                                 {userInfo.name ? userInfo.name.charAt(0).toUpperCase() : <User size={16} />}
+                                {userInfo.isVerifiedExpert && (
+                                    <div className="absolute -bottom-1 -right-1 bg-white rounded-full">
+                                        <BadgeCheck size={14} className="text-blue-600 fill-blue-50" />
+                                    </div>
+                                )}
                             </div>
                             <div className="overflow-hidden">
                                 <p className="text-sm font-semibold text-gray-900 truncate">{userInfo.name}</p>

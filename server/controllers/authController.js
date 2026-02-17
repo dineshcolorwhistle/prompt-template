@@ -18,6 +18,7 @@ const authUser = async (req, res) => {
                 name: user.name,
                 email: user.email,
                 role: user.role,
+                isVerifiedExpert: user.isVerifiedExpert,
                 token: generateToken(user._id),
             });
         } else {

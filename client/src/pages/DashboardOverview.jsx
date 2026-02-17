@@ -5,13 +5,43 @@ import { Users, FileText, Activity, TrendingUp } from 'lucide-react';
 const DashboardOverview = () => {
     const { userInfo } = useAuth();
 
-    // In a real app, fetch stats from API
-    const stats = [
-        { label: 'Total Sales', value: '$12,450', change: '+12%', icon: TrendingUp, color: 'text-green-600', bg: 'bg-green-100' },
-        { label: 'Active Users', value: '1,234', change: '+5%', icon: Users, color: 'text-indigo-600', bg: 'bg-indigo-100' },
-        { label: 'Pending Requests', value: '8', change: '-2', icon: FileText, color: 'text-orange-600', bg: 'bg-orange-100' },
-        { label: 'Server Status', value: '99.9%', change: 'Stable', icon: Activity, color: 'text-blue-600', bg: 'bg-blue-100' },
-    ];
+    const [stats, setStats] = useState([]);
+    const [loading, setLoading] = useState(true);
+
+    useEffect(() => {
+        const fetchStats = async () => {
+            try {
+                if (userInfo.role === 'Expert') {
+                    const response = await fetch(`${import.meta.env.VITE_API_URL}/api/templates/stats`, {
+                        headers: { Authorization: `Bearer ${userInfo.token}` }
+                    });
+                    const data = await response.json();
+
+                    setStats([
+                        { label: 'Total Templates', value: data.total || 0, change: 'All time', icon: FileText, color: 'text-indigo-600', bg: 'bg-indigo-100' },
+                        { label: 'Published', value: data.approved || 0, change: 'Live', icon: TrendingUp, color: 'text-green-600', bg: 'bg-green-100' },
+                        { label: 'Pending Review', value: data.pending || 0, change: 'Awaiting', icon: Activity, color: 'text-orange-600', bg: 'bg-orange-100' },
+                        { label: 'Drafts', value: data.draft || 0, change: 'In progress', icon: FileText, color: 'text-gray-600', bg: 'bg-gray-100' },
+                    ]);
+                } else {
+                    // Admin stats (mocked for now as we didn't implement admin stats endpoint fully yet, 
+                    // or we could reuse the same pattern if we had an endpoint)
+                    setStats([
+                        { label: 'Total Sales', value: '$12,450', change: '+12%', icon: TrendingUp, color: 'text-green-600', bg: 'bg-green-100' },
+                        { label: 'Active Users', value: '1,234', change: '+5%', icon: Users, color: 'text-indigo-600', bg: 'bg-indigo-100' },
+                        { label: 'Pending Requests', value: '8', change: '-2', icon: FileText, color: 'text-orange-600', bg: 'bg-orange-100' },
+                        { label: 'Server Status', value: '99.9%', change: 'Stable', icon: Activity, color: 'text-blue-600', bg: 'bg-blue-100' },
+                    ]);
+                }
+            } catch (error) {
+                console.error("Failed to fetch dashboard stats", error);
+            } finally {
+                setLoading(false);
+            }
+        };
+
+        fetchStats();
+    }, [userInfo]);
 
     return (
         <div className="space-y-6">

@@ -11,6 +11,7 @@ import ExpertRequests from './pages/ExpertRequests';
 import Industries from './pages/Industries';
 import Categories from './pages/Categories';
 import Users from './pages/Users';
+import MyTemplates from './pages/MyTemplates';
 import PlaceholderPage from './components/PlaceholderPage';
 import './App.css';
 
@@ -45,7 +46,7 @@ function App() {
             <Route path="comments" element={<PlaceholderPage title="Moderate Comments" />} />
             <Route path="analytics" element={<PlaceholderPage title="Analytics" />} />
             <Route path="settings" element={<PlaceholderPage title="Settings" />} />
-            <Route path="models" element={<PlaceholderPage title="My Models" />} />
+            <Route path="models" element={<MyTemplates />} />
           </Route>
 
         </Routes>
