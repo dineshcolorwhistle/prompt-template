@@ -25,6 +25,8 @@ mongoose.connect(process.env.MONGODB_URI)
 const userRoutes = require('./routes/userRoutes');
 
 app.use('/api/users', userRoutes);
+const expertRequestRoutes = require('./routes/expertRequestRoutes');
+app.use('/api/expert-requests', expertRequestRoutes);
 
 app.get('/', (req, res) => {
   res.send('API is running...');
