@@ -22,7 +22,7 @@ jobs:
           script: |
             set -e
 
-            cd /home/eduwhistle-prompt-template/htdocs/prompt-template.eduwhistle.com/prompt-template/client/dist
+            cd /home/eduwhistle-prompt-template/htdocs/prompt-template.eduwhistle.com/prompt-template
 
             git config --global --add safe.directory "$(pwd)"
 
