@@ -138,7 +138,7 @@ const MyTemplates = () => {
                         placeholder="Search your templates..."
                         value={searchTerm}
                         onChange={(e) => setSearchTerm(e.target.value)}
-                        className="w-full pl-10 pr-4 py-2 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 transition-all"
+                        className="w-full pl-9 pr-4 py-2 text-sm border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition-colors"
                     />
                 </div>
             </div>
@@ -185,8 +185,8 @@ const MyTemplates = () => {
                                         </td>
                                         <td className="px-6 py-4">
                                             <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium border ${template.status === 'Approved' ? 'bg-green-50 text-green-700 border-green-200' :
-                                                    template.status === 'Draft' ? 'bg-gray-100 text-gray-600 border-gray-200' :
-                                                        'bg-yellow-50 text-yellow-700 border-yellow-200'
+                                                template.status === 'Draft' ? 'bg-gray-100 text-gray-600 border-gray-200' :
+                                                    'bg-yellow-50 text-yellow-700 border-yellow-200'
                                                 }`}>
                                                 {template.status}
                                             </span>

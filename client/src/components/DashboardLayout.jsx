@@ -3,7 +3,7 @@ import { useAuth } from '../context/AuthContext';
 import {
     Menu, LogOut, LayoutDashboard, FileText, Users, Settings,
     FileCheck, Briefcase, Tags, MessageSquare, BarChart2, User,
-    BadgeCheck
+    BadgeCheck, Braces
 } from 'lucide-react';
 import { Link, Outlet, useLocation, useNavigate } from 'react-router-dom';
 
@@ -28,7 +28,8 @@ const DashboardLayout = () => {
         ...(userInfo.role === 'Admin' ? [
             { icon: Users, label: 'Manage Users', path: '/dashboard/users' },
             { icon: Users, label: 'Expert Requests', path: '/dashboard/requests' },
-            { icon: FileCheck, label: 'Approve Templates', path: '/dashboard/templates' },
+            { icon: FileCheck, label: 'Templates', path: '/dashboard/templates' },
+            { icon: Braces, label: 'Template Variables', path: '/dashboard/variables' },
             { icon: Briefcase, label: 'Industries', path: '/dashboard/industries' },
             { icon: Tags, label: 'Categories', path: '/dashboard/categories' },
             { icon: MessageSquare, label: 'Moderate Comments', path: '/dashboard/comments' },

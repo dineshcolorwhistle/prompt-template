@@ -8,37 +8,53 @@ const templateSchema = new mongoose.Schema({
     },
     title: {
         type: String,
-        required: true,
+        required: [true, 'Please add a title'],
         trim: true,
     },
     description: {
         type: String,
-        required: true,
-    },
-    content: {
-        type: String,
-        required: true,
+        required: [true, 'Please add a description'],
     },
     industry: {
         type: mongoose.Schema.Types.ObjectId,
         ref: 'Industry',
-        required: true,
+        required: [true, 'Please select an industry'],
     },
     category: {
         type: mongoose.Schema.Types.ObjectId,
         ref: 'Category',
-        required: true,
+        required: [true, 'Please select a category'],
+    },
+    useCase: {
+        type: String,
+    },
+    tone: {
+        type: String, // Locked tone
+    },
+    outputFormat: {
+        type: String, // Locked output format
+    },
+    structuralInstruction: {
+        type: String, // Locked structural instruction
+    },
+    basePromptText: {
+        type: String, // BasePromptText
+        required: [true, 'Please add base prompt text'],
+    },
+    variables: [{
+        type: mongoose.Schema.Types.ObjectId,
+        ref: 'Variable',
+    }],
+    sampleOutput: {
+        type: [String], // Image URLs/paths
+    },
+    repurposingIdeas: {
+        type: String,
     },
     status: {
         type: String,
         enum: ['Draft', 'Pending', 'Approved', 'Rejected'],
         default: 'Draft',
-    },
-    effectiveness: {
-        type: Number,
-        default: 0,
-        min: 0,
-        max: 100,
     },
     createdAt: {
         type: Date,
@@ -50,9 +66,8 @@ const templateSchema = new mongoose.Schema({
     },
 });
 
-templateSchema.pre('save', function (next) {
+templateSchema.pre('save', async function () {
     this.updatedAt = Date.now();
-    next();
 });
 
 const Template = mongoose.model('Template', templateSchema);

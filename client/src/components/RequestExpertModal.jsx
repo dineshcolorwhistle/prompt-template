@@ -67,7 +67,7 @@ const RequestExpertModal = ({ isOpen, onClose }) => {
                                 Tell us about your expertise
                             </label>
                             <textarea
-                                className="w-full px-3 py-2 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent min-h-[120px] resize-none"
+                                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent min-h-[120px] resize-none transition-colors"
                                 placeholder="Describe your skills, experience, and why you want to be an expert..."
                                 value={details}
                                 onChange={(e) => setDetails(e.target.value)}

@@ -294,7 +294,7 @@ const Categories = () => {
                         placeholder="Search categories..."
                         value={searchTerm}
                         onChange={(e) => setSearchTerm(e.target.value)}
-                        className="w-full pl-10 pr-4 py-2 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 transition-all"
+                        className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition-all"
                     />
                 </div>
                 <div className="flex gap-2 w-full sm:w-auto">
@@ -303,7 +303,7 @@ const Categories = () => {
                         <select
                             value={industryFilter}
                             onChange={(e) => setIndustryFilter(e.target.value)}
-                            className="w-full pl-9 pr-4 py-2 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 bg-white"
+                            className="w-full pl-9 pr-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent bg-white transition-colors"
                         >
                             <option value="all">All Industries</option>
                             {industries.map(ind => (
@@ -316,7 +316,7 @@ const Categories = () => {
                         <select
                             value={statusFilter}
                             onChange={(e) => setStatusFilter(e.target.value)}
-                            className="w-full pl-9 pr-4 py-2 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 bg-white"
+                            className="w-full pl-9 pr-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent bg-white transition-colors"
                         >
                             <option value="all">All Status</option>
                             <option value="active">Active</option>
@@ -453,7 +453,7 @@ const Categories = () => {
                                     required
                                     value={formData.industry}
                                     onChange={handleInputChange}
-                                    className="w-full px-3 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 outline-none transition bg-white"
+                                    className="w-full px-3 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent outline-none transition-colors disabled:bg-gray-100 disabled:text-gray-500"
                                 >
                                     <option value="">Select Industry</option>
                                     {industries.map(ind => (
@@ -472,7 +472,7 @@ const Categories = () => {
                                     required
                                     value={formData.name}
                                     onChange={handleInputChange}
-                                    className="w-full px-3 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 outline-none transition"
+                                    className="w-full px-3 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent outline-none transition-colors"
                                     placeholder="e.g. AI & Robotics"
                                 />
                             </div>
@@ -487,7 +487,7 @@ const Categories = () => {
                                     required
                                     value={formData.slug}
                                     onChange={handleInputChange}
-                                    className="w-full px-3 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 outline-none transition bg-gray-50 font-mono text-sm text-gray-600"
+                                    className="w-full px-3 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent outline-none transition-colors bg-gray-50 font-mono text-sm text-gray-600"
                                     placeholder="e.g. ai-and-robotics"
                                 />
                                 <p className="text-xs text-gray-500 mt-1.5 flex items-center gap-1">
@@ -504,7 +504,7 @@ const Categories = () => {
                                     value={formData.description}
                                     onChange={handleInputChange}
                                     rows="3"
-                                    className="w-full px-3 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 outline-none transition resize-none"
+                                    className="w-full px-3 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent outline-none transition-colors resize-none"
                                     placeholder="Brief description..."
                                 />
                             </div>

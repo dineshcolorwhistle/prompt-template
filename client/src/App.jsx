@@ -12,6 +12,8 @@ import Industries from './pages/Industries';
 import Categories from './pages/Categories';
 import Users from './pages/Users';
 import MyTemplates from './pages/MyTemplates';
+import Variables from './pages/Variables';
+import Templates from './pages/Templates';
 import PlaceholderPage from './components/PlaceholderPage';
 import './App.css';
 
@@ -40,7 +42,8 @@ function App() {
             <Route index element={<DashboardOverview />} />
             <Route path="requests" element={<ExpertRequests />} />
             <Route path="users" element={<Users />} />
-            <Route path="templates" element={<PlaceholderPage title="Approve Templates" />} />
+            <Route path="templates" element={<Templates />} />
+            <Route path="variables" element={<Variables />} />
             <Route path="industries" element={<Industries />} />
             <Route path="categories" element={<Categories />} />
             <Route path="comments" element={<PlaceholderPage title="Moderate Comments" />} />

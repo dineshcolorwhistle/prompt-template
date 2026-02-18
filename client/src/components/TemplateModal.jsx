@@ -9,7 +9,7 @@ const TemplateModal = ({ isOpen, onClose, template, onSave }) => {
         description: '',
         industry: '',
         category: '',
-        content: '',
+        basePromptText: '',
         status: 'Draft' // Default
     });
     const [industries, setIndustries] = useState([]);
@@ -24,7 +24,7 @@ const TemplateModal = ({ isOpen, onClose, template, onSave }) => {
                 description: template.description || '',
                 industry: template.industry?._id || template.industry || '',
                 category: template.category?._id || template.category || '',
-                content: template.content || '',
+                basePromptText: template.basePromptText || template.content || '',
                 status: template.status || 'Draft'
             });
         } else {
@@ -33,7 +33,7 @@ const TemplateModal = ({ isOpen, onClose, template, onSave }) => {
                 description: '',
                 industry: '',
                 category: '',
-                content: '',
+                basePromptText: '',
                 status: 'Draft'
             });
         }
@@ -52,7 +52,7 @@ const TemplateModal = ({ isOpen, onClose, template, onSave }) => {
                 headers: { Authorization: `Bearer ${userInfo.token}` }
             });
             const data = await response.json();
-            setIndustries(data);
+            setIndustries(data.result || []);
         } catch (err) {
             console.error(err);
         }
@@ -60,11 +60,10 @@ const TemplateModal = ({ isOpen, onClose, template, onSave }) => {
 
     const fetchCategories = async () => {
         try {
-            const response = await fetch(`${import.meta.env.VITE_API_URL}/api/categories?limit=100`, { // Fetching all for now, ideally filter by industry
+            const response = await fetch(`${import.meta.env.VITE_API_URL}/api/categories?limit=100`, {
                 headers: { Authorization: `Bearer ${userInfo.token}` }
             });
             const data = await response.json();
-            // Expected data format might be { result: [], ... } based on previous steps
             setCategories(data.result || data);
         } catch (err) {
             console.error(err);
@@ -114,7 +113,6 @@ const TemplateModal = ({ isOpen, onClose, template, onSave }) => {
 
     if (!isOpen) return null;
 
-    // Filter categories based on selected industry
     const filteredCategories = formData.industry
         ? categories.filter(cat => (cat.industry?._id || cat.industry) === formData.industry)
         : [];
@@ -149,7 +147,7 @@ const TemplateModal = ({ isOpen, onClose, template, onSave }) => {
                                     required
                                     value={formData.title}
                                     onChange={handleChange}
-                                    className="w-full px-3 py-2 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition-colors"
                                     placeholder="e.g. SEO Blog Post Generator"
                                 />
                             </div>
@@ -159,7 +157,7 @@ const TemplateModal = ({ isOpen, onClose, template, onSave }) => {
                                     name="status"
                                     value={formData.status}
                                     onChange={handleChange}
-                                    className="w-full px-3 py-2 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 bg-white"
+                                    className="w-full px-3 py-2 border border-gray-300 rounded-lg bg-white focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition-colors"
                                 >
                                     <option value="Draft">Draft</option>
                                     <option value="Pending">Publish (Pending Review)</option>
@@ -175,7 +173,7 @@ const TemplateModal = ({ isOpen, onClose, template, onSave }) => {
                                     required
                                     value={formData.industry}
                                     onChange={handleChange}
-                                    className="w-full px-3 py-2 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 bg-white"
+                                    className="w-full px-3 py-2 border border-gray-300 rounded-lg bg-white focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition-colors"
                                 >
                                     <option value="">Select Industry</option>
                                     {industries.map(ind => (
@@ -191,7 +189,7 @@ const TemplateModal = ({ isOpen, onClose, template, onSave }) => {
                                     value={formData.category}
                                     onChange={handleChange}
                                     disabled={!formData.industry}
-                                    className="w-full px-3 py-2 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 bg-white disabled:bg-gray-50 disabled:text-gray-400"
+                                    className="w-full px-3 py-2 border border-gray-300 rounded-lg bg-white disabled:bg-gray-50 disabled:text-gray-400 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition-colors"
                                 >
                                     <option value="">Select Category</option>
                                     {filteredCategories.map(cat => (
@@ -209,7 +207,7 @@ const TemplateModal = ({ isOpen, onClose, template, onSave }) => {
                                 rows={2}
                                 value={formData.description}
                                 onChange={handleChange}
-                                className="w-full px-3 py-2 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 resize-none"
+                                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent resize-none transition-colors"
                                 placeholder="Briefly describe what this template does..."
                             />
                         </div>
@@ -217,12 +215,12 @@ const TemplateModal = ({ isOpen, onClose, template, onSave }) => {
                         <div>
                             <label className="block text-sm font-medium text-gray-700 mb-1">Prompt Content</label>
                             <textarea
-                                name="content"
+                                name="basePromptText"
                                 required
                                 rows={8}
-                                value={formData.content}
+                                value={formData.basePromptText}
                                 onChange={handleChange}
-                                className="w-full px-3 py-2 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 font-mono text-sm"
+                                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent font-mono text-sm transition-colors"
                                 placeholder="Enter your prompt here. Use {{variable}} for placeholders."
                             />
                         </div>

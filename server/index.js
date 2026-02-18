@@ -31,8 +31,13 @@ const industryRoutes = require('./routes/industryRoutes');
 app.use('/api/industries', industryRoutes);
 const categoryRoutes = require('./routes/categoryRoutes');
 app.use('/api/categories', categoryRoutes);
+const variableRoutes = require('./routes/variableRoutes');
+app.use('/api/variables', variableRoutes);
 const templateRoutes = require('./routes/templateRoutes');
 app.use('/api/templates', templateRoutes);
+
+// Make uploads folder static
+app.use('/uploads', express.static('uploads'));
 
 app.get('/', (req, res) => {
   res.send('API is running...');
