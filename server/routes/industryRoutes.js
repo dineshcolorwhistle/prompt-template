@@ -17,7 +17,7 @@ const { protect, admin } = require('../middleware/authMiddleware');
 // Assuming this is for the Admin Dashboard, protect+admin is safer for the specific management endpoints.
 
 router.route('/')
-    .get(protect, admin, getIndustries) // Admin list view
+    .get(getIndustries) // Public: Homepage needs this without auth
     .post(protect, admin, createIndustry);
 
 router.route('/:id')
