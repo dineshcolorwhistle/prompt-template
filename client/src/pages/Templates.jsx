@@ -38,7 +38,7 @@ const Templates = () => {
             });
             const data = await response.json();
             if (response.ok) {
-                setTemplates(Array.isArray(data) ? data : []);
+                setTemplates(Array.isArray(data) ? data : (data.result || []));
             } else {
                 toast.error(data.message || 'Failed to fetch templates');
             }
