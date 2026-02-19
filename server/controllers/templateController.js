@@ -7,7 +7,7 @@ const path = require('path');
 // @access  Public (Approved) / Private (Admin - all)
 exports.getTemplates = async (req, res) => {
     try {
-        const { search, industry, category, status } = req.query;
+        const { search, industry, category, status, page, limit } = req.query;
         let query = {};
 
         // If not admin, only show Approved
@@ -28,13 +28,23 @@ exports.getTemplates = async (req, res) => {
         if (industry) query.industry = industry;
         if (category) query.category = category;
 
+        // Pagination
+        const pageNum = parseInt(page, 10) || 1;
+        const limitNum = parseInt(limit, 10) || 12;
+        const skip = (pageNum - 1) * limitNum;
+
+        const total = await Template.countDocuments(query);
+        const pages = Math.ceil(total / limitNum);
+
         const templates = await Template.find(query)
             .populate('industry', 'name')
             .populate('category', 'name')
             .populate('user', 'name')
-            .sort({ createdAt: -1 });
+            .sort({ createdAt: -1 })
+            .skip(skip)
+            .limit(limitNum);
 
-        res.json(templates);
+        res.json({ result: templates, pages, total, page: pageNum });
     } catch (error) {
         res.status(500).json({ message: error.message });
     }

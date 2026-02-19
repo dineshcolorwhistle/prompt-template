@@ -22,9 +22,7 @@ app.use(morgan('dev'));
 // Database Connection
 mongoose.connect(process.env.MONGODB_URI, {
   serverSelectionTimeoutMS: 5000,
-  socketTimeoutMS: 45000,
-  tlsAllowInvalidCertificates: true,
-  tls: { rejectUnauthorized: false }
+  socketTimeoutMS: 45000
 })
   .then(() => console.log('MongoDB Connected'))
   .catch(err => {
