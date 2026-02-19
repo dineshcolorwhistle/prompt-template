@@ -1,10 +1,12 @@
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef, useCallback } from 'react';
+import useDebounce from '../hooks/useDebounce';
 import { useAuth } from '../context/AuthContext';
 import {
     Plus, Search, User, Shield, Mail, Calendar, CheckCircle, X, Trash2
 } from 'lucide-react';
-import Toast from '../components/Toast';
+import { motion, AnimatePresence } from 'framer-motion';
+import { toast } from 'react-hot-toast';
 import Pagination from '../components/Pagination';
 import ConfirmationModal from '../components/ConfirmationModal';
 
@@ -21,7 +23,7 @@ const Users = () => {
     const [totalItems, setTotalItems] = useState(0);
 
     // UI States
-    const [toast, setToast] = useState(null);
+
     const [isModalOpen, setIsModalOpen] = useState(false);
     const [formLoading, setFormLoading] = useState(false);
     const [confirmModal, setConfirmModal] = useState({ isOpen: false, id: null, name: '' });
@@ -32,29 +34,50 @@ const Users = () => {
         email: '',
     });
 
-    // Initial Fetch
-    useEffect(() => {
-        setPage(1); // Reset to page 1 on filter change
-    }, [searchTerm, roleFilter]);
+    // Debounce search term
+    const debouncedSearchTerm = useDebounce(searchTerm, 500);
+    const abortControllerRef = useRef(null);
 
+    // Unified fetch effect: reset page on filter change, then fetch
+    const prevFiltersRef = useRef({ debouncedSearchTerm, roleFilter });
     useEffect(() => {
+        const filtersChanged =
+            prevFiltersRef.current.debouncedSearchTerm !== debouncedSearchTerm ||
+            prevFiltersRef.current.roleFilter !== roleFilter;
+        prevFiltersRef.current = { debouncedSearchTerm, roleFilter };
+
+        if (filtersChanged && page !== 1) {
+            setPage(1); // This will re-trigger this effect with page=1
+            return;
+        }
+
         fetchUsers();
-    }, [page, searchTerm, roleFilter]);
 
-    const showToast = (message, type = 'success') => {
-        setToast({ message, type });
-    };
+        return () => {
+            if (abortControllerRef.current) {
+                abortControllerRef.current.abort();
+            }
+        };
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [page, debouncedSearchTerm, roleFilter]);
+
+
 
     const fetchUsers = async () => {
-        setLoading(true);
+        if (abortControllerRef.current) {
+            abortControllerRef.current.abort();
+        }
+        abortControllerRef.current = new AbortController();
+
         setLoading(true);
         try {
             let url = `${import.meta.env.VITE_API_URL}/api/users?page=${page}&limit=10&`;
-            if (searchTerm) url += `search=${searchTerm}&`;
+            if (debouncedSearchTerm) url += `search=${debouncedSearchTerm}&`;
             if (roleFilter !== 'all') url += `role=${roleFilter}&`;
 
             const response = await fetch(url, {
-                headers: { Authorization: `Bearer ${userInfo.token}` }
+                headers: { Authorization: `Bearer ${userInfo.token}` },
+                signal: abortControllerRef.current.signal
             });
 
             if (!response.ok) throw new Error('Failed to fetch users');
@@ -69,10 +92,14 @@ const Users = () => {
                 setUsers(Array.isArray(data) ? data : []);
             }
         } catch (err) {
-            console.error(err);
-            showToast('Failed to load users', 'error');
+            if (err.name !== 'AbortError') {
+                console.error(err);
+                toast.error('Failed to load users');
+            }
         } finally {
-            setLoading(false);
+            if (!abortControllerRef.current?.signal.aborted) {
+                setLoading(false);
+            }
         }
     };
 
@@ -116,11 +143,11 @@ const Users = () => {
                 throw new Error(data.message || 'Something went wrong');
             }
 
-            showToast('Invitation email sent successfully', 'success');
+            toast.success('Invitation email sent successfully');
             handleCloseModal();
             fetchUsers();
         } catch (err) {
-            showToast(err.message, 'error');
+            toast.error(err.message);
         } finally {
             setFormLoading(false);
         }
@@ -150,10 +177,10 @@ const Users = () => {
                 throw new Error(data.message || 'Failed to delete user');
             }
 
-            showToast('User deleted successfully', 'success');
+            toast.success('User deleted successfully');
             fetchUsers();
         } catch (err) {
-            showToast(err.message, 'error');
+            toast.error(err.message);
         } finally {
             setConfirmModal({ isOpen: false, id: null, name: '' });
         }
@@ -161,13 +188,7 @@ const Users = () => {
 
     return (
         <div className="space-y-6 relative">
-            {toast && (
-                <Toast
-                    message={toast.message}
-                    type={toast.type}
-                    onClose={() => setToast(null)}
-                />
-            )}
+
 
 
             <ConfirmationModal
@@ -175,7 +196,7 @@ const Users = () => {
                 title={confirmModal.title}
                 message={confirmModal.message}
                 onConfirm={handleDelete}
-                onCancel={() => setConfirmModal({ isOpen: false, id: null, name: '' })}
+                onClose={() => setConfirmModal({ isOpen: false, id: null, name: '' })}
                 confirmText="Delete"
                 isDanger={true}
             />
@@ -224,7 +245,7 @@ const Users = () => {
             {/* Table */}
             <div className="bg-white border border-gray-100 rounded-xl shadow-sm overflow-hidden">
                 <div className="overflow-x-auto">
-                    <table className="w-full text-left border-collapse">
+                    <table className="w-full text-left border-collapse min-w-[600px]">
                         <thead>
                             <tr className="bg-gray-50/50 border-b border-gray-100 text-xs uppercase text-gray-500 font-semibold tracking-wider">
                                 <th className="px-6 py-4">Name</th>
@@ -237,7 +258,7 @@ const Users = () => {
                         <tbody className="divide-y divide-gray-100">
                             {loading ? (
                                 <tr>
-                                    <td colSpan="4" className="px-6 py-12 text-center text-gray-500">
+                                    <td colSpan="5" className="px-6 py-12 text-center text-gray-500">
                                         <div className="flex justify-center items-center flex-col">
                                             <div className="w-8 h-8 border-4 border-indigo-200 border-t-indigo-600 rounded-full animate-spin mb-3"></div>
                                             <p>Loading users...</p>
@@ -246,7 +267,7 @@ const Users = () => {
                                 </tr>
                             ) : users.length === 0 ? (
                                 <tr>
-                                    <td colSpan="4" className="px-6 py-12 text-center text-gray-500">
+                                    <td colSpan="5" className="px-6 py-12 text-center text-gray-500">
                                         <div className="flex flex-col items-center justify-center">
                                             <div className="w-12 h-12 bg-gray-100 rounded-full flex items-center justify-center mb-3">
                                                 <Search className="text-gray-400" size={24} />
@@ -256,18 +277,21 @@ const Users = () => {
                                     </td>
                                 </tr>
                             ) : users.map((user) => (
-                                <tr key={user._id} className="hover:bg-gray-50 transition-colors group">
+                                <tr
+                                    key={user._id}
+                                    className="hover:bg-gray-50 transition-colors group"
+                                >
                                     <td className="px-6 py-4">
                                         <div className="flex items-center gap-3">
                                             <div className="w-8 h-8 rounded-full bg-indigo-100 flex items-center justify-center text-indigo-700 font-bold text-xs">
-                                                {user.name.charAt(0).toUpperCase()}
+                                                {(user.name || user.username || user.email || "?").charAt(0).toUpperCase()}
                                             </div>
-                                            <span className="font-medium text-gray-900">{user.name}</span>
+                                            <span className="font-medium text-gray-900">{user.name || user.username || "Unnamed User"}</span>
                                         </div>
                                     </td>
                                     <td className="px-6 py-4 text-gray-600 flex items-center gap-2">
                                         <Mail size={14} className="text-gray-400" />
-                                        {user.email}
+                                        {user.email || "No Email"}
                                     </td>
                                     <td className="px-6 py-4">
                                         <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium border ${user.role === 'Admin' ? 'bg-purple-50 text-purple-700 border-purple-200' :
@@ -311,77 +335,90 @@ const Users = () => {
                 )}
 
             {/* Modal */}
-            {isModalOpen && (
-                <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm animate-in fade-in duration-200">
-                    <div className="bg-white rounded-2xl shadow-xl w-full max-w-md overflow-hidden scale-in-95 animate-in duration-200">
-                        <div className="px-6 py-4 border-b border-gray-100 flex justify-between items-center bg-gray-50/50">
-                            <h3 className="font-bold text-gray-900 text-lg">Add New Admin</h3>
-                            <button onClick={handleCloseModal} className="text-gray-400 hover:text-gray-600 rounded-full p-1 hover:bg-gray-100 transition">
-                                <X size={20} />
-                            </button>
-                        </div>
-
-                        <form onSubmit={handleSubmit} className="p-6 space-y-5">
-                            <div>
-                                <label className="block text-sm font-semibold text-gray-700 mb-1.5">
-                                    Name <span className="text-red-500">*</span>
-                                </label>
-                                <div className="relative">
-                                    <User className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" size={16} />
-                                    <input
-                                        type="text"
-                                        name="name"
-                                        required
-                                        value={formData.name}
-                                        onChange={handleInputChange}
-                                        className="w-full pl-10 pr-3 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 outline-none transition"
-                                        placeholder="Full Name"
-                                    />
-                                </div>
-                            </div>
-
-                            <div>
-                                <label className="block text-sm font-semibold text-gray-700 mb-1.5">
-                                    Email <span className="text-red-500">*</span>
-                                </label>
-                                <div className="relative">
-                                    <Mail className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" size={16} />
-                                    <input
-                                        type="email"
-                                        name="email"
-                                        required
-                                        value={formData.email}
-                                        onChange={handleInputChange}
-                                        className="w-full pl-10 pr-3 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 outline-none transition"
-                                        placeholder="admin@example.com"
-                                    />
-                                </div>
-                            </div>
-
-                            <div className="pt-2 flex justify-end gap-3 border-t border-gray-100 mt-2">
-                                <button
-                                    type="button"
-                                    onClick={handleCloseModal}
-                                    className="px-4 py-2.5 text-gray-700 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 transition font-medium text-sm"
-                                >
-                                    Cancel
-                                </button>
-                                <button
-                                    type="submit"
-                                    disabled={formLoading}
-                                    className="px-6 py-2.5 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 transition font-medium text-sm flex items-center gap-2 shadow-sm hover:shadow"
-                                >
-                                    {formLoading ? (
-                                        <><span className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin"></span> Sending...</>
-                                    ) : (
-                                        <><CheckCircle size={16} /> Send Invitation</>
-                                    )}
+            <AnimatePresence>
+                {isModalOpen && (
+                    <motion.div
+                        initial={{ opacity: 0 }}
+                        animate={{ opacity: 1 }}
+                        exit={{ opacity: 0 }}
+                        className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm"
+                    >
+                        <motion.div
+                            initial={{ opacity: 0, scale: 0.95 }}
+                            animate={{ opacity: 1, scale: 1 }}
+                            exit={{ opacity: 0, scale: 0.95 }}
+                            transition={{ duration: 0.2 }}
+                            className="bg-white rounded-2xl shadow-xl w-full max-w-md overflow-hidden"
+                        >
+                            <div className="px-6 py-4 border-b border-gray-100 flex justify-between items-center bg-gray-50/50">
+                                <h3 className="font-bold text-gray-900 text-lg">Add New Admin</h3>
+                                <button onClick={handleCloseModal} className="text-gray-400 hover:text-gray-600 rounded-full p-1 hover:bg-gray-100 transition">
+                                    <X size={20} />
                                 </button>
                             </div>
-                        </form>
-                    </div>
-                </div>
-            )}
+
+                            <form onSubmit={handleSubmit} className="p-6 space-y-5">
+                                <div>
+                                    <label className="block text-sm font-semibold text-gray-700 mb-1.5">
+                                        Name <span className="text-red-500">*</span>
+                                    </label>
+                                    <div className="relative">
+                                        <User className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" size={16} />
+                                        <input
+                                            type="text"
+                                            name="name"
+                                            required
+                                            value={formData.name}
+                                            onChange={handleInputChange}
+                                            className="w-full pl-10 pr-3 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 outline-none transition"
+                                            placeholder="Full Name"
+                                        />
+                                    </div>
+                                </div>
+
+                                <div>
+                                    <label className="block text-sm font-semibold text-gray-700 mb-1.5">
+                                        Email <span className="text-red-500">*</span>
+                                    </label>
+                                    <div className="relative">
+                                        <Mail className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" size={16} />
+                                        <input
+                                            type="email"
+                                            name="email"
+                                            required
+                                            value={formData.email}
+                                            onChange={handleInputChange}
+                                            className="w-full pl-10 pr-3 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 outline-none transition"
+                                            placeholder="admin@example.com"
+                                        />
+                                    </div>
+                                </div>
+
+                                <div className="pt-2 flex justify-end gap-3 border-t border-gray-100 mt-2">
+                                    <button
+                                        type="button"
+                                        onClick={handleCloseModal}
+                                        className="px-4 py-2.5 text-gray-700 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 transition font-medium text-sm"
+                                    >
+                                        Cancel
+                                    </button>
+                                    <button
+                                        type="submit"
+                                        disabled={formLoading}
+                                        className="px-6 py-2.5 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 transition font-medium text-sm flex items-center gap-2 shadow-sm hover:shadow"
+                                    >
+                                        {formLoading ? (
+                                            <><span className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin"></span> Sending...</>
+                                        ) : (
+                                            <><CheckCircle size={16} /> Send Invitation</>
+                                        )}
+                                    </button>
+                                </div>
+                            </form>
+                        </motion.div>
+                    </motion.div>
+                )}
+            </AnimatePresence>
         </div>
     );
 };

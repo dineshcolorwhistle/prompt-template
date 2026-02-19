@@ -1,10 +1,12 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
+import useDebounce from '../hooks/useDebounce';
 import { useAuth } from '../context/AuthContext';
 import {
     Plus, Search, Edit2, Trash2, X, Info,
     Filter, Power, CheckCircle, Briefcase
 } from 'lucide-react';
-import Toast from '../components/Toast';
+import { motion, AnimatePresence } from 'framer-motion';
+import { toast } from 'react-hot-toast';
 import Pagination from '../components/Pagination';
 import ConfirmationModal from '../components/ConfirmationModal';
 
@@ -23,7 +25,7 @@ const Categories = () => {
     const [totalItems, setTotalItems] = useState(0);
 
     // UI States
-    const [toast, setToast] = useState(null);
+
     const [confirmModal, setConfirmModal] = useState({ isOpen: false, id: null, name: '', action: null });
 
     // Modal State
@@ -38,19 +40,41 @@ const Categories = () => {
     });
     const [formLoading, setFormLoading] = useState(false);
 
-    // Initial Fetch
-    useEffect(() => {
-        setPage(1); // Reset to page 1 on filter change
-    }, [searchTerm, statusFilter, industryFilter]);
+    // Debounce search term
+    const debouncedSearchTerm = useDebounce(searchTerm, 500);
+    const abortControllerRef = useRef(null);
 
+    // Fetch industries for dropdown only once on mount
     useEffect(() => {
         fetchIndustries();
-        fetchCategories();
-    }, [page, searchTerm, statusFilter, industryFilter]);
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, []);
 
-    const showToast = (message, type = 'success') => {
-        setToast({ message, type });
-    };
+    // Unified fetch effect: reset page on filter change, then fetch categories
+    const prevFiltersRef = useRef({ debouncedSearchTerm, statusFilter, industryFilter });
+    useEffect(() => {
+        const filtersChanged =
+            prevFiltersRef.current.debouncedSearchTerm !== debouncedSearchTerm ||
+            prevFiltersRef.current.statusFilter !== statusFilter ||
+            prevFiltersRef.current.industryFilter !== industryFilter;
+        prevFiltersRef.current = { debouncedSearchTerm, statusFilter, industryFilter };
+
+        if (filtersChanged && page !== 1) {
+            setPage(1);
+            return;
+        }
+
+        fetchCategories();
+
+        return () => {
+            if (abortControllerRef.current) {
+                abortControllerRef.current.abort();
+            }
+        };
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [page, debouncedSearchTerm, statusFilter, industryFilter]);
+
+
 
     const fetchIndustries = async () => {
         try {
@@ -72,15 +96,21 @@ const Categories = () => {
     };
 
     const fetchCategories = async () => {
+        if (abortControllerRef.current) {
+            abortControllerRef.current.abort();
+        }
+        abortControllerRef.current = new AbortController();
+
         setLoading(true);
         try {
             let url = `${import.meta.env.VITE_API_URL}/api/categories?page=${page}&limit=10&`;
-            if (searchTerm) url += `search=${searchTerm}&`;
+            if (debouncedSearchTerm) url += `search=${debouncedSearchTerm}&`;
             if (statusFilter !== 'all') url += `status=${statusFilter}&`;
             if (industryFilter !== 'all') url += `industry=${industryFilter}&`;
 
             const response = await fetch(url, {
-                headers: { Authorization: `Bearer ${userInfo.token}` }
+                headers: { Authorization: `Bearer ${userInfo.token}` },
+                signal: abortControllerRef.current.signal
             });
 
             if (!response.ok) throw new Error('Failed to fetch categories');
@@ -96,10 +126,14 @@ const Categories = () => {
                 setCategories(Array.isArray(data) ? data : []);
             }
         } catch (err) {
-            console.error(err);
-            showToast('Failed to load categories', 'error');
+            if (err.name !== 'AbortError') {
+                console.error(err);
+                toast.error('Failed to load categories');
+            }
         } finally {
-            setLoading(false);
+            if (!abortControllerRef.current?.signal.aborted) {
+                setLoading(false);
+            }
         }
     };
 
@@ -178,11 +212,11 @@ const Categories = () => {
                 throw new Error(data.message || 'Something went wrong');
             }
 
-            showToast(currentCategory ? 'Category updated successfully' : 'Category created successfully', 'success');
+            toast.success(currentCategory ? 'Category updated successfully' : 'Category created successfully');
             handleCloseModal();
             fetchCategories();
         } catch (err) {
-            showToast(err.message, 'error');
+            toast.error(err.message);
         } finally {
             setFormLoading(false);
         }
@@ -227,7 +261,7 @@ const Categories = () => {
                 });
 
                 if (!response.ok) throw new Error('Failed to deactivate');
-                showToast('Category deactivated successfully', 'success');
+                toast.success('Category deactivated successfully');
 
             } else if (confirmModal.action === 'delete') {
                 const response = await fetch(`${import.meta.env.VITE_API_URL}/api/categories/${confirmModal.id}`, {
@@ -239,13 +273,13 @@ const Categories = () => {
                     const data = await response.json();
                     throw new Error(data.message || 'Failed to delete');
                 }
-                showToast('Category deleted permanently', 'success');
+                toast.success('Category deleted permanently');
             }
 
             fetchCategories();
         } catch (err) {
             console.error(err);
-            showToast(err.message, 'error');
+            toast.error(err.message);
         } finally {
             setConfirmModal({ isOpen: false, id: null, name: '', action: null });
         }
@@ -253,20 +287,14 @@ const Categories = () => {
 
     return (
         <div className="space-y-6 relative">
-            {toast && (
-                <Toast
-                    message={toast.message}
-                    type={toast.type}
-                    onClose={() => setToast(null)}
-                />
-            )}
+
 
             <ConfirmationModal
                 isOpen={confirmModal.isOpen}
                 title={confirmModal.title}
                 message={confirmModal.message}
                 onConfirm={handleConfirmAction}
-                onCancel={() => setConfirmModal({ isOpen: false, id: null, name: '', action: null })}
+                onClose={() => setConfirmModal({ isOpen: false, id: null, name: '', action: null })}
                 confirmText={confirmModal.action === 'delete' ? 'Delete' : 'Deactivate'}
                 isDanger={true}
             />
@@ -361,7 +389,10 @@ const Categories = () => {
                                     </td>
                                 </tr>
                             ) : categories.map((item) => (
-                                <tr key={item._id} className="hover:bg-gray-50 transition-colors group">
+                                <tr
+                                    key={item._id}
+                                    className="hover:bg-gray-50 transition-colors group"
+                                >
                                     <td className="px-6 py-4">
                                         <span className="font-medium text-gray-900 block">{item.name}</span>
                                         <span className="text-xs text-gray-400 font-mono">{item.slug}</span>
@@ -431,127 +462,140 @@ const Categories = () => {
                 )}
 
             {/* Modal */}
-            {isModalOpen && (
-                <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm animate-in fade-in duration-200">
-                    <div className="bg-white rounded-2xl shadow-xl w-full max-w-md overflow-hidden scale-in-95 animate-in duration-200">
-                        <div className="px-6 py-4 border-b border-gray-100 flex justify-between items-center bg-gray-50/50">
-                            <h3 className="font-bold text-gray-900 text-lg">
-                                {currentCategory ? 'Edit Category' : 'Add New Category'}
-                            </h3>
-                            <button onClick={handleCloseModal} className="text-gray-400 hover:text-gray-600 rounded-full p-1 hover:bg-gray-100 transition">
-                                <X size={20} />
-                            </button>
-                        </div>
-
-                        <form onSubmit={handleSubmit} className="p-6 space-y-5">
-                            <div>
-                                <label className="block text-sm font-semibold text-gray-700 mb-1.5">
-                                    Industry <span className="text-red-500">*</span>
-                                </label>
-                                <select
-                                    name="industry"
-                                    required
-                                    value={formData.industry}
-                                    onChange={handleInputChange}
-                                    className="w-full px-3 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent outline-none transition-colors disabled:bg-gray-100 disabled:text-gray-500"
-                                >
-                                    <option value="">Select Industry</option>
-                                    {industries.map(ind => (
-                                        <option key={ind._id} value={ind._id}>{ind.name}</option>
-                                    ))}
-                                </select>
+            <AnimatePresence>
+                {isModalOpen && (
+                    <motion.div
+                        initial={{ opacity: 0 }}
+                        animate={{ opacity: 1 }}
+                        exit={{ opacity: 0 }}
+                        className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm"
+                    >
+                        <motion.div
+                            initial={{ opacity: 0, scale: 0.95 }}
+                            animate={{ opacity: 1, scale: 1 }}
+                            exit={{ opacity: 0, scale: 0.95 }}
+                            transition={{ duration: 0.2 }}
+                            className="bg-white rounded-2xl shadow-xl w-full max-w-md overflow-hidden"
+                        >
+                            <div className="px-6 py-4 border-b border-gray-100 flex justify-between items-center bg-gray-50/50">
+                                <h3 className="font-bold text-gray-900 text-lg">
+                                    {currentCategory ? 'Edit Category' : 'Add New Category'}
+                                </h3>
+                                <button onClick={handleCloseModal} className="text-gray-400 hover:text-gray-600 rounded-full p-1 hover:bg-gray-100 transition">
+                                    <X size={20} />
+                                </button>
                             </div>
 
-                            <div>
-                                <label className="block text-sm font-semibold text-gray-700 mb-1.5">
-                                    Category Name <span className="text-red-500">*</span>
-                                </label>
-                                <input
-                                    type="text"
-                                    name="name"
-                                    required
-                                    value={formData.name}
-                                    onChange={handleInputChange}
-                                    className="w-full px-3 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent outline-none transition-colors"
-                                    placeholder="e.g. AI & Robotics"
-                                />
-                            </div>
-
-                            <div>
-                                <label className="block text-sm font-semibold text-gray-700 mb-1.5">
-                                    Slug <span className="text-red-500">*</span>
-                                </label>
-                                <input
-                                    type="text"
-                                    name="slug"
-                                    required
-                                    value={formData.slug}
-                                    onChange={handleInputChange}
-                                    className="w-full px-3 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent outline-none transition-colors bg-gray-50 font-mono text-sm text-gray-600"
-                                    placeholder="e.g. ai-and-robotics"
-                                />
-                                <p className="text-xs text-gray-500 mt-1.5 flex items-center gap-1">
-                                    <Info size={12} /> Unique identifier.
-                                </p>
-                            </div>
-
-                            <div>
-                                <label className="block text-sm font-semibold text-gray-700 mb-1.5">
-                                    Description <span className="text-xs font-normal text-gray-400">(Optional)</span>
-                                </label>
-                                <textarea
-                                    name="description"
-                                    value={formData.description}
-                                    onChange={handleInputChange}
-                                    rows="3"
-                                    className="w-full px-3 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent outline-none transition-colors resize-none"
-                                    placeholder="Brief description..."
-                                />
-                            </div>
-
-                            {/* Modern Toggle Switch */}
-                            <div>
-                                <label className="block text-sm font-semibold text-gray-700 mb-3">Status</label>
-                                <div
-                                    className="flex items-center cursor-pointer group w-fit"
-                                    onClick={() => handleToggleStatus(!formData.isActive)}
-                                >
-                                    <div className={`relative w-12 h-6 transition-colors duration-200 ease-in-out rounded-full border-2 border-transparent ${formData.isActive ? 'bg-indigo-600' : 'bg-gray-200'}`}>
-                                        <span
-                                            aria-hidden="true"
-                                            className={`inline-block w-5 h-5 transform bg-white rounded-full shadow ring-0 transition duration-200 ease-in-out ${formData.isActive ? 'translate-x-6' : 'translate-x-0'}`}
-                                        />
-                                    </div>
-                                    <span className={`ml-3 text-sm font-medium ${formData.isActive ? 'text-gray-900' : 'text-gray-500'}`}>
-                                        {formData.isActive ? 'Active' : 'Inactive'}
-                                    </span>
+                            <form onSubmit={handleSubmit} className="p-6 space-y-5">
+                                <div>
+                                    <label className="block text-sm font-semibold text-gray-700 mb-1.5">
+                                        Industry <span className="text-red-500">*</span>
+                                    </label>
+                                    <select
+                                        name="industry"
+                                        required
+                                        value={formData.industry}
+                                        onChange={handleInputChange}
+                                        className="w-full px-3 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent outline-none transition-colors disabled:bg-gray-100 disabled:text-gray-500"
+                                    >
+                                        <option value="">Select Industry</option>
+                                        {industries.map(ind => (
+                                            <option key={ind._id} value={ind._id}>{ind.name}</option>
+                                        ))}
+                                    </select>
                                 </div>
-                            </div>
 
-                            <div className="pt-2 flex justify-end gap-3 border-t border-gray-100 mt-2">
-                                <button
-                                    type="button"
-                                    onClick={handleCloseModal}
-                                    className="px-4 py-2.5 text-gray-700 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 transition font-medium text-sm"
-                                >
-                                    Cancel
-                                </button>
-                                <button
-                                    type="submit"
-                                    disabled={formLoading}
-                                    className="px-6 py-2.5 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 transition font-medium text-sm flex items-center gap-2 shadow-sm hover:shadow"
-                                >
-                                    {formLoading ? (
-                                        <><span className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin"></span> Saving...</>
-                                    ) : (
-                                        <><CheckCircle size={16} /> {currentCategory ? 'Save Changes' : 'Create Category'}</>
-                                    )}
-                                </button>
-                            </div>
-                        </form>
-                    </div>
-                </div>
-            )}
+                                <div>
+                                    <label className="block text-sm font-semibold text-gray-700 mb-1.5">
+                                        Category Name <span className="text-red-500">*</span>
+                                    </label>
+                                    <input
+                                        type="text"
+                                        name="name"
+                                        required
+                                        value={formData.name}
+                                        onChange={handleInputChange}
+                                        className="w-full px-3 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent outline-none transition-colors"
+                                        placeholder="e.g. AI & Robotics"
+                                    />
+                                </div>
+
+                                <div>
+                                    <label className="block text-sm font-semibold text-gray-700 mb-1.5">
+                                        Slug <span className="text-red-500">*</span>
+                                    </label>
+                                    <input
+                                        type="text"
+                                        name="slug"
+                                        required
+                                        value={formData.slug}
+                                        onChange={handleInputChange}
+                                        className="w-full px-3 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent outline-none transition-colors bg-gray-50 font-mono text-sm text-gray-600"
+                                        placeholder="e.g. ai-and-robotics"
+                                    />
+                                    <p className="text-xs text-gray-500 mt-1.5 flex items-center gap-1">
+                                        <Info size={12} /> Unique identifier.
+                                    </p>
+                                </div>
+
+                                <div>
+                                    <label className="block text-sm font-semibold text-gray-700 mb-1.5">
+                                        Description <span className="text-xs font-normal text-gray-400">(Optional)</span>
+                                    </label>
+                                    <textarea
+                                        name="description"
+                                        value={formData.description}
+                                        onChange={handleInputChange}
+                                        rows="3"
+                                        className="w-full px-3 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent outline-none transition-colors resize-none"
+                                        placeholder="Brief description..."
+                                    />
+                                </div>
+
+                                {/* Modern Toggle Switch */}
+                                <div>
+                                    <label className="block text-sm font-semibold text-gray-700 mb-3">Status</label>
+                                    <div
+                                        className="flex items-center cursor-pointer group w-fit"
+                                        onClick={() => handleToggleStatus(!formData.isActive)}
+                                    >
+                                        <div className={`relative w-12 h-6 transition-colors duration-200 ease-in-out rounded-full border-2 border-transparent ${formData.isActive ? 'bg-indigo-600' : 'bg-gray-200'}`}>
+                                            <span
+                                                aria-hidden="true"
+                                                className={`inline-block w-5 h-5 transform bg-white rounded-full shadow ring-0 transition duration-200 ease-in-out ${formData.isActive ? 'translate-x-6' : 'translate-x-0'}`}
+                                            />
+                                        </div>
+                                        <span className={`ml-3 text-sm font-medium ${formData.isActive ? 'text-gray-900' : 'text-gray-500'}`}>
+                                            {formData.isActive ? 'Active' : 'Inactive'}
+                                        </span>
+                                    </div>
+                                </div>
+
+                                <div className="pt-2 flex justify-end gap-3 border-t border-gray-100 mt-2">
+                                    <button
+                                        type="button"
+                                        onClick={handleCloseModal}
+                                        className="px-4 py-2.5 text-gray-700 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 transition font-medium text-sm"
+                                    >
+                                        Cancel
+                                    </button>
+                                    <button
+                                        type="submit"
+                                        disabled={formLoading}
+                                        className="px-6 py-2.5 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 transition font-medium text-sm flex items-center gap-2 shadow-sm hover:shadow"
+                                    >
+                                        {formLoading ? (
+                                            <><span className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin"></span> Saving...</>
+                                        ) : (
+                                            <><CheckCircle size={16} /> {currentCategory ? 'Save Changes' : 'Create Category'}</>
+                                        )}
+                                    </button>
+                                </div>
+                            </form>
+                        </motion.div>
+                    </motion.div>
+                )}
+            </AnimatePresence>
         </div>
     );
 };

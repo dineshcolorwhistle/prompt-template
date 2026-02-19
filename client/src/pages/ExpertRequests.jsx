@@ -1,33 +1,49 @@
 import React, { useState, useEffect } from 'react';
 import { useAuth } from '../context/AuthContext';
 import { Check, X, Clock, AlertCircle, Trash2 } from 'lucide-react';
+import ConfirmationModal from '../components/ConfirmationModal';
+import { listVariants, itemVariants } from '../animations'; // Keep or remove based on usage
+import { toast } from 'react-hot-toast';
 
 const ExpertRequests = () => {
     const [requests, setRequests] = useState([]);
     const [loading, setLoading] = useState(true);
-    const [error, setError] = useState(null);
+
     const { userInfo } = useAuth();
 
-    useEffect(() => {
-        fetchRequests();
-    }, []);
+    // Confirmation Modal State
+    const [deleteModal, setDeleteModal] = useState({
+        isOpen: false,
+        requestId: null
+    });
 
-    const fetchRequests = async () => {
-        try {
-            const response = await fetch(`${import.meta.env.VITE_API_URL}/api/expert-requests`, {
-                headers: {
-                    Authorization: `Bearer ${userInfo.token}`,
-                },
-            });
-            if (!response.ok) throw new Error('Failed to fetch requests');
-            const data = await response.json();
-            setRequests(data);
-        } catch (err) {
-            setError(err.message);
-        } finally {
-            setLoading(false);
-        }
-    };
+    useEffect(() => {
+        const controller = new AbortController();
+        const fetchData = async () => {
+            try {
+                const response = await fetch(`${import.meta.env.VITE_API_URL}/api/expert-requests`, {
+                    headers: {
+                        Authorization: `Bearer ${userInfo.token}`,
+                    },
+                    signal: controller.signal
+                });
+                if (!response.ok) throw new Error('Failed to fetch requests');
+                const data = await response.json();
+                setRequests(data);
+            } catch (err) {
+                if (err.name !== 'AbortError') {
+                    toast.error(err.message);
+                }
+            } finally {
+                if (!controller.signal.aborted) {
+                    setLoading(false);
+                }
+            }
+        };
+        fetchData();
+        return () => controller.abort();
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, []);
 
     const handleUpdateStatus = async (id, status) => {
         try {
@@ -45,14 +61,26 @@ const ExpertRequests = () => {
                 setRequests(requests.map(req =>
                     req._id === id ? { ...req, status } : req
                 ));
+                toast.success(`Request ${status.toLowerCase()} successfully`);
+            } else {
+                toast.error('Failed to update status');
             }
         } catch (err) {
             console.error('Failed to update status', err);
+            toast.error('An error occurred');
         }
     };
 
-    const handleDeleteRequest = async (id) => {
-        if (!window.confirm('Are you sure you want to delete this request?')) return;
+    const confirmDelete = (id) => {
+        setDeleteModal({
+            isOpen: true,
+            requestId: id
+        });
+    };
+
+    const handleDeleteRequest = async () => {
+        const id = deleteModal.requestId;
+        if (!id) return;
 
         try {
             const response = await fetch(`${import.meta.env.VITE_API_URL}/api/expert-requests/${id}`, {
@@ -64,17 +92,22 @@ const ExpertRequests = () => {
 
             if (response.ok) {
                 setRequests(requests.filter(req => req._id !== id));
+                toast.success('Request deleted successfully');
             } else {
                 const data = await response.json();
                 console.error(data.message);
+                toast.error(data.message || 'Failed to delete request');
             }
         } catch (err) {
             console.error('Failed to delete request', err);
+            toast.error('An error occurred');
+        } finally {
+            setDeleteModal({ isOpen: false, requestId: null });
         }
     };
 
     if (loading) return <div className="p-8 text-center text-gray-500">Loading requests...</div>;
-    if (error) return <div className="p-8 text-center text-red-500">Error: {error}</div>;
+
 
     return (
         <div className="space-y-6">
@@ -100,7 +133,10 @@ const ExpertRequests = () => {
                                     </td>
                                 </tr>
                             ) : requests.map((request) => (
-                                <tr key={request._id} className="hover:bg-gray-50 transition-colors">
+                                <tr
+                                    key={request._id}
+                                    className="hover:bg-gray-50 transition-colors"
+                                >
                                     <td className="px-6 py-4">
                                         <div className="flex items-center">
                                             <div className="w-8 h-8 rounded-full bg-indigo-100 flex items-center justify-center text-indigo-700 font-bold text-xs mr-3">
@@ -148,7 +184,7 @@ const ExpertRequests = () => {
                                             </>
                                         )}
                                         <button
-                                            onClick={() => handleDeleteRequest(request._id)}
+                                            onClick={() => confirmDelete(request._id)}
                                             className="p-1.5 text-gray-400 hover:text-red-500 hover:bg-red-50 rounded-lg transition-colors ml-2"
                                             title="Delete Request"
                                         >
@@ -161,6 +197,17 @@ const ExpertRequests = () => {
                     </table>
                 </div>
             </div>
+
+            <ConfirmationModal
+                isOpen={deleteModal.isOpen}
+                onClose={() => setDeleteModal({ ...deleteModal, isOpen: false })}
+                onConfirm={handleDeleteRequest}
+                title="Delete Request"
+                message="Are you sure you want to delete this expert request? This action cannot be undone."
+                confirmText="Delete"
+                cancelText="Cancel"
+                isDestructive={true}
+            />
         </div>
     );
 };

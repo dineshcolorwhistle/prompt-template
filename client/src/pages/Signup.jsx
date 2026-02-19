@@ -2,14 +2,15 @@
 import React, { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
-import { User, Mail, AlertCircle, Loader2, CheckCircle } from 'lucide-react';
+import { User, Mail, Loader2, CheckCircle } from 'lucide-react';
+import { toast } from 'react-hot-toast';
 
 const Signup = () => {
     const [formData, setFormData] = useState({
         name: '',
         email: '',
     });
-    const [error, setError] = useState('');
+
     const [loading, setLoading] = useState(false);
     const [success, setSuccess] = useState(false);
 
@@ -20,7 +21,7 @@ const Signup = () => {
 
     const onSubmit = async (e) => {
         e.preventDefault();
-        setError('');
+
         setLoading(true);
 
         try {
@@ -41,7 +42,7 @@ const Signup = () => {
             // Successfully requested
             setSuccess(true);
         } catch (err) {
-            setError(err.message);
+            toast.error(err.message);
         } finally {
             setLoading(false);
         }
@@ -104,22 +105,7 @@ const Signup = () => {
             >
                 <div className="bg-white py-8 px-4 shadow-xl sm:rounded-xl sm:px-10 border border-gray-100">
                     <form className="space-y-6" onSubmit={onSubmit}>
-                        {error && (
-                            <motion.div
-                                initial={{ opacity: 0, scale: 0.95 }}
-                                animate={{ opacity: 1, scale: 1 }}
-                                className="bg-red-50 border-l-4 border-red-500 p-4 rounded-md"
-                            >
-                                <div className="flex">
-                                    <div className="flex-shrink-0">
-                                        <AlertCircle className="h-5 w-5 text-red-500" />
-                                    </div>
-                                    <div className="ml-3">
-                                        <p className="text-sm text-red-700">{error}</p>
-                                    </div>
-                                </div>
-                            </motion.div>
-                        )}
+
 
                         <div>
                             <label htmlFor="name" className="block text-sm font-medium text-gray-700">

@@ -42,8 +42,21 @@ const templateSchema = new mongoose.Schema({
         required: [true, 'Please add base prompt text'],
     },
     variables: [{
-        type: mongoose.Schema.Types.ObjectId,
-        ref: 'Variable',
+        name: {
+            type: String,
+            required: true,
+        },
+        description: {
+            type: String,
+            required: true,
+        },
+        defaultValue: {
+            type: String,
+        },
+        required: {
+            type: Boolean,
+            default: false,
+        },
     }],
     sampleOutput: {
         type: [String], // Image URLs/paths

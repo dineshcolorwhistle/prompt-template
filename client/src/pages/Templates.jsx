@@ -1,7 +1,11 @@
 import React, { useState, useEffect } from 'react';
 import { useAuth } from '../context/AuthContext';
-import { Plus, Edit2, Trash2, Search, Filter, Eye } from 'lucide-react';
+import { Plus, Edit2, Trash2, Search, Filter } from 'lucide-react';
 import AdminTemplateModal from '../components/AdminTemplateModal';
+import ConfirmationModal from '../components/ConfirmationModal';
+import { toast } from 'react-hot-toast';
+import { motion, AnimatePresence } from 'framer-motion';
+import { listVariants, itemVariants } from '../animations';
 
 const Templates = () => {
     const { userInfo } = useAuth();
@@ -11,11 +15,20 @@ const Templates = () => {
     const [statusFilter, setStatusFilter] = useState('All');
     const [isModalOpen, setIsModalOpen] = useState(false);
     const [currentTemplate, setCurrentTemplate] = useState(null);
-    const [error, setError] = useState(null);
+
+
+    // Confirmation Modal State
+    const [deleteModal, setDeleteModal] = useState({
+        isOpen: false,
+        templateId: null,
+        title: ''
+    });
 
     useEffect(() => {
+        if (!userInfo?.token) return;
         fetchTemplates();
-    }, [userInfo]);
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [userInfo?.token]);
 
     const fetchTemplates = async () => {
         try {
@@ -25,19 +38,28 @@ const Templates = () => {
             });
             const data = await response.json();
             if (response.ok) {
-                setTemplates(data);
+                setTemplates(Array.isArray(data) ? data : []);
             } else {
-                setError(data.message || 'Failed to fetch templates');
+                toast.error(data.message || 'Failed to fetch templates');
             }
         } catch (err) {
-            setError(err.message);
+            toast.error(err.message);
         } finally {
             setLoading(false);
         }
     };
 
-    const handleDelete = async (id) => {
-        if (!window.confirm('Are you sure you want to delete this template?')) return;
+    const confirmDelete = (template) => {
+        setDeleteModal({
+            isOpen: true,
+            templateId: template._id,
+            title: template.title
+        });
+    };
+
+    const handleDelete = async () => {
+        const id = deleteModal.templateId;
+        if (!id) return;
 
         try {
             const response = await fetch(`${import.meta.env.VITE_API_URL}/api/templates/${id}`, {
@@ -47,11 +69,15 @@ const Templates = () => {
 
             if (response.ok) {
                 setTemplates(templates.filter(t => t._id !== id));
+                toast.success('Template deleted successfully');
             } else {
-                alert('Failed to delete template');
+                toast.error('Failed to delete template');
             }
         } catch (err) {
             console.error(err);
+            toast.error('An error occurred while deleting');
+        } finally {
+            setDeleteModal({ isOpen: false, templateId: null, title: '' });
         }
     };
 
@@ -63,14 +89,16 @@ const Templates = () => {
     const handleSave = (savedTemplate) => {
         if (currentTemplate) {
             setTemplates(templates.map(t => t._id === savedTemplate._id ? savedTemplate : t));
+            toast.success('Template updated successfully');
         } else {
             setTemplates([savedTemplate, ...templates]);
+            toast.success('Template created successfully');
         }
     };
 
     const filteredTemplates = templates.filter(t => {
-        const matchesSearch = t.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
-            t.description.toLowerCase().includes(searchTerm.toLowerCase());
+        const matchesSearch = (t.title || '').toLowerCase().includes(searchTerm.toLowerCase()) ||
+            (t.description || '').toLowerCase().includes(searchTerm.toLowerCase());
         const matchesStatus = statusFilter === 'All' || t.status === statusFilter;
         return matchesSearch && matchesStatus;
     });
@@ -128,6 +156,7 @@ const Templates = () => {
                     </div>
                 </div>
 
+
                 <div className="overflow-x-auto">
                     <table className="w-full text-left text-sm">
                         <thead className="bg-gray-50 text-gray-600 font-medium border-b border-gray-100">
@@ -140,14 +169,28 @@ const Templates = () => {
                                 <th className="px-6 py-3 text-right">Actions</th>
                             </tr>
                         </thead>
-                        <tbody className="divide-y divide-gray-100">
-                            {loading ? (
+                        {loading ? (
+                            <tbody>
                                 <tr><td colSpan="6" className="p-6 text-center text-gray-500">Loading templates...</td></tr>
-                            ) : filteredTemplates.length === 0 ? (
+                            </tbody>
+                        ) : filteredTemplates.length === 0 ? (
+                            <tbody>
                                 <tr><td colSpan="6" className="p-6 text-center text-gray-500">No templates found.</td></tr>
-                            ) : (
-                                filteredTemplates.map((template) => (
-                                    <tr key={template._id} className="hover:bg-gray-50 group">
+                            </tbody>
+                        ) : (
+                            <motion.tbody
+                                key={`tbody-${filteredTemplates.length}`}
+                                className="divide-y divide-gray-100"
+                                variants={listVariants}
+                                initial="hidden"
+                                animate="show"
+                            >
+                                {filteredTemplates.map((template) => (
+                                    <motion.tr
+                                        key={template._id}
+                                        variants={itemVariants}
+                                        className="hover:bg-gray-50 group"
+                                    >
                                         <td className="px-6 py-3 font-medium text-gray-900">{template.title}</td>
                                         <td className="px-6 py-3 text-gray-600">{template.industry?.name || '-'}</td>
                                         <td className="px-6 py-3 text-gray-600">{template.category?.name || '-'}</td>
@@ -167,7 +210,7 @@ const Templates = () => {
                                                     <Edit2 size={18} />
                                                 </button>
                                                 <button
-                                                    onClick={() => handleDelete(template._id)}
+                                                    onClick={() => confirmDelete(template)}
                                                     className="p-2 text-red-500 hover:bg-red-50 rounded-lg transition-colors"
                                                     title="Delete"
                                                 >
@@ -175,19 +218,34 @@ const Templates = () => {
                                                 </button>
                                             </div>
                                         </td>
-                                    </tr>
-                                ))
-                            )}
-                        </tbody>
+                                    </motion.tr>
+                                ))}
+                            </motion.tbody>
+                        )}
                     </table>
                 </div>
             </div>
 
-            <AdminTemplateModal
-                isOpen={isModalOpen}
-                onClose={() => setIsModalOpen(false)}
-                template={currentTemplate}
-                onSave={handleSave}
+            <AnimatePresence>
+                {isModalOpen && (
+                    <AdminTemplateModal
+                        isOpen={isModalOpen}
+                        onClose={() => setIsModalOpen(false)}
+                        template={currentTemplate}
+                        onSave={handleSave}
+                    />
+                )}
+            </AnimatePresence>
+
+            <ConfirmationModal
+                isOpen={deleteModal.isOpen}
+                onClose={() => setDeleteModal({ ...deleteModal, isOpen: false })}
+                onConfirm={handleDelete}
+                title="Delete Template"
+                message={`Are you sure you want to delete "${deleteModal.title}"? This action cannot be undone.`}
+                confirmText="Delete"
+                cancelText="Cancel"
+                isDestructive={true}
             />
         </div>
     );

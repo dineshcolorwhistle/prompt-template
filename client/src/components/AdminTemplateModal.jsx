@@ -1,6 +1,8 @@
 import React, { useState, useEffect } from 'react';
-import { X, Save, AlertCircle, Upload, Search, Plus, Trash2 } from 'lucide-react';
+import { X, Save, AlertCircle, Upload, Plus, Trash2 } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
+import { toast } from 'react-hot-toast';
+import { motion } from 'framer-motion';
 
 const AdminTemplateModal = ({ isOpen, onClose, template, onSave }) => {
     const { userInfo } = useAuth();
@@ -17,7 +19,7 @@ const AdminTemplateModal = ({ isOpen, onClose, template, onSave }) => {
         outputFormat: '',
         structuralInstruction: '',
         repurposingIdeas: '',
-        variables: [] // Array of IDs
+        variables: [] // Array of objects: { name, description, defaultValue, required }
     };
 
     const [formData, setFormData] = useState(initialFormState);
@@ -27,10 +29,15 @@ const AdminTemplateModal = ({ isOpen, onClose, template, onSave }) => {
 
     const [industries, setIndustries] = useState([]);
     const [categories, setCategories] = useState([]);
-    const [allVariables, setAllVariables] = useState([]);
     const [loading, setLoading] = useState(false);
-    const [error, setError] = useState(null);
-    const [variableSearch, setVariableSearch] = useState('');
+
+    // State for new variable input
+    const [newVariable, setNewVariable] = useState({
+        name: '',
+        description: '',
+        defaultValue: '',
+        required: false
+    });
 
     useEffect(() => {
         if (template) {
@@ -46,9 +53,9 @@ const AdminTemplateModal = ({ isOpen, onClose, template, onSave }) => {
                 outputFormat: template.outputFormat || '',
                 structuralInstruction: template.structuralInstruction || '',
                 repurposingIdeas: template.repurposingIdeas || '',
-                variables: template.variables ? template.variables.map(v => v._id || v) : []
+                variables: Array.isArray(template.variables) ? template.variables : []
             });
-            // Handle multiple images (migration support: if string, make array)
+            // Handle multiple images
             let imgs = template.sampleOutput;
             if (imgs && !Array.isArray(imgs)) imgs = [imgs];
             setExistingImages(imgs || []);
@@ -58,37 +65,38 @@ const AdminTemplateModal = ({ isOpen, onClose, template, onSave }) => {
         }
         setSampleOutputs([]);
         setSampleOutputPreviews([]);
+        setNewVariable({ name: '', description: '', defaultValue: '', required: false });
     }, [template, isOpen]);
 
     useEffect(() => {
         if (isOpen) {
             fetchIndustries();
             fetchCategories();
-            fetchVariables();
         }
     }, [isOpen]);
 
     const fetchIndustries = async () => {
-        const res = await fetch(`${import.meta.env.VITE_API_URL}/api/industries`, {
-            headers: { Authorization: `Bearer ${userInfo.token}` }
-        });
-        const data = await res.json();
-        setIndustries(data.result || []);
+        try {
+            const res = await fetch(`${import.meta.env.VITE_API_URL}/api/industries`, {
+                headers: { Authorization: `Bearer ${userInfo.token}` }
+            });
+            const data = await res.json();
+            setIndustries(data.result || []);
+        } catch (err) {
+            console.error("Error fetching industries:", err);
+        }
     };
 
     const fetchCategories = async () => {
-        const res = await fetch(`${import.meta.env.VITE_API_URL}/api/categories?limit=100`, {
-            headers: { Authorization: `Bearer ${userInfo.token}` }
-        });
-        const data = await res.json();
-        setCategories(data.result || data);
-    };
-
-    const fetchVariables = async () => {
-        const res = await fetch(`${import.meta.env.VITE_API_URL}/api/variables`, {
-            headers: { Authorization: `Bearer ${userInfo.token}` }
-        });
-        setAllVariables(await res.json());
+        try {
+            const res = await fetch(`${import.meta.env.VITE_API_URL}/api/categories?limit=100`, {
+                headers: { Authorization: `Bearer ${userInfo.token}` }
+            });
+            const data = await res.json();
+            setCategories(data.result || data);
+        } catch (err) {
+            console.error("Error fetching categories:", err);
+        }
     };
 
     const handleChange = (e) => {
@@ -99,13 +107,13 @@ const AdminTemplateModal = ({ isOpen, onClose, template, onSave }) => {
     const handleFileChange = (e) => {
         const files = Array.from(e.target.files);
         if (files.length > 5) {
-            alert("You can only upload a maximum of 5 images.");
+            toast.error("You can only upload a maximum of 5 images.");
             return;
         }
 
         const totalImages = existingImages.length + sampleOutputs.length + files.length;
         if (totalImages > 5) {
-            alert(`You can only have a maximum of 5 images. You currently have ${existingImages.length + sampleOutputs.length}.`);
+            toast.error(`You can only have a maximum of 5 images. You currently have ${existingImages.length + sampleOutputs.length}.`);
             return;
         }
 
@@ -140,20 +148,70 @@ const AdminTemplateModal = ({ isOpen, onClose, template, onSave }) => {
         setExistingImages(newExisting);
     };
 
-    const handleVariableToggle = (varId) => {
-        setFormData(prev => {
-            if (prev.variables.includes(varId)) {
-                return { ...prev, variables: prev.variables.filter(id => id !== varId) };
-            } else {
-                return { ...prev, variables: [...prev.variables, varId] };
-            }
-        });
+    // Variable Management Handlers
+    const handleAddVariable = () => {
+        if (!newVariable.name.trim() || !newVariable.description.trim()) {
+            toast.error("Name and Description are required for a variable.");
+            return;
+        }
+
+        // Check for duplicate names
+        if (formData.variables.some(v => v.name === newVariable.name.trim())) {
+            toast.error("A variable with this name already exists.");
+            return;
+        }
+
+        setFormData(prev => ({
+            ...prev,
+            variables: [...prev.variables, { ...newVariable, name: newVariable.name.trim() }]
+        }));
+
+        setNewVariable({ name: '', description: '', defaultValue: '', required: false });
+    };
+
+    const handleRemoveVariable = (index) => {
+        setFormData(prev => ({
+            ...prev,
+            variables: prev.variables.filter((_, i) => i !== index)
+        }));
+    };
+
+    const handleNewVariableChange = (e) => {
+        const { name, value, type, checked } = e.target;
+        setNewVariable(prev => ({
+            ...prev,
+            [name]: type === 'checkbox' ? checked : value
+        }));
     };
 
     const handleSubmit = async (e) => {
         e.preventDefault();
         setLoading(true);
-        setError(null);
+
+        // --- VALIDATION START ---
+        // 1. Variable Usage Validation
+        const unusedVariables = [];
+        formData.variables.forEach(variable => {
+            const pattern = `{{${variable.name}}}`;
+            if (!formData.basePromptText.includes(pattern)) {
+                unusedVariables.push(variable.name);
+            }
+        });
+
+        if (unusedVariables.length > 0) {
+            toast.error(`The following variables are not used in the Base Prompt: ${unusedVariables.join(', ')}`);
+            setLoading(false);
+            return;
+        }
+
+        // 2. Sample Output Image Validation
+        const totalImages = existingImages.length + sampleOutputs.length;
+        if (totalImages === 0) {
+            toast.error('At least one sample output image is required.');
+            setLoading(false);
+            return;
+        }
+        // --- VALIDATION END ---
 
         try {
             const url = template
@@ -175,7 +233,6 @@ const AdminTemplateModal = ({ isOpen, onClose, template, onSave }) => {
             if (existingImages.length > 0) {
                 data.append('existingImages', JSON.stringify(existingImages));
             } else {
-                // Send empty array explicitly if existingImages is empty but we are in edit mode
                 if (template) {
                     data.append('existingImages', JSON.stringify([]));
                 }
@@ -199,28 +256,36 @@ const AdminTemplateModal = ({ isOpen, onClose, template, onSave }) => {
                 throw new Error(result.message || 'Failed to save template');
             }
 
+            toast.success(template ? 'Template updated successfully' : 'Template created successfully');
             onSave(result);
             onClose();
         } catch (err) {
-            setError(err.message);
+            toast.error(err.message);
         } finally {
             setLoading(false);
         }
     };
 
-    if (!isOpen) return null;
+    // if (!isOpen) return null; // Handled by parent AnimatePresence
 
     const filteredCategories = formData.industry
         ? categories.filter(cat => (cat.industry?._id || cat.industry) === formData.industry)
         : [];
 
-    const availableVariables = allVariables.filter(v =>
-        v.name.toLowerCase().includes(variableSearch.toLowerCase())
-    );
-
     return (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm animate-in fade-in duration-200">
-            <div className="bg-white rounded-2xl shadow-xl w-full max-w-4xl max-h-[90vh] overflow-y-auto flex flex-col">
+        <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm"
+        >
+            <motion.div
+                initial={{ opacity: 0, scale: 0.95 }}
+                animate={{ opacity: 1, scale: 1 }}
+                exit={{ opacity: 0, scale: 0.95 }}
+                transition={{ duration: 0.2 }}
+                className="bg-white rounded-2xl shadow-xl w-full max-w-4xl max-h-[90vh] overflow-y-auto flex flex-col"
+            >
                 <div className="px-6 py-4 border-b border-gray-100 flex justify-between items-center bg-gray-50/50 flex-shrink-0">
                     <h3 className="font-bold text-gray-900 text-lg">
                         {template ? 'Edit Template (Admin)' : 'Create Template (Admin)'}
@@ -231,12 +296,7 @@ const AdminTemplateModal = ({ isOpen, onClose, template, onSave }) => {
                 </div>
 
                 <div className="p-6 overflow-y-auto flex-1">
-                    {error && (
-                        <div className="mb-4 p-3 bg-red-50 text-red-700 rounded-lg flex items-center gap-2 text-sm">
-                            <AlertCircle size={16} />
-                            {error}
-                        </div>
-                    )}
+
 
                     <form id="templateForm" onSubmit={handleSubmit} className="space-y-6">
                         {/* Basic Info */}
@@ -335,39 +395,83 @@ const AdminTemplateModal = ({ isOpen, onClose, template, onSave }) => {
                             </div>
                         </div>
 
-                        {/* Variables Selector */}
+                        {/* Variables Section (New) */}
                         <div className="border border-gray-200 rounded-lg p-4 bg-gray-50">
-                            <h4 className="font-medium text-gray-800 mb-2">Linked Variables</h4>
-                            <div className="flex gap-2 mb-2">
-                                <Search size={16} className="text-gray-400 mt-2.5" />
-                                <input
-                                    type="text"
-                                    placeholder="Search variables..."
-                                    className="px-3 py-1.5 border border-gray-300 rounded text-sm w-full focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition-colors"
-                                    value={variableSearch}
-                                    onChange={e => setVariableSearch(e.target.value)}
-                                />
-                            </div>
-                            <div className="bg-white border border-gray-200 rounded p-2 grid grid-cols-2 md:grid-cols-3 gap-2">
-                                {availableVariables.map(v => (
-                                    <label key={v._id} className="flex items-center gap-2 text-sm p-1 hover:bg-gray-50 rounded cursor-pointer group relative">
+                            <h4 className="font-medium text-gray-800 mb-4">Template Variables</h4>
+
+                            {/* List of Added Variables */}
+                            {formData.variables.length > 0 && (
+                                <div className="space-y-2 mb-4">
+                                    {formData.variables.map((v, index) => (
+                                        <div key={index} className="flex items-center justify-between bg-white p-3 rounded border border-gray-200 shadow-sm">
+                                            <div className="flex-1 grid grid-cols-1 md:grid-cols-4 gap-2 text-sm">
+                                                <div><span className="font-semibold text-gray-600">Name:</span> {v.name}</div>
+                                                <div><span className="font-semibold text-gray-600">Desc:</span> {v.description}</div>
+                                                <div><span className="font-semibold text-gray-600">Default:</span> {v.defaultValue || '-'}</div>
+                                                <div><span className="font-semibold text-gray-600">Req:</span> {v.required ? 'Yes' : 'No'}</div>
+                                            </div>
+                                            <button
+                                                type="button"
+                                                onClick={() => handleRemoveVariable(index)}
+                                                className="text-red-500 hover:bg-red-50 p-1 rounded transition ml-2"
+                                            >
+                                                <Trash2 size={16} />
+                                            </button>
+                                        </div>
+                                    ))}
+                                </div>
+                            )}
+
+                            {/* Add New Variable Form */}
+                            <div className="bg-white p-4 rounded border border-gray-200">
+                                <h5 className="text-sm font-medium text-gray-700 mb-3">Add New Variable</h5>
+                                <div className="grid grid-cols-1 md:grid-cols-2 gap-3 mb-3">
+                                    <input
+                                        type="text"
+                                        name="name"
+                                        placeholder="Variable Name (e.g. Industry)"
+                                        value={newVariable.name}
+                                        onChange={handleNewVariableChange}
+                                        className="w-full px-3 py-2 border border-gray-300 rounded text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                                    />
+                                    <input
+                                        type="text"
+                                        name="description"
+                                        placeholder="Description"
+                                        value={newVariable.description}
+                                        onChange={handleNewVariableChange}
+                                        className="w-full px-3 py-2 border border-gray-300 rounded text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                                    />
+                                </div>
+                                <div className="grid grid-cols-1 md:grid-cols-2 gap-3 mb-3">
+                                    <input
+                                        type="text"
+                                        name="defaultValue"
+                                        placeholder="Default Value (Optional)"
+                                        value={newVariable.defaultValue}
+                                        onChange={handleNewVariableChange}
+                                        className="w-full px-3 py-2 border border-gray-300 rounded text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                                    />
+                                    <label className="flex items-center gap-2 text-sm text-gray-700 px-1">
                                         <input
                                             type="checkbox"
-                                            checked={formData.variables.includes(v._id)}
-                                            onChange={() => handleVariableToggle(v._id)}
+                                            name="required"
+                                            checked={newVariable.required}
+                                            onChange={handleNewVariableChange}
                                             className="rounded text-indigo-600 focus:ring-indigo-500"
                                         />
-                                        <span className="font-mono text-xs bg-gray-100 px-1 py-0.5 rounded text-gray-600">{`{{${v.name}}}`}</span>
-
-                                        {/* Custom Tooltip */}
-                                        <div className="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 hidden group-hover:block w-48 p-2 bg-gray-900 text-white text-xs rounded shadow-lg z-10 pointer-events-none">
-                                            {v.description}
-                                            <div className="absolute top-full left-1/2 -translate-x-1/2 border-4 border-transparent border-t-gray-900"></div>
-                                        </div>
+                                        Required
                                     </label>
-                                ))}
+                                </div>
+                                <button
+                                    type="button"
+                                    onClick={handleAddVariable}
+                                    className="w-full py-2 bg-gray-600 text-white rounded text-sm hover:bg-gray-700 transition flex items-center justify-center gap-2"
+                                >
+                                    <Plus size={16} />
+                                    Add Variable
+                                </button>
                             </div>
-                            <p className="text-xs text-gray-500 mt-2">Select variables to be available in this template. Hover over a variable to see its description.</p>
                         </div>
 
                         <div>
@@ -381,6 +485,7 @@ const AdminTemplateModal = ({ isOpen, onClose, template, onSave }) => {
                                 className="w-full px-3 py-2 border border-gray-300 rounded-lg font-mono text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition-colors"
                                 placeholder="Write the prompt here using {{variables}}..."
                             />
+                            <p className="text-xs text-gray-500 mt-1">Use the variable names defined above in double curly braces, e.g. {`{{VariableName}}`}</p>
                         </div>
 
                         <div>
@@ -465,8 +570,8 @@ const AdminTemplateModal = ({ isOpen, onClose, template, onSave }) => {
                         )}
                     </button>
                 </div>
-            </div>
-        </div>
+            </motion.div>
+        </motion.div>
     );
 };
 

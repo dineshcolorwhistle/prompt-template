@@ -1,5 +1,7 @@
 import React, { useEffect } from 'react';
 import { X, CheckCircle, AlertCircle, Info } from 'lucide-react';
+import { motion } from 'framer-motion';
+import { toastVariants } from '../animations';
 
 const Toast = ({ message, type = 'info', onClose, duration = 3000 }) => {
     useEffect(() => {
@@ -33,7 +35,14 @@ const Toast = ({ message, type = 'info', onClose, duration = 3000 }) => {
     };
 
     return (
-        <div className={`fixed top-4 right-4 z-50 flex items-start p-4 rounded-xl shadow-lg border ${bgColors[type]} max-w-sm animate-in fade-in slide-in-from-top-2 duration-300`}>
+        <motion.div
+            variants={toastVariants}
+            initial="initial"
+            animate="animate"
+            exit="exit"
+            className={`fixed top-4 right-4 z-50 flex items-start p-4 rounded-xl shadow-lg border ${bgColors[type]} max-w-sm`}
+            layout
+        >
             <div className="flex-shrink-0 mt-0.5 mr-3">
                 {icons[type]}
             </div>
@@ -48,7 +57,7 @@ const Toast = ({ message, type = 'info', onClose, duration = 3000 }) => {
             >
                 <X size={16} />
             </button>
-        </div>
+        </motion.div>
     );
 };
 

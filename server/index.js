@@ -13,7 +13,9 @@ const PORT = process.env.PORT || 5000;
 // Middleware
 app.use(express.json());
 app.use(cors());
-app.use(helmet());
+app.use(helmet({
+  crossOriginResourcePolicy: { policy: "cross-origin" }
+}));
 app.use(morgan('dev'));
 
 // Database Connection
@@ -31,8 +33,7 @@ const industryRoutes = require('./routes/industryRoutes');
 app.use('/api/industries', industryRoutes);
 const categoryRoutes = require('./routes/categoryRoutes');
 app.use('/api/categories', categoryRoutes);
-const variableRoutes = require('./routes/variableRoutes');
-app.use('/api/variables', variableRoutes);
+
 const templateRoutes = require('./routes/templateRoutes');
 app.use('/api/templates', templateRoutes);
 

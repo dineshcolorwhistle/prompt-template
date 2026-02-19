@@ -12,6 +12,7 @@ export const AuthProvider = ({ children }) => {
     const [loading, setLoading] = useState(true);
 
     useEffect(() => {
+        const controller = new AbortController();
         const checkUserStatus = async () => {
             const storedUserInfo = localStorage.getItem('userInfo');
             if (storedUserInfo) {
@@ -23,27 +24,31 @@ export const AuthProvider = ({ children }) => {
                         headers: {
                             Authorization: `Bearer ${user.token}`,
                         },
+                        signal: controller.signal
                     });
 
                     if (response.ok) {
-                        const updatedUser = await response.json();
-                        // Merge updated profile with existing token
-                        const newUserData = { ...user, ...updatedUser };
-                        localStorage.setItem('userInfo', JSON.stringify(newUserData));
-                        setUserInfo(newUserData);
+                        const freshProfile = await response.json();
+                        const updatedUserInfo = { ...user, ...freshProfile, token: user.token };
+                        setUserInfo(updatedUserInfo);
+                        localStorage.setItem('userInfo', JSON.stringify(updatedUserInfo));
                     } else if (response.status === 401) {
-                        // Token expired or invalid
+                        // Token expired
                         localStorage.removeItem('userInfo');
                         setUserInfo(null);
                     }
                 } catch (error) {
-                    console.error("Failed to refresh user profile", error);
+                    if (error.name !== 'AbortError') {
+                        console.error("Failed to refresh user profile", error);
+                    }
                 }
             }
-            setLoading(false);
+            if (!controller.signal.aborted) {
+                setLoading(false);
+            }
         };
-
         checkUserStatus();
+        return () => controller.abort();
     }, []);
 
     const login = (userData) => {

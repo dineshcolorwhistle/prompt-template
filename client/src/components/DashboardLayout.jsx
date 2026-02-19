@@ -1,5 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useAuth } from '../context/AuthContext';
+import { AnimatePresence, motion } from 'framer-motion';
+import { pageVariants, pageTransition } from '../animations';
 import {
     Menu, LogOut, LayoutDashboard, FileText, Users, Settings,
     FileCheck, Briefcase, Tags, MessageSquare, BarChart2, User,
@@ -29,7 +31,7 @@ const DashboardLayout = () => {
             { icon: Users, label: 'Manage Users', path: '/dashboard/users' },
             { icon: Users, label: 'Expert Requests', path: '/dashboard/requests' },
             { icon: FileCheck, label: 'Templates', path: '/dashboard/templates' },
-            { icon: Braces, label: 'Template Variables', path: '/dashboard/variables' },
+
             { icon: Briefcase, label: 'Industries', path: '/dashboard/industries' },
             { icon: Tags, label: 'Categories', path: '/dashboard/categories' },
             { icon: MessageSquare, label: 'Moderate Comments', path: '/dashboard/comments' },
@@ -42,10 +44,10 @@ const DashboardLayout = () => {
     ];
 
     return (
-        <div className="min-h-screen bg-gray-50 flex">
+        <div className="h-screen bg-gray-50 flex overflow-hidden">
             {/* Sidebar */}
             <aside
-                className={`${isSidebarOpen ? 'w-64' : 'w-20'} bg-white border-r border-gray-200 transition-all duration-300 flex flex-col fixed h-full z-20 overflow-y-auto`}
+                className={`${isSidebarOpen ? 'w-64' : 'w-20'} bg-white border-r border-gray-200 transition-all duration-300 flex flex-col fixed h-full z-20`}
             >
                 <div className="h-16 flex items-center justify-between px-4 border-b border-gray-100 flex-shrink-0">
                     {isSidebarOpen ? (
@@ -61,7 +63,7 @@ const DashboardLayout = () => {
                 <div className="flex-1 py-6 px-3 space-y-1 overflow-y-auto">
                     {navItems.map((item, index) => (
                         <Link
-                            key={index} // key={item.path} might duplicate if paths are same, index is safer if duplicate paths exist temporarily
+                            key={index}
                             to={item.path}
                             className={`flex items-center px-3 py-2.5 rounded-lg transition-colors group ${location.pathname === item.path
                                 ? 'bg-indigo-50 text-indigo-600 font-medium'
@@ -103,10 +105,21 @@ const DashboardLayout = () => {
                 </div>
             </aside>
 
-            {/* Main Content */}
-            <main className={`flex-1 transition-all duration-300 ${isSidebarOpen ? 'ml-64' : 'ml-20'}`}>
+            {/* Main Content — sole scroll container */}
+            <main className={`flex-1 transition-all duration-300 overflow-y-auto ${isSidebarOpen ? 'ml-64' : 'ml-20'}`}>
                 <div className="p-8 max-w-6xl mx-auto">
-                    <Outlet />
+                    <AnimatePresence mode="wait">
+                        <motion.div
+                            key={location.pathname}
+                            variants={pageVariants}
+                            initial="initial"
+                            animate="in"
+                            exit="out"
+                            transition={pageTransition}
+                        >
+                            <Outlet />
+                        </motion.div>
+                    </AnimatePresence>
                 </div>
             </main>
         </div>

@@ -3,7 +3,9 @@ import { useAuth } from '../context/AuthContext';
 import { Plus, Search, FileText, Edit2, Trash2, Eye } from 'lucide-react';
 import TemplateModal from '../components/TemplateModal';
 import ConfirmationModal from '../components/ConfirmationModal';
-import Toast from '../components/Toast';
+import { toast } from 'react-hot-toast';
+import { motion, AnimatePresence } from 'framer-motion';
+import { listVariants, itemVariants } from '../animations';
 
 const MyTemplates = () => {
     const { userInfo } = useAuth();
@@ -14,30 +16,38 @@ const MyTemplates = () => {
     // UI State
     const [isModalOpen, setIsModalOpen] = useState(false);
     const [editingTemplate, setEditingTemplate] = useState(null);
-    const [toast, setToast] = useState(null);
-    const [confirmModal, setConfirmModal] = useState({ isOpen: false, id: null, title: '' });
+    const [confirmModal, setConfirmModal] = useState({ isOpen: false, id: null, title: '', message: '' });
 
     useEffect(() => {
-        fetchTemplates();
-    }, []);
-
-    const fetchTemplates = async () => {
-        setLoading(true);
-        try {
-            const response = await fetch(`${import.meta.env.VITE_API_URL}/api/templates/my`, {
-                headers: { Authorization: `Bearer ${userInfo.token}` }
-            });
-
-            if (response.ok) {
+        if (!userInfo?.token) return;
+        const controller = new AbortController();
+        const loadTemplates = async () => {
+            try {
+                setLoading(true);
+                const response = await fetch(`${import.meta.env.VITE_API_URL}/api/templates/my`, {
+                    headers: { Authorization: `Bearer ${userInfo.token}` },
+                    signal: controller.signal
+                });
                 const data = await response.json();
-                setTemplates(data);
+                if (response.ok) {
+                    setTemplates(Array.isArray(data) ? data : []);
+                } else {
+                    toast.error(data.message || 'Failed to fetch templates');
+                }
+            } catch (err) {
+                if (err.name !== 'AbortError') {
+                    toast.error('Failed to fetch templates');
+                }
+            } finally {
+                if (!controller.signal.aborted) {
+                    setLoading(false);
+                }
             }
-        } catch (err) {
-            console.error('Failed to fetch templates', err);
-        } finally {
-            setLoading(false);
-        }
-    };
+        };
+        loadTemplates();
+        return () => controller.abort();
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [userInfo?.token]);
 
     const handleCreate = () => {
         setEditingTemplate(null);
@@ -52,10 +62,10 @@ const MyTemplates = () => {
     const handleSave = (savedTemplate) => {
         if (editingTemplate) {
             setTemplates(templates.map(t => t._id === savedTemplate._id ? savedTemplate : t));
-            setToast({ message: 'Template updated successfully', type: 'success' });
+            toast.success('Template updated successfully');
         } else {
             setTemplates([savedTemplate, ...templates]);
-            setToast({ message: 'Template created successfully', type: 'success' });
+            toast.success('Template created successfully');
         }
     };
 
@@ -63,8 +73,8 @@ const MyTemplates = () => {
         setConfirmModal({
             isOpen: true,
             id,
-            title: `Delete "${title}"?`,
-            message: 'Are you sure you want to delete this template? This action cannot be undone.'
+            title: 'Delete Template',
+            message: `Are you sure you want to delete "${title}"? This action cannot be undone.`
         });
     };
 
@@ -79,42 +89,44 @@ const MyTemplates = () => {
 
             if (response.ok) {
                 setTemplates(templates.filter(t => t._id !== confirmModal.id));
-                setToast({ message: 'Template deleted', type: 'success' });
+                toast.success('Template deleted');
             } else {
-                setToast({ message: 'Failed to delete template', type: 'error' });
+                toast.error('Failed to delete template');
             }
         } catch (err) {
-            setToast({ message: 'Error deleting template', type: 'error' });
+            toast.error('Error deleting template');
         } finally {
-            setConfirmModal({ isOpen: false, id: null, title: '' });
+            setConfirmModal({ isOpen: false, id: null, title: '', message: '' });
         }
     };
 
     const filteredTemplates = templates.filter(t =>
-        t.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        t.description.toLowerCase().includes(searchTerm.toLowerCase())
+        (t.title || '').toLowerCase().includes(searchTerm.toLowerCase()) ||
+        (t.description || '').toLowerCase().includes(searchTerm.toLowerCase())
     );
 
     return (
         <div className="space-y-6">
-            {toast && <Toast message={toast.message} type={toast.type} onClose={() => setToast(null)} />}
-
             <ConfirmationModal
                 isOpen={confirmModal.isOpen}
                 title={confirmModal.title}
                 message={confirmModal.message}
                 onConfirm={handleDelete}
-                onCancel={() => setConfirmModal({ isOpen: false, id: null, title: '' })}
+                onClose={() => setConfirmModal({ isOpen: false, id: null, title: '', message: '' })}
                 confirmText="Delete"
-                isDanger={true}
+                isDestructive={true}
             />
 
-            <TemplateModal
-                isOpen={isModalOpen}
-                onClose={() => setIsModalOpen(false)}
-                template={editingTemplate}
-                onSave={handleSave}
-            />
+            <AnimatePresence>
+                {isModalOpen && (
+                    <TemplateModal
+                        isOpen={isModalOpen}
+                        onClose={() => setIsModalOpen(false)}
+                        template={editingTemplate}
+                        onSave={handleSave}
+                    />
+                )}
+            </AnimatePresence>
 
             <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
                 <div>
@@ -130,35 +142,57 @@ const MyTemplates = () => {
                 </button>
             </div>
 
-            <div className="bg-white p-4 rounded-xl shadow-sm border border-gray-100">
-                <div className="relative">
-                    <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" size={20} />
-                    <input
-                        type="text"
-                        placeholder="Search your templates..."
-                        value={searchTerm}
-                        onChange={(e) => setSearchTerm(e.target.value)}
-                        className="w-full pl-9 pr-4 py-2 text-sm border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition-colors"
-                    />
+            {(!loading && templates.length > 0) && (
+                <div className="bg-white p-4 rounded-xl shadow-sm border border-gray-100">
+                    <div className="relative">
+                        <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" size={20} />
+                        <input
+                            type="text"
+                            placeholder="Search your templates..."
+                            value={searchTerm}
+                            onChange={(e) => setSearchTerm(e.target.value)}
+                            className="w-full pl-9 pr-4 py-2 text-sm border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition-colors"
+                        />
+                    </div>
                 </div>
-            </div>
+            )}
 
             {loading ? (
                 <div className="text-center py-12 text-gray-500">Loading templates...</div>
             ) : filteredTemplates.length === 0 ? (
-                <div className="text-center py-12 bg-white rounded-xl border border-gray-100 border-dashed">
+                <motion.div
+                    initial={{ opacity: 0, y: 20 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    className="text-center py-12 bg-white rounded-xl border border-gray-100 border-dashed"
+                >
                     <div className="w-12 h-12 bg-indigo-50 text-indigo-500 rounded-full flex items-center justify-center mx-auto mb-4">
                         <FileText size={24} />
                     </div>
-                    <h3 className="text-lg font-medium text-gray-900">No templates found</h3>
-                    <p className="text-gray-500 mt-1 mb-4">Get started by creating your first prompt template.</p>
-                    <button
-                        onClick={handleCreate}
-                        className="text-indigo-600 font-medium hover:text-indigo-700"
-                    >
-                        Create New Template
-                    </button>
-                </div>
+                    <h3 className="text-lg font-medium text-gray-900">
+                        {templates.length === 0 ? 'No templates found' : 'No matching templates'}
+                    </h3>
+                    <p className="text-gray-500 mt-1 mb-4">
+                        {templates.length === 0
+                            ? 'Get started by creating your first prompt template.'
+                            : 'Try adjusting your search terms.'}
+                    </p>
+                    {templates.length === 0 && (
+                        <button
+                            onClick={handleCreate}
+                            className="text-indigo-600 font-medium hover:text-indigo-700"
+                        >
+                            Create New Template
+                        </button>
+                    )}
+                    {templates.length > 0 && (
+                        <button
+                            onClick={() => setSearchTerm('')}
+                            className="text-indigo-600 font-medium hover:text-indigo-700"
+                        >
+                            Clear Search
+                        </button>
+                    )}
+                </motion.div>
             ) : (
                 <div className="bg-white border border-gray-100 rounded-xl shadow-sm overflow-hidden">
                     <div className="overflow-x-auto">
@@ -172,9 +206,19 @@ const MyTemplates = () => {
                                     <th className="px-6 py-4 text-right">Actions</th>
                                 </tr>
                             </thead>
-                            <tbody className="divide-y divide-gray-100">
+                            <motion.tbody
+                                key={`tbody-${filteredTemplates.length}`}
+                                className="divide-y divide-gray-100"
+                                variants={listVariants}
+                                initial="hidden"
+                                animate="show"
+                            >
                                 {filteredTemplates.map((template) => (
-                                    <tr key={template._id} className="hover:bg-gray-50 transition-colors">
+                                    <motion.tr
+                                        key={template._id}
+                                        variants={itemVariants}
+                                        className="hover:bg-gray-50 transition-colors"
+                                    >
                                         <td className="px-6 py-4">
                                             <div className="font-medium text-gray-900">{template.title}</div>
                                             <div className="text-xs text-gray-500 truncate max-w-xs">{template.description}</div>
@@ -210,9 +254,9 @@ const MyTemplates = () => {
                                                 <Trash2 size={16} />
                                             </button>
                                         </td>
-                                    </tr>
+                                    </motion.tr>
                                 ))}
-                            </tbody>
+                            </motion.tbody>
                         </table>
                     </div>
                 </div>

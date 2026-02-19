@@ -1,5 +1,7 @@
-import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
+import { BrowserRouter as Router, Routes, Route, useLocation } from 'react-router-dom';
+import { AnimatePresence } from 'framer-motion';
 import { AuthProvider } from './context/AuthContext';
+import PageTransition from './components/PageTransition';
 import Layout from './components/Layout';
 import SetPassword from './pages/SetPassword';
 import Login from './pages/Login';
@@ -12,7 +14,7 @@ import Industries from './pages/Industries';
 import Categories from './pages/Categories';
 import Users from './pages/Users';
 import MyTemplates from './pages/MyTemplates';
-import Variables from './pages/Variables';
+
 import Templates from './pages/Templates';
 import PlaceholderPage from './components/PlaceholderPage';
 import './App.css';
@@ -21,15 +23,25 @@ const DashboardWrapper = () => (
   <DashboardLayout />
 );
 
-const PublicLayoutWrapper = ({ children }) => (
-  <Layout>
-    {children}
-  </Layout>
-);
+const PublicLayoutWrapper = ({ children }) => {
+  const location = useLocation();
+  return (
+    <Layout>
+      <AnimatePresence mode="wait">
+        <PageTransition key={location.pathname}>
+          {children}
+        </PageTransition>
+      </AnimatePresence>
+    </Layout>
+  );
+};
+import { Toaster } from 'react-hot-toast';
+
 function App() {
   return (
     <AuthProvider>
       <Router>
+        <Toaster position="top-right" />
         <Routes>
           {/* Public Routes with Main Layout */}
           <Route path="/" element={<PublicLayoutWrapper><Home /></PublicLayoutWrapper>} />
@@ -43,7 +55,7 @@ function App() {
             <Route path="requests" element={<ExpertRequests />} />
             <Route path="users" element={<Users />} />
             <Route path="templates" element={<Templates />} />
-            <Route path="variables" element={<Variables />} />
+
             <Route path="industries" element={<Industries />} />
             <Route path="categories" element={<Categories />} />
             <Route path="comments" element={<PlaceholderPage title="Moderate Comments" />} />

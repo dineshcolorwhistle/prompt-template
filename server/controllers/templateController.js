@@ -74,7 +74,28 @@ exports.createTemplate = async (req, res, next) => {
             }
         }
 
+        // --- VALIDATION START ---
+        // 1. Variable Usage Validation
+        const unusedVariables = [];
+        variables.forEach(variable => {
+            const pattern = `{{${variable.name}}}`;
+            if (!basePromptText.includes(pattern)) {
+                unusedVariables.push(variable.name);
+            }
+        });
+
+        if (unusedVariables.length > 0) {
+            return res.status(400).json({
+                message: `Validation Error: The following variables are defined but not used in the Base Prompt: ${unusedVariables.join(', ')}`
+            });
+        }
+
+        // 2. Sample Output Image Validation
         const sampleOutput = req.files ? req.files.map(file => file.path) : [];
+        if (sampleOutput.length === 0) {
+            return res.status(400).json({ message: 'Validation Error: At least one sample output image is required.' });
+        }
+        // --- VALIDATION END ---
 
         const template = await Template.create({
             user: req.user._id,
@@ -95,8 +116,7 @@ exports.createTemplate = async (req, res, next) => {
 
         const populatedTemplate = await Template.findById(template._id)
             .populate('industry', 'name')
-            .populate('category', 'name')
-            .populate('variables');
+            .populate('category', 'name');
 
         res.status(201).json(populatedTemplate);
     } catch (error) {
@@ -146,6 +166,30 @@ exports.updateTemplate = async (req, res, next) => {
                 // ignore
             }
         }
+
+        // --- VALIDATION START ---
+        // 1. Variable Usage Validation
+        // Use the updated basePromptText if provided, otherwise the existing one
+        const promptToCheck = basePromptText !== undefined ? basePromptText : template.basePromptText;
+        // Use updated variables if provided, otherwise existing
+        const variablesToCheck = req.body.variables ? template.variables : template.variables;
+
+        const unusedVariables = [];
+        if (variablesToCheck && Array.isArray(variablesToCheck)) {
+            variablesToCheck.forEach(variable => {
+                const pattern = `{{${variable.name}}}`;
+                if (!promptToCheck.includes(pattern)) {
+                    unusedVariables.push(variable.name);
+                }
+            });
+        }
+
+        if (unusedVariables.length > 0) {
+            return res.status(400).json({
+                message: `Validation Error: The following variables are defined but not used in the Base Prompt: ${unusedVariables.join(', ')}`
+            });
+        }
+        // --- VALIDATION END ---
 
         // Handle existing images to keep
         let existingImages = [];
@@ -239,13 +283,17 @@ exports.updateTemplate = async (req, res, next) => {
 
         template.sampleOutput = [...currentBase, ...newImages];
 
+        // --- VALIDATION START (Image) ---
+        if (!template.sampleOutput || template.sampleOutput.length === 0) {
+            return res.status(400).json({ message: 'Validation Error: At least one sample output image is required.' });
+        }
+        // --- VALIDATION END ---
 
         await template.save();
 
         const updatedTemplate = await Template.findById(template._id)
             .populate('industry', 'name')
-            .populate('category', 'name')
-            .populate('variables');
+            .populate('category', 'name');
 
         res.json(updatedTemplate);
     } catch (error) {
@@ -285,8 +333,7 @@ exports.getTemplateById = async (req, res) => {
         const template = await Template.findById(req.params.id)
             .populate('industry', 'name')
             .populate('category', 'name')
-            .populate('user', 'name')
-            .populate('variables');
+            .populate('user', 'name');
 
         if (!template) {
             return res.status(404).json({ message: 'Template not found' });

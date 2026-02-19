@@ -1,5 +1,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
+import { motion, AnimatePresence } from 'framer-motion';
+import { dropdownVariants } from '../animations';
 import { Search, Menu, X, User, LogOut, LayoutDashboard, ChevronDown, CheckCircle, BadgeCheck } from 'lucide-react';
 
 import { useAuth } from '../context/AuthContext';
@@ -80,56 +82,64 @@ export default function Navbar() {
                                         <ChevronDown size={16} className={`transform transition-transform ${isProfileOpen ? 'rotate-180' : ''}`} />
                                     </button>
 
-                                    {isProfileOpen && (
-                                        <div className="absolute right-0 mt-2 w-56 bg-white rounded-lg shadow-lg border border-gray-100 py-1 animate-in fade-in zoom-in-95 duration-200 origin-top-right">
-                                            <div className="px-4 py-2 border-b border-gray-50">
-                                                <p className="text-sm font-semibold text-gray-900 truncate">{userInfo.name}</p>
-                                                <p className="text-xs text-gray-500 truncate">{userInfo.email}</p>
-                                                <p className="text-xs font-semibold text-indigo-600 mt-1 capitalize">{userInfo.role}</p>
-                                            </div>
+                                    <AnimatePresence>
+                                        {isProfileOpen && (
+                                            <motion.div
+                                                variants={dropdownVariants}
+                                                initial="initial"
+                                                animate="animate"
+                                                exit="exit"
+                                                className="absolute right-0 mt-2 w-56 bg-white rounded-lg shadow-lg border border-gray-100 py-1 origin-top-right ring-1 ring-black ring-opacity-5 z-50"
+                                            >
+                                                <div className="px-4 py-2 border-b border-gray-50">
+                                                    <p className="text-sm font-semibold text-gray-900 truncate">{userInfo.name}</p>
+                                                    <p className="text-xs text-gray-500 truncate">{userInfo.email}</p>
+                                                    <p className="text-xs font-semibold text-indigo-600 mt-1 capitalize">{userInfo.role}</p>
+                                                </div>
 
-                                            {['Admin', 'Expert'].includes(userInfo.role) ? (
+                                                {['Admin', 'Expert'].includes(userInfo.role) ? (
+                                                    <Link
+                                                        to="/dashboard"
+                                                        className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-50 hover:text-indigo-600 flex items-center"
+                                                        onClick={() => setIsProfileOpen(false)}
+                                                    >
+                                                        <LayoutDashboard size={16} className="mr-2" />
+                                                        Dashboard
+                                                    </Link>
+                                                ) : (
+                                                    <button
+                                                        onClick={() => {
+                                                            setIsProfileOpen(false);
+                                                            setIsRequestModalOpen(true);
+                                                        }}
+                                                        className="w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-50 hover:text-indigo-600 flex items-center"
+                                                    >
+                                                        <CheckCircle size={16} className="mr-2" />
+                                                        Become an Expert
+                                                    </button>
+                                                )}
+
                                                 <Link
-                                                    to="/dashboard"
+                                                    to="/profile"
                                                     className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-50 hover:text-indigo-600 flex items-center"
                                                     onClick={() => setIsProfileOpen(false)}
                                                 >
-                                                    <LayoutDashboard size={16} className="mr-2" />
-                                                    Dashboard
+                                                    <User size={16} className="mr-2" />
+                                                    Profile
                                                 </Link>
-                                            ) : (
-                                                <button
-                                                    onClick={() => {
-                                                        setIsProfileOpen(false);
-                                                        setIsRequestModalOpen(true);
-                                                    }}
-                                                    className="w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-50 hover:text-indigo-600 flex items-center"
-                                                >
-                                                    <CheckCircle size={16} className="mr-2" />
-                                                    Become an Expert
-                                                </button>
-                                            )}
 
-                                            <Link
-                                                to="/profile"
-                                                className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-50 hover:text-indigo-600 flex items-center"
-                                                onClick={() => setIsProfileOpen(false)}
-                                            >
-                                                <User size={16} className="mr-2" />
-                                                Profile
-                                            </Link>
-
-                                            <div className="border-t border-gray-50 mt-1">
-                                                <button
-                                                    onClick={handleLogout}
-                                                    className="block w-full text-left px-4 py-2 text-sm text-red-600 hover:bg-red-50 flex items-center"
-                                                >
-                                                    <LogOut size={16} className="mr-2" />
-                                                    Sign out
-                                                </button>
-                                            </div>
-                                        </div>
-                                    )}
+                                                <div className="border-t border-gray-50 mt-1">
+                                                    <button
+                                                        onClick={handleLogout}
+                                                        className="block w-full text-left px-4 py-2 text-sm text-red-600 hover:bg-red-50 flex items-center"
+                                                    >
+                                                        <LogOut size={16} className="mr-2" />
+                                                        Sign out
+                                                    </button>
+                                                </div>
+                                            </motion.div>
+                                        )}
+                                    </AnimatePresence>
                                 </div>
                             ) : (
                                 <>
@@ -152,69 +162,78 @@ export default function Navbar() {
                 </div>
 
                 {/* Mobile Menu */}
-                {isMenuOpen && (
-                    <div className="absolute top-16 left-0 right-0 bg-white border-b border-gray-100 p-4 md:hidden shadow-lg animate-in slide-in-from-top-2">
-                        <div className="flex flex-col space-y-4">
-                            <Link to="/" className="text-gray-600 font-medium py-2">Browse</Link>
-                            <Link to="/categories" className="text-gray-600 font-medium py-2">Categories</Link>
-                            <Link to="/experts" className="text-gray-600 font-medium py-2">Experts</Link>
-                            <hr className="border-gray-100" />
+                {/* Mobile Menu */}
+                <AnimatePresence>
+                    {isMenuOpen && (
+                        <motion.div
+                            initial={{ opacity: 0, height: 0 }}
+                            animate={{ opacity: 1, height: 'auto' }}
+                            exit={{ opacity: 0, height: 0 }}
+                            className="absolute top-16 left-0 right-0 bg-white border-b border-gray-100 md:hidden shadow-lg overflow-hidden"
+                            transition={{ duration: 0.2 }}
+                        >
+                            <div className="p-4 flex flex-col space-y-4">
+                                <Link to="/" className="text-gray-600 font-medium py-2">Browse</Link>
+                                <Link to="/categories" className="text-gray-600 font-medium py-2">Categories</Link>
+                                <Link to="/experts" className="text-gray-600 font-medium py-2">Experts</Link>
+                                <hr className="border-gray-100" />
 
-                            {userInfo ? (
-                                <>
-                                    <div className="flex items-center space-x-3 py-2 border-b border-gray-50 mb-2">
-                                        <div className="w-10 h-10 rounded-full bg-indigo-100 flex items-center justify-center text-indigo-600 font-bold border border-indigo-200 relative">
-                                            {userInfo.name ? userInfo.name.charAt(0).toUpperCase() : <User size={20} />}
-                                            {userInfo.isVerifiedExpert && (
-                                                <div className="absolute -bottom-1 -right-1 bg-white rounded-full">
-                                                    <BadgeCheck size={16} className="text-blue-600 fill-blue-50" />
-                                                </div>
-                                            )}
+                                {userInfo ? (
+                                    <>
+                                        <div className="flex items-center space-x-3 py-2 border-b border-gray-50 mb-2">
+                                            <div className="w-10 h-10 rounded-full bg-indigo-100 flex items-center justify-center text-indigo-600 font-bold border border-indigo-200 relative">
+                                                {userInfo.name ? userInfo.name.charAt(0).toUpperCase() : <User size={20} />}
+                                                {userInfo.isVerifiedExpert && (
+                                                    <div className="absolute -bottom-1 -right-1 bg-white rounded-full">
+                                                        <BadgeCheck size={16} className="text-blue-600 fill-blue-50" />
+                                                    </div>
+                                                )}
+                                            </div>
+                                            <div>
+                                                <p className="font-semibold text-gray-900">{userInfo.name}</p>
+                                                <p className="text-xs text-gray-500">{userInfo.email}</p>
+                                            </div>
                                         </div>
-                                        <div>
-                                            <p className="font-semibold text-gray-900">{userInfo.name}</p>
-                                            <p className="text-xs text-gray-500">{userInfo.email}</p>
-                                        </div>
-                                    </div>
 
-                                    {['Admin', 'Expert'].includes(userInfo.role) ? (
-                                        <Link to="/dashboard" className="text-gray-600 font-medium py-2 flex items-center hover:text-indigo-600">
-                                            <LayoutDashboard size={18} className="mr-2" />
-                                            Dashboard
+                                        {['Admin', 'Expert'].includes(userInfo.role) ? (
+                                            <Link to="/dashboard" className="text-gray-600 font-medium py-2 flex items-center hover:text-indigo-600">
+                                                <LayoutDashboard size={18} className="mr-2" />
+                                                Dashboard
+                                            </Link>
+                                        ) : (
+                                            <button
+                                                onClick={() => setIsRequestModalOpen(true)}
+                                                className="text-gray-600 font-medium py-2 flex items-center hover:text-indigo-600 w-full text-left"
+                                            >
+                                                <CheckCircle size={18} className="mr-2" />
+                                                Become an Expert
+                                            </button>
+                                        )}
+
+                                        <Link to="/profile" className="text-gray-600 font-medium py-2 flex items-center hover:text-indigo-600">
+                                            <User size={18} className="mr-2" />
+                                            Profile
                                         </Link>
-                                    ) : (
                                         <button
-                                            onClick={() => setIsRequestModalOpen(true)}
-                                            className="text-gray-600 font-medium py-2 flex items-center hover:text-indigo-600 w-full text-left"
+                                            onClick={handleLogout}
+                                            className="text-red-600 font-medium py-2 text-left flex items-center hover:bg-red-50"
                                         >
-                                            <CheckCircle size={18} className="mr-2" />
-                                            Become an Expert
+                                            <LogOut size={18} className="mr-2" />
+                                            Sign out
                                         </button>
-                                    )}
-
-                                    <Link to="/profile" className="text-gray-600 font-medium py-2 flex items-center hover:text-indigo-600">
-                                        <User size={18} className="mr-2" />
-                                        Profile
-                                    </Link>
-                                    <button
-                                        onClick={handleLogout}
-                                        className="text-red-600 font-medium py-2 text-left flex items-center hover:bg-red-50"
-                                    >
-                                        <LogOut size={18} className="mr-2" />
-                                        Sign out
-                                    </button>
-                                </>
-                            ) : (
-                                <>
-                                    <Link to="/login" className="text-gray-600 font-medium py-2">Log in</Link>
-                                    <Link to="/signup" className="bg-indigo-600 text-white px-4 py-2 rounded-lg text-center font-medium">
-                                        Sign up
-                                    </Link>
-                                </>
-                            )}
-                        </div>
-                    </div>
-                )}
+                                    </>
+                                ) : (
+                                    <>
+                                        <Link to="/login" className="text-gray-600 font-medium py-2">Log in</Link>
+                                        <Link to="/signup" className="bg-indigo-600 text-white px-4 py-2 rounded-lg text-center font-medium">
+                                            Sign up
+                                        </Link>
+                                    </>
+                                )}
+                            </div>
+                        </motion.div>
+                    )}
+                </AnimatePresence>
             </nav>
             <RequestExpertModal isOpen={isRequestModalOpen} onClose={() => setIsRequestModalOpen(false)} />
         </>

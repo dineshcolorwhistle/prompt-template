@@ -1,7 +1,9 @@
 import React, { useState, useEffect } from 'react';
 import TemplateCard from '../components/TemplateCard';
 import Pagination from '../components/Pagination';
+import { motion } from 'framer-motion';
 import { Sparkles, TrendingUp, Grid, Briefcase } from 'lucide-react';
+import { listVariants, itemVariants } from '../animations';
 
 const MOCK_TEMPLATES = [
     {
@@ -68,37 +70,49 @@ export default function Home() {
     const [totalItems, setTotalItems] = useState(0);
 
     useEffect(() => {
-        fetchIndustries();
-    }, [page]);
-
-    const fetchIndustries = async () => {
-        setLoading(true);
-        try {
-            // Fetch active industries only
-            const response = await fetch(`${import.meta.env.VITE_API_URL}/api/industries?page=${page}&limit=12&status=active`);
-            if (response.ok) {
-                const data = await response.json();
-                if (data.result) {
-                    setIndustries(data.result);
-                    setTotalPages(data.pages);
-                    setTotalItems(data.total);
-                } else {
-                    setIndustries(Array.isArray(data) ? data : []);
+        const controller = new AbortController();
+        const fetchIndustries = async () => {
+            setLoading(true);
+            try {
+                const response = await fetch(
+                    `${import.meta.env.VITE_API_URL}/api/industries?page=${page}&limit=12&status=active`,
+                    { signal: controller.signal }
+                );
+                if (response.ok) {
+                    const data = await response.json();
+                    if (data.result) {
+                        setIndustries(data.result);
+                        setTotalPages(data.pages);
+                        setTotalItems(data.total);
+                    } else {
+                        setIndustries(Array.isArray(data) ? data : []);
+                    }
+                }
+            } catch (error) {
+                if (error.name !== 'AbortError') {
+                    console.error('Failed to fetch industries:', error);
+                }
+            } finally {
+                if (!controller.signal.aborted) {
+                    setLoading(false);
                 }
             }
-        } catch (error) {
-            console.error('Failed to fetch industries:', error);
-        } finally {
-            setLoading(false);
-        }
-    };
+        };
+        fetchIndustries();
+        return () => controller.abort();
+    }, [page]);
 
     return (
         <div className="pb-16">
             {/* Hero Section */}
             <section className="bg-white border-b border-gray-100 py-16 sm:py-24">
-                <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
-                    <div className="inline-flex items-center px-4 py-2 rounded-full bg-indigo-50 text-indigo-700 text-sm font-medium mb-8 animate-fade-in-up">
+                <motion.div
+                    initial={{ opacity: 0, y: 20 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ duration: 0.6 }}
+                    className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center"
+                >
+                    <div className="inline-flex items-center px-4 py-2 rounded-full bg-indigo-50 text-indigo-700 text-sm font-medium mb-8">
                         <Sparkles className="w-4 h-4 mr-2" />
                         Over 5,000+ Industry-Tested Prompt Templates
                     </div>
@@ -109,14 +123,22 @@ export default function Home() {
                         A curated marketplace for high-quality, pre-tested prompt templates. Stop guessing and start generating production-ready outputs.
                     </p>
                     <div className="flex justify-center gap-4">
-                        <button className="px-8 py-4 bg-indigo-600 text-white rounded-xl font-bold text-lg hover:bg-indigo-700 transition-all shadow-lg hover:shadow-indigo-200 transform hover:-translate-y-0.5">
+                        <motion.button
+                            whileHover={{ scale: 1.05 }}
+                            whileTap={{ scale: 0.95 }}
+                            className="px-8 py-4 bg-indigo-600 text-white rounded-xl font-bold text-lg hover:bg-indigo-700 transition-all shadow-lg hover:shadow-indigo-200"
+                        >
                             Browse Templates
-                        </button>
-                        <button className="px-8 py-4 bg-white text-gray-700 border border-gray-200 rounded-xl font-bold text-lg hover:bg-gray-50 transition-all hover:border-gray-300">
+                        </motion.button>
+                        <motion.button
+                            whileHover={{ scale: 1.05 }}
+                            whileTap={{ scale: 0.95 }}
+                            className="px-8 py-4 bg-white text-gray-700 border border-gray-200 rounded-xl font-bold text-lg hover:bg-gray-50 transition-all hover:border-gray-300"
+                        >
                             Become an Expert
-                        </button>
+                        </motion.button>
                     </div>
-                </div>
+                </motion.div>
             </section>
 
             {/* Featured Grid */}
@@ -134,11 +156,19 @@ export default function Home() {
                     </a>
                 </div>
 
-                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-8">
+                <motion.div
+                    className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-8"
+                    variants={listVariants}
+                    initial="hidden"
+                    whileInView="show"
+                    viewport={{ once: true }}
+                >
                     {MOCK_TEMPLATES.map(template => (
-                        <TemplateCard key={template.id} template={template} />
+                        <motion.div key={template.id} variants={itemVariants} className="h-full">
+                            <TemplateCard template={template} />
+                        </motion.div>
                     ))}
-                </div>
+                </motion.div>
 
                 <div className="mt-8 text-center sm:hidden">
                     <button className="text-indigo-600 font-medium hover:text-indigo-700">View all templates</button>
@@ -156,14 +186,26 @@ export default function Home() {
                         </div>
                     ) : industries.length > 0 ? (
                         <>
-                            <div className="flex flex-wrap justify-center gap-4">
+                            <motion.div
+                                className="flex flex-wrap justify-center gap-4"
+                                variants={listVariants}
+                                initial="hidden"
+                                whileInView="show"
+                                viewport={{ once: true }}
+                            >
                                 {industries.map(ind => (
-                                    <button key={ind._id} className="px-6 py-3 bg-white rounded-lg border border-gray-200 text-gray-700 hover:border-indigo-300 hover:text-indigo-600 hover:shadow-sm transition-all font-medium flex items-center gap-2">
+                                    <motion.button
+                                        key={ind._id}
+                                        variants={itemVariants}
+                                        whileHover={{ scale: 1.05 }}
+                                        whileTap={{ scale: 0.95 }}
+                                        className="px-6 py-3 bg-white rounded-lg border border-gray-200 text-gray-700 hover:border-indigo-300 hover:text-indigo-600 hover:shadow-sm transition-all font-medium flex items-center gap-2"
+                                    >
                                         <Briefcase size={16} className="text-gray-400 group-hover:text-indigo-500" />
                                         {ind.name}
-                                    </button>
+                                    </motion.button>
                                 ))}
-                            </div>
+                            </motion.div>
 
                             <div className="max-w-2xl mx-auto">
                                 <Pagination
