@@ -2,7 +2,7 @@ const express = require('express');
 const router = express.Router();
 const multer = require('multer');
 const path = require('path');
-const { protect } = require('../middleware/authMiddleware');
+const { protect, optionalAuth } = require('../middleware/authMiddleware');
 const {
     createTemplate,
     getMyTemplates,
@@ -33,12 +33,12 @@ const upload = multer({
     }
 });
 
-router.get('/', protect, getTemplates); // Admin sees all, User sees Approved
+router.get('/', optionalAuth, getTemplates); // Public (Approved), Admin sees all if token passed
 router.get('/my', protect, getMyTemplates);
 router.get('/stats', protect, getTemplateStats);
 router.post('/', protect, upload.array('sampleOutput', 5), createTemplate);
 router.route('/:id')
-    .get(protect, getTemplateById)
+    .get(optionalAuth, getTemplateById) // Public read for details page, but optional auth for ownership check etc.
     .put(protect, upload.array('sampleOutput', 5), updateTemplate)
     .delete(protect, deleteTemplate);
 

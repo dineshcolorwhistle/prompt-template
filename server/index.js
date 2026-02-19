@@ -19,9 +19,29 @@ app.use(helmet({
 app.use(morgan('dev'));
 
 // Database Connection
-mongoose.connect(process.env.MONGODB_URI)
+// Database Connection
+mongoose.connect(process.env.MONGODB_URI, {
+  serverSelectionTimeoutMS: 5000,
+  socketTimeoutMS: 45000,
+  tlsAllowInvalidCertificates: true,
+  tls: { rejectUnauthorized: false }
+})
   .then(() => console.log('MongoDB Connected'))
-  .catch(err => console.log(err));
+  .catch(err => {
+    console.error('MongoDB Connection Error:', err);
+  });
+
+mongoose.connection.on('connected', () => {
+  console.log('Mongoose connected to db');
+});
+
+mongoose.connection.on('error', (err) => {
+  console.log('Mongoose connection error:', err.message);
+});
+
+mongoose.connection.on('disconnected', () => {
+  console.log('Mongoose connection is disconnected');
+});
 
 // Routes
 const userRoutes = require('./routes/userRoutes');

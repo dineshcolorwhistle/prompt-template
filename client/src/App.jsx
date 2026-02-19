@@ -19,6 +19,8 @@ import Templates from './pages/Templates';
 import PlaceholderPage from './components/PlaceholderPage';
 import './App.css';
 
+import TemplateDetails from './pages/TemplateDetails';
+
 const DashboardWrapper = () => (
   <DashboardLayout />
 );
@@ -45,6 +47,7 @@ function App() {
         <Routes>
           {/* Public Routes with Main Layout */}
           <Route path="/" element={<PublicLayoutWrapper><Home /></PublicLayoutWrapper>} />
+          <Route path="/template/:id" element={<PublicLayoutWrapper><TemplateDetails /></PublicLayoutWrapper>} />
           <Route path="/login" element={<PublicLayoutWrapper><Login /></PublicLayoutWrapper>} />
           <Route path="/signup" element={<PublicLayoutWrapper><Signup /></PublicLayoutWrapper>} />
           <Route path="/set-password/:token" element={<PublicLayoutWrapper><SetPassword /></PublicLayoutWrapper>} />

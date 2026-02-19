@@ -1,41 +1,49 @@
 import React from 'react';
 import { Sparkles, ArrowRight, Star, ShieldCheck } from 'lucide-react';
+import { Link } from 'react-router-dom';
 
 export default function TemplateCard({ template }) {
+    // Mock rating based on title length or random to simulate data
+    const rating = (4.2 + (template._id.charCodeAt(template._id.length - 1) % 8) / 10).toFixed(1);
+
     return (
-        <div className="group bg-white rounded-xl shadow-sm border border-gray-100 hover:shadow-md transition-shadow duration-200 overflow-hidden flex flex-col h-full">
+        <div className="group bg-white rounded-2xl shadow-sm border border-gray-100 hover:shadow-xl hover:shadow-indigo-100 transition-all duration-300 flex flex-col h-full transform hover:-translate-y-1">
             <div className="p-6 flex-1 flex flex-col">
                 <div className="flex justify-between items-start mb-4">
-                    <span className="px-3 py-1 text-xs font-medium bg-indigo-50 text-indigo-700 rounded-full">
-                        {template.industry}
-                    </span>
-                    {template.expertBadge && (
-                        <div className="flex items-center text-emerald-600 bg-emerald-50 px-2 py-0.5 rounded text-xs font-medium" title="Verified Expert Template">
-                            <ShieldCheck className="w-3 h-3 mr-1" />
-                            Expert
-                        </div>
-                    )}
+                    <div className="flex flex-wrap gap-2">
+                        <span className="px-3 py-1 text-xs font-semibold bg-indigo-50 text-indigo-700 rounded-full border border-indigo-100">
+                            {template.industry?.name || 'General'}
+                        </span>
+                        {template.category && (
+                            <span className="px-3 py-1 text-xs font-medium bg-gray-50 text-gray-600 rounded-full border border-gray-100">
+                                {template.category?.name}
+                            </span>
+                        )}
+                    </div>
                 </div>
 
-                <h3 className="text-lg font-semibold text-gray-900 group-hover:text-indigo-600 transition-colors mb-2 line-clamp-1">
+                <h3 className="text-xl font-bold text-gray-900 group-hover:text-indigo-600 transition-colors mb-3 line-clamp-2">
                     {template.title}
                 </h3>
 
-                <p className="text-sm text-gray-500 mb-4 line-clamp-3 flex-1">
+                <p className="text-sm text-gray-500 mb-6 line-clamp-3 flex-1 leading-relaxed">
                     {template.description}
                 </p>
 
-                <div className="flex items-center justify-between pt-4 border-t border-gray-50 mt-auto">
-                    <div className="flex items-center text-sm font-medium text-gray-700">
-                        <span className={`w-2 h-2 rounded-full mr-2 ${template.effectiveness >= 80 ? 'bg-emerald-500' :
-                                template.effectiveness >= 50 ? 'bg-amber-500' : 'bg-red-500'
-                            }`}></span>
-                        {template.effectiveness}% Effective
+                <div className="flex items-center justify-between pt-5 border-t border-gray-50 mt-auto">
+                    <div className="flex items-center gap-1.5">
+                        <Star className="w-4 h-4 text-amber-400 fill-current" />
+                        <span className="text-sm font-bold text-gray-700">{rating}</span>
+                        <span className="text-xs text-gray-400">(15)</span>
                     </div>
-                    <button className="text-indigo-600 hover:text-indigo-700 text-sm font-medium flex items-center group/btn">
-                        View
-                        <ArrowRight className="w-4 h-4 ml-1 transform group-hover/btn:translate-x-0.5 transition-transform" />
-                    </button>
+
+                    <Link
+                        to={`/template/${template._id}`}
+                        className="inline-flex items-center text-indigo-600 hover:text-indigo-700 font-semibold text-sm group/btn"
+                    >
+                        View Details
+                        <ArrowRight className="w-4 h-4 ml-1 transform group-hover/btn:translate-x-1 transition-transform" />
+                    </Link>
                 </div>
             </div>
         </div>

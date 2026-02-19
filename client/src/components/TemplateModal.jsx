@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { X, Save, AlertCircle, Plus, Trash2, Upload } from 'lucide-react';
+import { X, Save, AlertCircle, Plus, Trash2, Upload, Edit } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 import { toast } from 'react-hot-toast';
 import { motion } from 'framer-motion';
@@ -23,6 +23,7 @@ const TemplateModal = ({ isOpen, onClose, template, onSave }) => {
         defaultValue: '',
         required: false
     });
+    const [editingVariableIndex, setEditingVariableIndex] = useState(null);
 
     // Image Upload State
     const [sampleOutputs, setSampleOutputs] = useState([]); // Array of File objects
@@ -63,6 +64,7 @@ const TemplateModal = ({ isOpen, onClose, template, onSave }) => {
         setSampleOutputs([]);
         setSampleOutputPreviews([]);
         setNewVariable({ name: '', description: '', defaultValue: '', required: false });
+        setEditingVariableIndex(null);
     }, [template, isOpen]);
 
     useEffect(() => {
@@ -109,17 +111,37 @@ const TemplateModal = ({ isOpen, onClose, template, onSave }) => {
         }
 
         // Check for duplicate names
-        if (formData.variables.some(v => v.name === newVariable.name.trim())) {
+        if (formData.variables.some((v, i) => v.name === newVariable.name.trim() && i !== editingVariableIndex)) {
             toast.error("A variable with this name already exists.");
             return;
         }
 
-        setFormData(prev => ({
-            ...prev,
-            variables: [...prev.variables, { ...newVariable, name: newVariable.name.trim() }]
-        }));
+        if (editingVariableIndex !== null) {
+            setFormData(prev => {
+                const updatedVariables = [...prev.variables];
+                updatedVariables[editingVariableIndex] = { ...newVariable, name: newVariable.name.trim() };
+                return { ...prev, variables: updatedVariables };
+            });
+            setEditingVariableIndex(null);
+            toast.success("Variable updated successfully");
+        } else {
+            setFormData(prev => ({
+                ...prev,
+                variables: [...prev.variables, { ...newVariable, name: newVariable.name.trim() }]
+            }));
+        }
 
         setNewVariable({ name: '', description: '', defaultValue: '', required: false });
+    };
+
+    const handleEditVariable = (index) => {
+        setNewVariable(formData.variables[index]);
+        setEditingVariableIndex(index);
+    };
+
+    const handleCancelEdit = () => {
+        setNewVariable({ name: '', description: '', defaultValue: '', required: false });
+        setEditingVariableIndex(null);
     };
 
     const handleRemoveVariable = (index) => {
@@ -387,13 +409,22 @@ const TemplateModal = ({ isOpen, onClose, template, onSave }) => {
                                                 <div><span className="font-semibold text-gray-600">Default:</span> {v.defaultValue || '-'}</div>
                                                 <div><span className="font-semibold text-gray-600">Req:</span> {v.required ? 'Yes' : 'No'}</div>
                                             </div>
-                                            <button
-                                                type="button"
-                                                onClick={() => handleRemoveVariable(index)}
-                                                className="text-red-500 hover:bg-red-50 p-1 rounded transition ml-2"
-                                            >
-                                                <Trash2 size={16} />
-                                            </button>
+                                            <div className="flex items-center">
+                                                <button
+                                                    type="button"
+                                                    onClick={() => handleEditVariable(index)}
+                                                    className="text-indigo-500 hover:bg-indigo-50 p-1 rounded transition ml-2"
+                                                >
+                                                    <Edit size={16} />
+                                                </button>
+                                                <button
+                                                    type="button"
+                                                    onClick={() => handleRemoveVariable(index)}
+                                                    className="text-red-500 hover:bg-red-50 p-1 rounded transition ml-2"
+                                                >
+                                                    <Trash2 size={16} />
+                                                </button>
+                                            </div>
                                         </div>
                                     ))}
                                 </div>
@@ -401,7 +432,9 @@ const TemplateModal = ({ isOpen, onClose, template, onSave }) => {
 
                             {/* Add New Variable Form */}
                             <div className="bg-white p-4 rounded border border-gray-200">
-                                <h5 className="text-sm font-medium text-gray-700 mb-3">Add New Variable</h5>
+                                <h5 className="text-sm font-medium text-gray-700 mb-3">
+                                    {editingVariableIndex !== null ? 'Edit Variable' : 'Add New Variable'}
+                                </h5>
                                 <div className="grid grid-cols-1 md:grid-cols-2 gap-3 mb-3">
                                     <input
                                         type="text"
@@ -440,14 +473,25 @@ const TemplateModal = ({ isOpen, onClose, template, onSave }) => {
                                         Required
                                     </label>
                                 </div>
-                                <button
-                                    type="button"
-                                    onClick={handleAddVariable}
-                                    className="w-full py-2 bg-gray-600 text-white rounded text-sm hover:bg-gray-700 transition flex items-center justify-center gap-2"
-                                >
-                                    <Plus size={16} />
-                                    Add Variable
-                                </button>
+                                <div className="flex gap-2">
+                                    <button
+                                        type="button"
+                                        onClick={handleAddVariable}
+                                        className="flex-1 py-2 bg-gray-600 text-white rounded text-sm hover:bg-gray-700 transition flex items-center justify-center gap-2"
+                                    >
+                                        {editingVariableIndex !== null ? <Save size={16} /> : <Plus size={16} />}
+                                        {editingVariableIndex !== null ? 'Update Variable' : 'Add Variable'}
+                                    </button>
+                                    {editingVariableIndex !== null && (
+                                        <button
+                                            type="button"
+                                            onClick={handleCancelEdit}
+                                            className="px-4 py-2 border border-gray-300 text-gray-700 rounded text-sm hover:bg-gray-50 transition flex items-center justify-center"
+                                        >
+                                            Cancel
+                                        </button>
+                                    )}
+                                </div>
                             </div>
                         </div>
 

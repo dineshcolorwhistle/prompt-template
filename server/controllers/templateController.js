@@ -1,4 +1,6 @@
 const Template = require('../models/Template');
+const fs = require('fs');
+const path = require('path');
 
 // @desc    Get all templates (Admin) or Public (Approved only)
 // @route   GET /api/templates
@@ -267,7 +269,7 @@ exports.updateTemplate = async (req, res, next) => {
         // normalize to array if string (migration)
         if (typeof currentBase === 'string') currentBase = [currentBase];
 
-        if (req.body.hasOwnProperty('existingImages')) {
+        if (req.body && Object.prototype.hasOwnProperty.call(req.body, 'existingImages')) {
             let provided = req.body.existingImages;
             if (typeof provided === 'string') {
                 try {
@@ -318,8 +320,21 @@ exports.deleteTemplate = async (req, res) => {
             return res.status(401).json({ message: 'Not authorized to delete this template' });
         }
 
+        if (template.sampleOutput && template.sampleOutput.length > 0) {
+            template.sampleOutput.forEach(imagePath => {
+                const fullPath = path.resolve(__dirname, '..', imagePath);
+                fs.access(fullPath, fs.constants.F_OK, (err) => {
+                    if (!err) {
+                        fs.unlink(fullPath, (unlinkErr) => {
+                            if (unlinkErr) console.error("Failed to delete image:", fullPath, unlinkErr);
+                        });
+                    }
+                });
+            });
+        }
+
         await template.deleteOne();
-        res.json({ message: 'Template removed' });
+        res.json({ message: 'Template removed successfully' });
     } catch (error) {
         res.status(500).json({ message: error.message });
     }
@@ -337,6 +352,14 @@ exports.getTemplateById = async (req, res) => {
 
         if (!template) {
             return res.status(404).json({ message: 'Template not found' });
+        }
+
+        // Access Control: Public/Expert can only see Approved templates, unless they are the owner
+        const isOwner = req.user && template.user && template.user._id.toString() === req.user._id.toString();
+        const isAdmin = req.user && req.user.role === 'Admin';
+
+        if (template.status !== 'Approved' && !isOwner && !isAdmin) {
+            return res.status(404).json({ message: 'Template not found or not approved' });
         }
 
         res.json(template);
