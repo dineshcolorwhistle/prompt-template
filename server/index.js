@@ -55,6 +55,12 @@ app.use('/api/categories', categoryRoutes);
 const templateRoutes = require('./routes/templateRoutes');
 app.use('/api/templates', templateRoutes);
 
+const commentRoutes = require('./routes/commentRoutes');
+app.use('/api/comments', commentRoutes);
+
+const ratingRoutes = require('./routes/ratingRoutes');
+app.use('/api/ratings', ratingRoutes);
+
 // Make uploads folder static
 app.use('/uploads', express.static('uploads'));
 
