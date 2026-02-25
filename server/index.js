@@ -1,5 +1,6 @@
 const express = require('express');
 const mongoose = require('mongoose');
+const path = require('path');
 const dotenv = require('dotenv');
 const cors = require('cors');
 const helmet = require('helmet');
@@ -64,8 +65,9 @@ app.use('/api/comments', commentRoutes);
 const ratingRoutes = require('./routes/ratingRoutes');
 app.use('/api/ratings', ratingRoutes);
 
-// Make uploads folder static
-app.use('/uploads', express.static('uploads'));
+// Serve uploads from server/uploads (absolute path so it works when cwd is project root, e.g. PM2 on VPS)
+const uploadsDir = path.join(__dirname, 'uploads');
+app.use('/uploads', express.static(uploadsDir));
 
 app.get('/', (req, res) => {
   res.send('API is running...');
