@@ -13,8 +13,11 @@ export default function Navbar() {
     const [isRequestModalOpen, setIsRequestModalOpen] = useState(false);
     const { userInfo, logout } = useAuth();
     const profileRef = useRef(null);
+    const debounceRef = useRef(null);
+    const searchParamsRef = useRef(null);
     const navigate = useNavigate();
     const [searchParams] = useSearchParams();
+    searchParamsRef.current = searchParams;
 
     // Filters State
     const [llms, setLLMs] = useState([]);
@@ -83,8 +86,34 @@ export default function Navbar() {
     }, [selectedIndustry]);
 
     useEffect(() => {
-        setSearchTerm(searchParams.get('search') || '');
+        const urlSearch = searchParams.get('search') || '';
+        setSearchTerm(prev => prev.trim() === urlSearch ? prev : urlSearch);
     }, [searchParams]);
+
+    useEffect(() => {
+        if (debounceRef.current) clearTimeout(debounceRef.current);
+
+        debounceRef.current = setTimeout(() => {
+            const currentParams = searchParamsRef.current;
+            const currentSearch = currentParams.get('search') || '';
+            const trimmed = searchTerm.trim();
+
+            if (trimmed !== currentSearch) {
+                const params = new URLSearchParams(currentParams);
+                if (trimmed) {
+                    params.set('search', trimmed);
+                } else {
+                    params.delete('search');
+                }
+                params.delete('page');
+                navigate(`/?${params.toString()}`, { replace: true });
+            }
+        }, 300);
+
+        return () => {
+            if (debounceRef.current) clearTimeout(debounceRef.current);
+        };
+    }, [searchTerm, navigate]);
 
     useEffect(() => {
         const handleClickOutside = (event) => {
@@ -143,22 +172,29 @@ export default function Navbar() {
         navigate(`/?${params.toString()}`);
     };
 
+    const submitSearch = () => {
+        if (debounceRef.current) clearTimeout(debounceRef.current);
+        const params = new URLSearchParams(searchParams);
+        if (searchTerm.trim()) {
+            params.set('search', searchTerm.trim());
+        } else {
+            params.delete('search');
+        }
+        params.delete('page');
+        navigate(`/?${params.toString()}`);
+        setIsMenuOpen(false);
+    };
+
     const handleSearch = (e) => {
         if (e.key === 'Enter') {
-            const params = new URLSearchParams(searchParams);
-            if (searchTerm) {
-                params.set('search', searchTerm);
-            } else {
-                params.delete('search');
-            }
-            params.delete('page');
-            navigate(`/?${params.toString()}`);
+            submitSearch();
         }
     };
 
     const hasFilters = selectedLLM || selectedIndustry || selectedCategory || searchTerm;
 
     const handleReset = () => {
+        if (debounceRef.current) clearTimeout(debounceRef.current);
         setSearchTerm('');
         navigate('/');
     };
@@ -227,15 +263,22 @@ export default function Navbar() {
 
                             {/* Search Bar */}
                             <div className="relative flex-1">
-                                <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
+                                <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400 pointer-events-none" />
                                 <input
                                     type="text"
                                     placeholder="Search templates..."
                                     value={searchTerm}
                                     onChange={(e) => setSearchTerm(e.target.value)}
                                     onKeyDown={handleSearch}
-                                    className="w-full pl-9 pr-4 py-2 text-sm bg-white border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent shadow-sm"
+                                    className="w-full pl-9 pr-10 py-2 text-sm bg-white border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent shadow-sm"
                                 />
+                                <button
+                                    onClick={submitSearch}
+                                    type="button"
+                                    className="absolute right-2 top-1/2 -translate-y-1/2 p-1 text-gray-400 hover:text-indigo-600 rounded transition-colors"
+                                >
+                                    <Search className="w-4 h-4" />
+                                </button>
                             </div>
 
                             {hasFilters && (
@@ -343,8 +386,13 @@ export default function Navbar() {
                         </div>
 
                         {/* Mobile Menu Button */}
-                        <div className="flex items-center gap-4 md:hidden">
-                            <Search className="w-5 h-5 text-gray-600" />
+                        <div className="flex items-center gap-2 md:hidden">
+                            <button
+                                className="p-2 text-gray-600 hover:bg-gray-50 rounded-lg"
+                                onClick={() => setIsMenuOpen(true)}
+                            >
+                                <Search className="w-5 h-5" />
+                            </button>
                             <button
                                 className="p-2 text-gray-600 hover:bg-gray-50 rounded-lg"
                                 onClick={() => setIsMenuOpen(!isMenuOpen)}
@@ -366,6 +414,27 @@ export default function Navbar() {
                             transition={{ duration: 0.2 }}
                         >
                             <div className="p-4 flex flex-col space-y-4">
+                                {/* Mobile Search */}
+                                <div className="relative">
+                                    <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400 pointer-events-none" />
+                                    <input
+                                        type="text"
+                                        placeholder="Search templates..."
+                                        value={searchTerm}
+                                        onChange={(e) => setSearchTerm(e.target.value)}
+                                        onKeyDown={handleSearch}
+                                        className="w-full pl-9 pr-20 py-2.5 text-sm bg-white border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
+                                        autoFocus
+                                    />
+                                    <button
+                                        onClick={submitSearch}
+                                        type="button"
+                                        className="absolute right-1.5 top-1/2 -translate-y-1/2 px-3 py-1.5 text-xs font-semibold bg-indigo-600 text-white rounded-md hover:bg-indigo-700 transition-colors"
+                                    >
+                                        Search
+                                    </button>
+                                </div>
+
                                 {/* Mobile Filters */}
                                 <div className="space-y-3 pb-4 border-b border-gray-100">
                                     <label className="text-xs font-semibold text-gray-500 uppercase">Filters</label>

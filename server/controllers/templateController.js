@@ -87,7 +87,55 @@ exports.getTemplates = async (req, res) => {
             .skip(skip)
             .limit(limitNum);
 
-        res.json({ result: templates, pages, total, page: pageNum });
+        // Bulk-fetch average effectiveness ratings for all templates in this page
+        const templateIds = templates.map(t => t._id);
+        const ratingAggregation = await Rating.aggregate([
+            { $match: { templateId: { $in: templateIds } } },
+            {
+                $group: {
+                    _id: '$templateId',
+                    totalRatings: { $sum: 1 },
+                    // Weighted average using midpoints: 0-10→5, 10-50→30, 50-80→65, 80-100→90
+                    weightedSum: {
+                        $sum: {
+                            $switch: {
+                                branches: [
+                                    { case: { $eq: ['$effectivenessRange', '0-10'] }, then: 5 },
+                                    { case: { $eq: ['$effectivenessRange', '10-50'] }, then: 30 },
+                                    { case: { $eq: ['$effectivenessRange', '50-80'] }, then: 65 },
+                                    { case: { $eq: ['$effectivenessRange', '80-100'] }, then: 90 },
+                                ],
+                                default: 0,
+                            },
+                        },
+                    },
+                },
+            },
+            {
+                $project: {
+                    totalRatings: 1,
+                    averageScore: { $round: [{ $divide: ['$weightedSum', '$totalRatings'] }, 0] },
+                },
+            },
+        ]);
+
+        // Build a map of templateId → rating info
+        const ratingMap = {};
+        ratingAggregation.forEach(r => {
+            ratingMap[r._id.toString()] = {
+                averageScore: r.averageScore,
+                totalRatings: r.totalRatings,
+            };
+        });
+
+        // Merge rating info into each template
+        const templatesWithRatings = templates.map(t => {
+            const tObj = t.toObject();
+            tObj.ratingInfo = ratingMap[t._id.toString()] || { averageScore: null, totalRatings: 0 };
+            return tObj;
+        });
+
+        res.json({ result: templatesWithRatings, pages, total, page: pageNum });
     } catch (error) {
         res.status(500).json({ message: error.message });
     }
