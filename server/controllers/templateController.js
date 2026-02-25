@@ -10,9 +10,9 @@ const path = require('path');
 const moveFilesToTemplateDir = async (tempPaths, templateId) => {
     const templateDir = path.resolve(__dirname, '..', 'uploads', 'templates', templateId.toString());
 
-    // Create directory if it doesn't exist
+    // Create directory if it doesn't exist (mode 0755 so web server can traverse)
     if (!fs.existsSync(templateDir)) {
-        await fsPromises.mkdir(templateDir, { recursive: true });
+        await fsPromises.mkdir(templateDir, { recursive: true, mode: 0o755 });
     }
 
     const newPaths = [];
@@ -29,6 +29,8 @@ const moveFilesToTemplateDir = async (tempPaths, templateId) => {
             await fsPromises.copyFile(fullOldPath, fullNewPath);
             await fsPromises.unlink(fullOldPath);
         }
+        // Ensure file is readable by web server (e.g. when process runs as different user on VPS)
+        await fsPromises.chmod(fullNewPath, 0o644).catch(() => {});
         newPaths.push(newPath);
     }
     return newPaths;

@@ -101,6 +101,8 @@ const createLLM = async (req, res) => {
         // Handle uploaded logo file
         if (req.file) {
             llmData.icon = req.file.path.replace(/\\/g, '/');
+            const fullPath = path.join(__dirname, '..', req.file.path);
+            try { fs.chmodSync(fullPath, 0o644); } catch (_) {}
         }
 
         const llm = await LLM.create(llmData);
@@ -137,6 +139,8 @@ const updateLLM = async (req, res) => {
                 }
             }
             llm.icon = req.file.path.replace(/\\/g, '/');
+            const fullPath = path.join(__dirname, '..', req.file.path);
+            try { fs.chmodSync(fullPath, 0o644); } catch (_) {}
         }
 
         // Handle logo removal (user cleared the logo)
