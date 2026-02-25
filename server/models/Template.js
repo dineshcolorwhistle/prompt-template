@@ -60,6 +60,12 @@ const templateSchema = new mongoose.Schema({
     }],
     sampleOutput: {
         type: [String], // Image URLs/paths
+        validate: {
+            validator: function (val) {
+                return val.length <= 5;
+            },
+            message: 'A template can have a maximum of 5 sample output images.'
+        }
     },
     repurposingIdeas: {
         type: String,

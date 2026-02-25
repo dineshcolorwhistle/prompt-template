@@ -5,7 +5,7 @@ import { pageVariants, pageTransition } from '../animations';
 import {
     Menu, LogOut, LayoutDashboard, FileText, Users, Settings,
     FileCheck, Briefcase, Tags, MessageSquare, BarChart2, User,
-    BadgeCheck, Braces
+    BadgeCheck, Braces, Bot
 } from 'lucide-react';
 import { Link, Outlet, useLocation, useNavigate } from 'react-router-dom';
 
@@ -30,10 +30,12 @@ const DashboardLayout = () => {
         ...(userInfo.role === 'Admin' ? [
             { icon: Users, label: 'Manage Users', path: '/dashboard/users' },
             { icon: Users, label: 'Expert Requests', path: '/dashboard/requests' },
-            { icon: FileCheck, label: 'Templates', path: '/dashboard/templates' },
 
+
+            { icon: Bot, label: 'LLMs', path: '/dashboard/llms' },
             { icon: Briefcase, label: 'Industries', path: '/dashboard/industries' },
             { icon: Tags, label: 'Categories', path: '/dashboard/categories' },
+            { icon: FileCheck, label: 'Templates', path: '/dashboard/templates' },
             { icon: MessageSquare, label: 'Moderate Comments', path: '/dashboard/comments' },
             { icon: BarChart2, label: 'Analytics', path: '/dashboard/analytics' },
             { icon: Settings, label: 'Settings', path: '/dashboard/settings' }

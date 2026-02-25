@@ -2,94 +2,63 @@ import React, { useState, useEffect, useRef } from 'react';
 import useDebounce from '../hooks/useDebounce';
 import { useAuth } from '../context/AuthContext';
 import {
-    Plus, Search, Edit2, Trash2, X, Info,
-    Filter, Power, CheckCircle, Briefcase, Cpu
+    Plus, Search, Edit2, Trash2, X, AlertCircle,
+    Filter, Power, CheckCircle, Info, Bot, Upload, ImageIcon
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { toast } from 'react-hot-toast';
 import Pagination from '../components/Pagination';
 import ConfirmationModal from '../components/ConfirmationModal';
 
-const Categories = () => {
+const LLMs = () => {
     const { userInfo } = useAuth();
-    const [categories, setCategories] = useState([]);
-    const [llms, setLlms] = useState([]); // For LLM dropdowns
-    const [industries, setIndustries] = useState([]); // For filter dropdown (filtered by LLM filter)
-    const [allIndustries, setAllIndustries] = useState([]); // All industries (unfiltered)
+    const [llms, setLLMs] = useState([]);
     const [loading, setLoading] = useState(true);
 
     // Filters
     const [searchTerm, setSearchTerm] = useState('');
     const [statusFilter, setStatusFilter] = useState('all');
-    const [llmFilter, setLlmFilter] = useState('all');
-    const [industryFilter, setIndustryFilter] = useState('all');
     const [page, setPage] = useState(1);
     const [totalPages, setTotalPages] = useState(1);
     const [totalItems, setTotalItems] = useState(0);
 
     // UI States
-    const [confirmModal, setConfirmModal] = useState({ isOpen: false, id: null, name: '', action: null });
+    const [confirmModal, setConfirmModal] = useState({ isOpen: false, id: null, name: '' });
 
     // Modal State
     const [isModalOpen, setIsModalOpen] = useState(false);
-    const [currentCategory, setCurrentCategory] = useState(null);
+    const [currentLLM, setCurrentLLM] = useState(null);
     const [formData, setFormData] = useState({
         name: '',
-        llm: '', // LLM selection (for filtering industries)
-        industry: '',
         slug: '',
         description: '',
         isActive: true
     });
-    const [formIndustries, setFormIndustries] = useState([]); // Industries in the form (filtered by form LLM)
     const [formLoading, setFormLoading] = useState(false);
+
+    // Logo upload state
+    const [logoFile, setLogoFile] = useState(null);
+    const [logoPreview, setLogoPreview] = useState(null);
+    const [removeLogo, setRemoveLogo] = useState(false);
+    const fileInputRef = useRef(null);
 
     // Debounce search term
     const debouncedSearchTerm = useDebounce(searchTerm, 500);
     const abortControllerRef = useRef(null);
 
-    // Fetch LLMs and all industries on mount
-    useEffect(() => {
-        fetchLlms();
-        fetchAllIndustries();
-        // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, []);
-
-    // When LLM filter changes, update filtered industries for the filter bar
-    useEffect(() => {
-        if (llmFilter === 'all') {
-            setIndustries(allIndustries);
-        } else {
-            setIndustries(allIndustries.filter(ind => ind.llm?._id === llmFilter || ind.llm === llmFilter));
-        }
-        setIndustryFilter('all'); // Reset industry filter when LLM changes
-        // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [llmFilter, allIndustries]);
-
-    // When form LLM changes, fetch industries for the form
-    useEffect(() => {
-        if (isModalOpen) {
-            fetchFormIndustries(formData.llm);
-        }
-        // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [formData.llm, isModalOpen]);
-
-    // Unified fetch effect: reset page on filter change, then fetch categories
-    const prevFiltersRef = useRef({ debouncedSearchTerm, statusFilter, industryFilter, llmFilter });
+    const prevFiltersRef = useRef({ debouncedSearchTerm, statusFilter });
     useEffect(() => {
         const filtersChanged =
             prevFiltersRef.current.debouncedSearchTerm !== debouncedSearchTerm ||
-            prevFiltersRef.current.statusFilter !== statusFilter ||
-            prevFiltersRef.current.industryFilter !== industryFilter ||
-            prevFiltersRef.current.llmFilter !== llmFilter;
-        prevFiltersRef.current = { debouncedSearchTerm, statusFilter, industryFilter, llmFilter };
+            prevFiltersRef.current.statusFilter !== statusFilter;
+        prevFiltersRef.current = { debouncedSearchTerm, statusFilter };
 
         if (filtersChanged && page !== 1) {
             setPage(1);
             return;
         }
 
-        fetchCategories();
+        fetchLLMs();
 
         return () => {
             if (abortControllerRef.current) {
@@ -97,57 +66,9 @@ const Categories = () => {
             }
         };
         // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [page, debouncedSearchTerm, statusFilter, industryFilter, llmFilter]);
+    }, [page, debouncedSearchTerm, statusFilter]);
 
-    const fetchLlms = async () => {
-        try {
-            const response = await fetch(`${import.meta.env.VITE_API_URL}/api/llms?status=active&limit=1000`, {
-                headers: { Authorization: `Bearer ${userInfo.token}` }
-            });
-            if (response.ok) {
-                const data = await response.json();
-                setLlms(data.result || (Array.isArray(data) ? data : []));
-            }
-        } catch (err) {
-            console.error("Failed to fetch LLMs", err);
-        }
-    };
-
-    const fetchAllIndustries = async () => {
-        try {
-            const response = await fetch(`${import.meta.env.VITE_API_URL}/api/industries?status=active&limit=1000`, {
-                headers: { Authorization: `Bearer ${userInfo.token}` }
-            });
-            if (response.ok) {
-                const data = await response.json();
-                const result = data.result || (Array.isArray(data) ? data : []);
-                setAllIndustries(result);
-                setIndustries(result);
-            }
-        } catch (err) {
-            console.error("Failed to fetch industries", err);
-        }
-    };
-
-    const fetchFormIndustries = async (llmId) => {
-        try {
-            let url = `${import.meta.env.VITE_API_URL}/api/industries?status=active&limit=1000`;
-            if (llmId) {
-                url += `&llm=${llmId}`;
-            }
-            const response = await fetch(url, {
-                headers: { Authorization: `Bearer ${userInfo.token}` }
-            });
-            if (response.ok) {
-                const data = await response.json();
-                setFormIndustries(data.result || (Array.isArray(data) ? data : []));
-            }
-        } catch (err) {
-            console.error("Failed to fetch form industries", err);
-        }
-    };
-
-    const fetchCategories = async () => {
+    const fetchLLMs = async () => {
         if (abortControllerRef.current) {
             abortControllerRef.current.abort();
         }
@@ -155,32 +76,29 @@ const Categories = () => {
 
         setLoading(true);
         try {
-            let url = `${import.meta.env.VITE_API_URL}/api/categories?page=${page}&limit=10&`;
+            let url = `${import.meta.env.VITE_API_URL}/api/llms?page=${page}&limit=10&`;
             if (debouncedSearchTerm) url += `search=${debouncedSearchTerm}&`;
             if (statusFilter !== 'all') url += `status=${statusFilter}&`;
-            if (industryFilter !== 'all') url += `industry=${industryFilter}&`;
 
             const response = await fetch(url, {
                 headers: { Authorization: `Bearer ${userInfo.token}` },
                 signal: abortControllerRef.current.signal
             });
 
-            if (!response.ok) throw new Error('Failed to fetch categories');
-
+            if (!response.ok) throw new Error('Failed to fetch LLMs');
             const data = await response.json();
 
-            // Handle pagination response structure
             if (data.result) {
-                setCategories(data.result);
+                setLLMs(data.result);
                 setTotalPages(data.pages);
                 setTotalItems(data.total);
             } else {
-                setCategories(Array.isArray(data) ? data : []);
+                setLLMs(Array.isArray(data) ? data : []);
             }
         } catch (err) {
             if (err.name !== 'AbortError') {
                 console.error(err);
-                toast.error('Failed to load categories');
+                toast.error('Failed to load LLMs');
             }
         } finally {
             if (!abortControllerRef.current?.signal.aborted) {
@@ -190,38 +108,38 @@ const Categories = () => {
     };
 
     // Form Handlers
-    const handleOpenModal = (category = null) => {
-        if (category) {
-            setCurrentCategory(category);
-            // Detect LLM from the populated industry
-            const industryLlmId = category.industry?.llm?._id || category.industry?.llm || '';
+    const handleOpenModal = (llm = null) => {
+        if (llm) {
+            setCurrentLLM(llm);
             setFormData({
-                name: category.name,
-                llm: industryLlmId,
-                industry: category.industry?._id || '',
-                slug: category.slug,
-                description: category.description || '',
-                isActive: category.isActive
+                name: llm.name,
+                slug: llm.slug,
+                description: llm.description || '',
+                isActive: llm.isActive
             });
+            // Show existing logo as preview
+            if (llm.icon) {
+                setLogoPreview(`${import.meta.env.VITE_API_URL}/${llm.icon}`);
+            } else {
+                setLogoPreview(null);
+            }
         } else {
-            setCurrentCategory(null);
-            setFormData({
-                name: '',
-                llm: '',
-                industry: '',
-                slug: '',
-                description: '',
-                isActive: true
-            });
+            setCurrentLLM(null);
+            setFormData({ name: '', slug: '', description: '', isActive: true });
+            setLogoPreview(null);
         }
+        setLogoFile(null);
+        setRemoveLogo(false);
         setIsModalOpen(true);
     };
 
     const handleCloseModal = () => {
         setIsModalOpen(false);
-        setCurrentCategory(null);
-        setFormData({ name: '', llm: '', industry: '', slug: '', description: '', isActive: true });
-        setFormIndustries([]);
+        setCurrentLLM(null);
+        setFormData({ name: '', slug: '', description: '', isActive: true });
+        setLogoFile(null);
+        setLogoPreview(null);
+        setRemoveLogo(false);
     };
 
     const handleInputChange = (e) => {
@@ -229,13 +147,7 @@ const Categories = () => {
         setFormData(prev => {
             const newData = { ...prev, [name]: type === 'checkbox' ? checked : value };
 
-            // When LLM changes, reset industry selection
-            if (name === 'llm') {
-                newData.industry = '';
-            }
-
-            // Auto-generate slug logic
-            if (name === 'name' && !currentCategory) {
+            if (name === 'name' && !currentLLM) {
                 newData.slug = value.toLowerCase()
                     .replace(/[^a-z0-9]+/g, '-')
                     .replace(/(^-|-$)/g, '');
@@ -246,29 +158,68 @@ const Categories = () => {
 
     const handleToggleStatus = (val) => {
         setFormData(prev => ({ ...prev, isActive: val }));
-    }
+    };
+
+    // File upload handlers
+    const handleFileChange = (e) => {
+        const file = e.target.files[0];
+        if (file) {
+            if (file.size > 2 * 1024 * 1024) {
+                toast.error('Logo file must be less than 2MB');
+                return;
+            }
+            if (!file.type.match(/^image\/(jpeg|jpg|png|gif|webp|svg\+xml)$/)) {
+                toast.error('Only image files are allowed (JPG, PNG, GIF, WebP, SVG)');
+                return;
+            }
+            setLogoFile(file);
+            setLogoPreview(URL.createObjectURL(file));
+            setRemoveLogo(false);
+        }
+    };
+
+    const handleRemoveLogo = () => {
+        setLogoFile(null);
+        setLogoPreview(null);
+        setRemoveLogo(true);
+        if (fileInputRef.current) {
+            fileInputRef.current.value = '';
+        }
+    };
 
     const handleSubmit = async (e) => {
         e.preventDefault();
         setFormLoading(true);
 
         try {
-            const url = currentCategory
-                ? `${import.meta.env.VITE_API_URL}/api/categories/${currentCategory._id}`
-                : `${import.meta.env.VITE_API_URL}/api/categories`;
+            const url = currentLLM
+                ? `${import.meta.env.VITE_API_URL}/api/llms/${currentLLM._id}`
+                : `${import.meta.env.VITE_API_URL}/api/llms`;
 
-            const method = currentCategory ? 'PUT' : 'POST';
+            const method = currentLLM ? 'PUT' : 'POST';
 
-            // Don't send llm field to backend — it's only for frontend filtering
-            const { llm, ...submitData } = formData;
+            // Use FormData for file upload
+            const submitData = new FormData();
+            submitData.append('name', formData.name);
+            submitData.append('slug', formData.slug);
+            submitData.append('description', formData.description);
+            submitData.append('isActive', formData.isActive);
+
+            if (logoFile) {
+                submitData.append('logo', logoFile);
+            }
+
+            if (removeLogo) {
+                submitData.append('removeLogo', 'true');
+            }
 
             const response = await fetch(url, {
                 method,
                 headers: {
-                    'Content-Type': 'application/json',
                     Authorization: `Bearer ${userInfo.token}`
+                    // Note: DO NOT set Content-Type header — browser sets it with boundary for FormData
                 },
-                body: JSON.stringify(submitData)
+                body: submitData
             });
 
             const data = await response.json();
@@ -277,9 +228,9 @@ const Categories = () => {
                 throw new Error(data.message || 'Something went wrong');
             }
 
-            toast.success(currentCategory ? 'Category updated successfully' : 'Category created successfully');
+            toast.success(currentLLM ? 'LLM updated successfully' : 'LLM created successfully');
             handleCloseModal();
-            fetchCategories();
+            fetchLLMs();
         } catch (err) {
             toast.error(err.message);
         } finally {
@@ -294,7 +245,7 @@ const Categories = () => {
                 id,
                 name,
                 action: 'deactivate',
-                title: 'Deactivate Category',
+                title: 'Deactivate LLM',
                 message: `Are you sure you want to deactivate "${name}"? It will become inactive.`
             });
         } else if (action === 'delete') {
@@ -303,7 +254,7 @@ const Categories = () => {
                 id,
                 name,
                 action: 'delete',
-                title: 'Delete Category',
+                title: 'Delete LLM',
                 message: `Are you sure you want to permanently delete "${name}"? This action cannot be undone.`
             });
         }
@@ -314,7 +265,7 @@ const Categories = () => {
 
         try {
             if (confirmModal.action === 'deactivate') {
-                const response = await fetch(`${import.meta.env.VITE_API_URL}/api/categories/${confirmModal.id}`, {
+                const response = await fetch(`${import.meta.env.VITE_API_URL}/api/llms/${confirmModal.id}`, {
                     method: 'PUT',
                     headers: {
                         'Content-Type': 'application/json',
@@ -324,10 +275,10 @@ const Categories = () => {
                 });
 
                 if (!response.ok) throw new Error('Failed to deactivate');
-                toast.success('Category deactivated successfully');
+                toast.success('LLM deactivated successfully');
 
             } else if (confirmModal.action === 'delete') {
-                const response = await fetch(`${import.meta.env.VITE_API_URL}/api/categories/${confirmModal.id}`, {
+                const response = await fetch(`${import.meta.env.VITE_API_URL}/api/llms/${confirmModal.id}`, {
                     method: 'DELETE',
                     headers: { Authorization: `Bearer ${userInfo.token}` }
                 });
@@ -336,10 +287,10 @@ const Categories = () => {
                     const data = await response.json();
                     throw new Error(data.message || 'Failed to delete');
                 }
-                toast.success('Category deleted permanently');
+                toast.success('LLM deleted permanently');
             }
 
-            fetchCategories();
+            fetchLLMs();
         } catch (err) {
             console.error(err);
             toast.error(err.message);
@@ -350,8 +301,6 @@ const Categories = () => {
 
     return (
         <div className="space-y-6 relative">
-
-
             <ConfirmationModal
                 isOpen={confirmModal.isOpen}
                 title={confirmModal.title}
@@ -364,84 +313,55 @@ const Categories = () => {
 
             <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
                 <div>
-                    <h1 className="text-2xl font-bold text-gray-900">Categories</h1>
-                    <p className="text-sm text-gray-500 mt-1">Manage categories within industries.</p>
+                    <h1 className="text-2xl font-bold text-gray-900 flex items-center gap-2">
+                        <Bot className="text-indigo-600" size={28} />
+                        LLMs
+                    </h1>
+                    <p className="text-sm text-gray-500 mt-1">Manage Large Language Models for the platform.</p>
                 </div>
                 <button
                     onClick={() => handleOpenModal()}
                     className="flex items-center px-4 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 transition shadow-sm hover:shadow-md"
                 >
                     <Plus size={20} className="mr-2" />
-                    Add Category
+                    Add LLM
                 </button>
             </div>
 
             {/* Filters */}
-            <div className="flex flex-col sm:flex-row gap-4 bg-white p-4 rounded-xl shadow-sm border border-gray-100 items-center">
-                <div className="relative flex-1 w-full">
+            <div className="flex flex-col sm:flex-row gap-4 bg-white p-4 rounded-xl shadow-sm border border-gray-100">
+                <div className="relative flex-1">
                     <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" size={20} />
                     <input
                         type="text"
-                        placeholder="Search categories..."
+                        placeholder="Search LLMs by name or slug..."
                         value={searchTerm}
                         onChange={(e) => setSearchTerm(e.target.value)}
                         className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition-all"
                     />
                 </div>
-                <div className="flex gap-2 w-full sm:w-auto flex-wrap">
-                    {/* LLM Filter */}
-                    <div className="relative flex-1 sm:w-44">
-                        <Cpu className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" size={16} />
-                        <select
-                            value={llmFilter}
-                            onChange={(e) => setLlmFilter(e.target.value)}
-                            className="w-full pl-9 pr-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent bg-white transition-colors"
-                        >
-                            <option value="all">All LLMs</option>
-                            {llms.map(llm => (
-                                <option key={llm._id} value={llm._id}>{llm.name}</option>
-                            ))}
-                        </select>
-                    </div>
-                    {/* Industry Filter */}
-                    <div className="relative flex-1 sm:w-48">
-                        <Briefcase className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" size={16} />
-                        <select
-                            value={industryFilter}
-                            onChange={(e) => setIndustryFilter(e.target.value)}
-                            className="w-full pl-9 pr-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent bg-white transition-colors"
-                        >
-                            <option value="all">All Industries</option>
-                            {industries.map(ind => (
-                                <option key={ind._id} value={ind._id}>{ind.name}</option>
-                            ))}
-                        </select>
-                    </div>
-                    {/* Status Filter */}
-                    <div className="relative flex-1 sm:w-40">
-                        <Filter className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" size={16} />
-                        <select
-                            value={statusFilter}
-                            onChange={(e) => setStatusFilter(e.target.value)}
-                            className="w-full pl-9 pr-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent bg-white transition-colors"
-                        >
-                            <option value="all">All Status</option>
-                            <option value="active">Active</option>
-                            <option value="inactive">Inactive</option>
-                        </select>
-                    </div>
+                <div className="flex items-center gap-2">
+                    <Filter className="text-gray-400" size={20} />
+                    <select
+                        value={statusFilter}
+                        onChange={(e) => setStatusFilter(e.target.value)}
+                        className="border border-gray-300 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent bg-white min-w-[150px] transition-colors"
+                    >
+                        <option value="all">All Status</option>
+                        <option value="active">Active Only</option>
+                        <option value="inactive">Inactive Only</option>
+                    </select>
                 </div>
             </div>
 
             {/* Table */}
             <div className="bg-white border border-gray-100 rounded-xl shadow-sm overflow-hidden">
                 <div className="overflow-x-auto">
-                    <table className="w-full text-left border-collapse">
+                    <table className="w-full text-left border-collapse min-w-[600px]">
                         <thead>
                             <tr className="bg-gray-50/50 border-b border-gray-100 text-xs uppercase text-gray-500 font-semibold tracking-wider">
                                 <th className="px-6 py-4">Name</th>
-                                <th className="px-6 py-4">LLM</th>
-                                <th className="px-6 py-4">Industry</th>
+                                <th className="px-6 py-4">Slug</th>
                                 <th className="px-6 py-4">Status</th>
                                 <th className="px-6 py-4">Created</th>
                                 <th className="px-6 py-4 text-right">Actions</th>
@@ -450,42 +370,53 @@ const Categories = () => {
                         <tbody className="divide-y divide-gray-100">
                             {loading ? (
                                 <tr>
-                                    <td colSpan="6" className="px-6 py-12 text-center text-gray-500">
+                                    <td colSpan="5" className="px-6 py-12 text-center text-gray-500">
                                         <div className="flex justify-center items-center flex-col">
                                             <div className="w-8 h-8 border-4 border-indigo-200 border-t-indigo-600 rounded-full animate-spin mb-3"></div>
-                                            <p>Loading categories...</p>
+                                            <p>Loading LLMs...</p>
                                         </div>
                                     </td>
                                 </tr>
-                            ) : categories.length === 0 ? (
+                            ) : llms.length === 0 ? (
                                 <tr>
-                                    <td colSpan="6" className="px-6 py-12 text-center text-gray-500">
+                                    <td colSpan="5" className="px-6 py-12 text-center text-gray-500">
                                         <div className="flex flex-col items-center justify-center">
                                             <div className="w-12 h-12 bg-gray-100 rounded-full flex items-center justify-center mb-3">
                                                 <Search className="text-gray-400" size={24} />
                                             </div>
-                                            <p className="font-medium text-gray-900">No categories found</p>
+                                            <p className="font-medium text-gray-900">No LLMs found</p>
+                                            <p className="text-sm mt-1">Try adjusting your search or filters.</p>
                                         </div>
                                     </td>
                                 </tr>
-                            ) : categories.map((item) => (
+                            ) : llms.map((item) => (
                                 <tr
                                     key={item._id}
                                     className="hover:bg-gray-50 transition-colors group"
                                 >
                                     <td className="px-6 py-4">
-                                        <span className="font-medium text-gray-900 block">{item.name}</span>
-                                        <span className="text-xs text-gray-400 font-mono">{item.slug}</span>
+                                        <div className="flex items-center gap-3">
+                                            {item.icon ? (
+                                                <img
+                                                    src={`${import.meta.env.VITE_API_URL}/${item.icon}`}
+                                                    alt={item.name}
+                                                    className="w-9 h-9 rounded-lg object-cover border border-gray-200 shadow-sm"
+                                                    onError={(e) => { e.target.style.display = 'none'; e.target.nextSibling.style.display = 'flex'; }}
+                                                />
+                                            ) : null}
+                                            <div className={`w-9 h-9 rounded-lg bg-gradient-to-br from-indigo-500 to-purple-600 flex items-center justify-center text-white font-bold text-sm shadow-sm ${item.icon ? 'hidden' : ''}`}>
+                                                {item.name.charAt(0).toUpperCase()}
+                                            </div>
+                                            <div>
+                                                <span className="font-medium text-gray-900 block">{item.name}</span>
+                                                {item.description && (
+                                                    <span className="text-xs text-gray-500 truncate max-w-[200px] block">{item.description}</span>
+                                                )}
+                                            </div>
+                                        </div>
                                     </td>
                                     <td className="px-6 py-4">
-                                        <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-purple-50 text-purple-700">
-                                            {item.industry?.llm?.name || '—'}
-                                        </span>
-                                    </td>
-                                    <td className="px-6 py-4">
-                                        <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-blue-50 text-blue-700">
-                                            {item.industry?.name || 'Unknown'}
-                                        </span>
+                                        <code className="text-xs font-mono bg-gray-100 px-2 py-1 rounded text-gray-600">{item.slug}</code>
                                     </td>
                                     <td className="px-6 py-4">
                                         <span className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-medium border ${item.isActive
@@ -535,16 +466,16 @@ const Categories = () => {
                 </div>
             </div>
 
-            {/* Pagination */
-                !loading && categories.length > 0 && (
-                    <Pagination
-                        currentPage={page}
-                        totalPages={totalPages}
-                        onPageChange={setPage}
-                        totalItems={totalItems}
-                        itemsPerPage={10}
-                    />
-                )}
+            {/* Pagination */}
+            {!loading && llms.length > 0 && (
+                <Pagination
+                    currentPage={page}
+                    totalPages={totalPages}
+                    onPageChange={setPage}
+                    totalItems={totalItems}
+                    itemsPerPage={10}
+                />
+            )}
 
             {/* Modal */}
             <AnimatePresence>
@@ -560,11 +491,11 @@ const Categories = () => {
                             animate={{ opacity: 1, scale: 1 }}
                             exit={{ opacity: 0, scale: 0.95 }}
                             transition={{ duration: 0.2 }}
-                            className="bg-white rounded-2xl shadow-xl w-full max-w-md overflow-hidden max-h-[90vh] overflow-y-auto"
+                            className="bg-white rounded-2xl shadow-xl w-full max-w-md overflow-hidden"
                         >
-                            <div className="px-6 py-4 border-b border-gray-100 flex justify-between items-center bg-gray-50/50 sticky top-0 z-10">
+                            <div className="px-6 py-4 border-b border-gray-100 flex justify-between items-center bg-gray-50/50">
                                 <h3 className="font-bold text-gray-900 text-lg">
-                                    {currentCategory ? 'Edit Category' : 'Add New Category'}
+                                    {currentLLM ? 'Edit LLM' : 'Add New LLM'}
                                 </h3>
                                 <button onClick={handleCloseModal} className="text-gray-400 hover:text-gray-600 rounded-full p-1 hover:bg-gray-100 transition">
                                     <X size={20} />
@@ -572,54 +503,9 @@ const Categories = () => {
                             </div>
 
                             <form onSubmit={handleSubmit} className="p-6 space-y-5">
-                                {/* LLM Selection (optional filter) */}
                                 <div>
                                     <label className="block text-sm font-semibold text-gray-700 mb-1.5">
-                                        LLM <span className="text-xs font-normal text-gray-400">(Filter industries)</span>
-                                    </label>
-                                    <select
-                                        name="llm"
-                                        value={formData.llm}
-                                        onChange={handleInputChange}
-                                        className="w-full px-3 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent outline-none transition-colors"
-                                    >
-                                        <option value="">All LLMs</option>
-                                        {llms.map(llm => (
-                                            <option key={llm._id} value={llm._id}>{llm.name}</option>
-                                        ))}
-                                    </select>
-                                    <p className="text-xs text-gray-500 mt-1 flex items-center gap-1">
-                                        <Info size={12} /> Select an LLM to filter the industry list below
-                                    </p>
-                                </div>
-
-                                {/* Industry Selection */}
-                                <div>
-                                    <label className="block text-sm font-semibold text-gray-700 mb-1.5">
-                                        Industry <span className="text-red-500">*</span>
-                                    </label>
-                                    <select
-                                        name="industry"
-                                        required
-                                        value={formData.industry}
-                                        onChange={handleInputChange}
-                                        className="w-full px-3 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent outline-none transition-colors disabled:bg-gray-100 disabled:text-gray-500"
-                                    >
-                                        <option value="">Select Industry</option>
-                                        {formIndustries.map(ind => (
-                                            <option key={ind._id} value={ind._id}>{ind.name}</option>
-                                        ))}
-                                    </select>
-                                    {formData.llm && formIndustries.length === 0 && (
-                                        <p className="text-xs text-amber-600 mt-1 flex items-center gap-1">
-                                            <Info size={12} /> No active industries found for the selected LLM
-                                        </p>
-                                    )}
-                                </div>
-
-                                <div>
-                                    <label className="block text-sm font-semibold text-gray-700 mb-1.5">
-                                        Category Name <span className="text-red-500">*</span>
+                                        LLM Name <span className="text-red-500">*</span>
                                     </label>
                                     <input
                                         type="text"
@@ -627,8 +513,8 @@ const Categories = () => {
                                         required
                                         value={formData.name}
                                         onChange={handleInputChange}
-                                        className="w-full px-3 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent outline-none transition-colors"
-                                        placeholder="e.g. AI & Robotics"
+                                        className="w-full px-3 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 outline-none transition"
+                                        placeholder="e.g. ChatGPT"
                                     />
                                 </div>
 
@@ -642,11 +528,11 @@ const Categories = () => {
                                         required
                                         value={formData.slug}
                                         onChange={handleInputChange}
-                                        className="w-full px-3 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent outline-none transition-colors bg-gray-50 font-mono text-sm text-gray-600"
-                                        placeholder="e.g. ai-and-robotics"
+                                        className="w-full px-3 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 outline-none transition bg-gray-50 font-mono text-sm text-gray-600"
+                                        placeholder="e.g. chatgpt"
                                     />
                                     <p className="text-xs text-gray-500 mt-1.5 flex items-center gap-1">
-                                        <Info size={12} /> Unique identifier.
+                                        <Info size={12} /> Unique identifier for URLs/API.
                                     </p>
                                 </div>
 
@@ -659,8 +545,77 @@ const Categories = () => {
                                         value={formData.description}
                                         onChange={handleInputChange}
                                         rows="3"
-                                        className="w-full px-3 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent outline-none transition-colors resize-none"
-                                        placeholder="Brief description..."
+                                        className="w-full px-3 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 outline-none transition resize-none"
+                                        placeholder="Brief description of the LLM..."
+                                    />
+                                </div>
+
+                                {/* Logo Upload */}
+                                <div>
+                                    <label className="block text-sm font-semibold text-gray-700 mb-1.5">
+                                        Logo <span className="text-xs font-normal text-gray-400">(Optional, max 2MB)</span>
+                                    </label>
+
+                                    {logoPreview ? (
+                                        <div className="relative group">
+                                            <div className="w-full h-32 rounded-xl border-2 border-gray-200 bg-gray-50 flex items-center justify-center overflow-hidden">
+                                                <img
+                                                    src={logoPreview}
+                                                    alt="Logo preview"
+                                                    className="max-h-28 max-w-full object-contain"
+                                                />
+                                            </div>
+                                            <div className="absolute top-2 right-2 flex gap-1.5">
+                                                <button
+                                                    type="button"
+                                                    onClick={() => fileInputRef.current?.click()}
+                                                    className="bg-white/90 backdrop-blur-sm p-1.5 rounded-lg shadow-sm border border-gray-200 text-gray-600 hover:text-indigo-600 hover:bg-indigo-50 transition-colors"
+                                                    title="Change logo"
+                                                >
+                                                    <Edit2 size={14} />
+                                                </button>
+                                                <button
+                                                    type="button"
+                                                    onClick={handleRemoveLogo}
+                                                    className="bg-white/90 backdrop-blur-sm p-1.5 rounded-lg shadow-sm border border-gray-200 text-gray-600 hover:text-red-600 hover:bg-red-50 transition-colors"
+                                                    title="Remove logo"
+                                                >
+                                                    <Trash2 size={14} />
+                                                </button>
+                                            </div>
+                                        </div>
+                                    ) : (
+                                        <div
+                                            onClick={() => fileInputRef.current?.click()}
+                                            onDragOver={(e) => { e.preventDefault(); e.currentTarget.classList.add('border-indigo-400', 'bg-indigo-50/50'); }}
+                                            onDragLeave={(e) => { e.preventDefault(); e.currentTarget.classList.remove('border-indigo-400', 'bg-indigo-50/50'); }}
+                                            onDrop={(e) => {
+                                                e.preventDefault();
+                                                e.currentTarget.classList.remove('border-indigo-400', 'bg-indigo-50/50');
+                                                const file = e.dataTransfer.files[0];
+                                                if (file) {
+                                                    const fakeEvent = { target: { files: [file] } };
+                                                    handleFileChange(fakeEvent);
+                                                }
+                                            }}
+                                            className="w-full h-32 rounded-xl border-2 border-dashed border-gray-300 bg-gray-50/50 flex flex-col items-center justify-center gap-2 cursor-pointer hover:border-indigo-400 hover:bg-indigo-50/50 transition-all group"
+                                        >
+                                            <div className="w-10 h-10 rounded-lg bg-gray-100 group-hover:bg-indigo-100 flex items-center justify-center transition-colors">
+                                                <Upload size={20} className="text-gray-400 group-hover:text-indigo-500 transition-colors" />
+                                            </div>
+                                            <div className="text-center">
+                                                <p className="text-sm font-medium text-gray-600 group-hover:text-indigo-600 transition-colors">Click or drag to upload</p>
+                                                <p className="text-xs text-gray-400 mt-0.5">JPG, PNG, GIF, WebP, SVG</p>
+                                            </div>
+                                        </div>
+                                    )}
+
+                                    <input
+                                        type="file"
+                                        ref={fileInputRef}
+                                        onChange={handleFileChange}
+                                        accept="image/jpeg,image/jpg,image/png,image/gif,image/webp,image/svg+xml"
+                                        className="hidden"
                                     />
                                 </div>
 
@@ -699,7 +654,7 @@ const Categories = () => {
                                         {formLoading ? (
                                             <><span className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin"></span> Saving...</>
                                         ) : (
-                                            <><CheckCircle size={16} /> {currentCategory ? 'Save Changes' : 'Create Category'}</>
+                                            <><CheckCircle size={16} /> {currentLLM ? 'Save Changes' : 'Create LLM'}</>
                                         )}
                                     </button>
                                 </div>
@@ -712,4 +667,4 @@ const Categories = () => {
     );
 };
 
-export default Categories;
+export default LLMs;

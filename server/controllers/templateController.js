@@ -1,13 +1,45 @@
 const Template = require('../models/Template');
+const Industry = require('../models/Industry');
+const Comment = require('../models/Comment');
+const Rating = require('../models/Rating');
 const fs = require('fs');
+const fsPromises = require('fs').promises;
 const path = require('path');
+
+// Helper: Move files from temp to uploads/templates/{templateId}/
+const moveFilesToTemplateDir = async (tempPaths, templateId) => {
+    const templateDir = path.resolve(__dirname, '..', 'uploads', 'templates', templateId.toString());
+
+    // Create directory if it doesn't exist
+    if (!fs.existsSync(templateDir)) {
+        await fsPromises.mkdir(templateDir, { recursive: true });
+    }
+
+    const newPaths = [];
+    for (const tempPath of tempPaths) {
+        const fileName = path.basename(tempPath);
+        const newPath = path.join('uploads', 'templates', templateId.toString(), fileName).replace(/\\/g, '/');
+        const fullOldPath = path.resolve(__dirname, '..', tempPath);
+        const fullNewPath = path.resolve(__dirname, '..', newPath);
+
+        try {
+            await fsPromises.rename(fullOldPath, fullNewPath);
+        } catch (err) {
+            // If rename fails (cross-device), fall back to copy + delete
+            await fsPromises.copyFile(fullOldPath, fullNewPath);
+            await fsPromises.unlink(fullOldPath);
+        }
+        newPaths.push(newPath);
+    }
+    return newPaths;
+};
 
 // @desc    Get all templates (Admin) or Public (Approved only)
 // @route   GET /api/templates
 // @access  Public (Approved) / Private (Admin - all)
 exports.getTemplates = async (req, res) => {
     try {
-        const { search, industry, category, status, page, limit } = req.query;
+        const { search, industry, category, status, llm, page, limit } = req.query;
         let query = {};
 
         // If not admin, only show Approved
@@ -25,6 +57,13 @@ exports.getTemplates = async (req, res) => {
             ];
         }
 
+        // LLM filter: find all industries under this LLM, then filter templates
+        if (llm) {
+            const llmIndustries = await Industry.find({ llm, isActive: true }).select('_id');
+            const industryIds = llmIndustries.map(ind => ind._id);
+            query.industry = { $in: industryIds };
+        }
+
         if (industry) query.industry = industry;
         if (category) query.category = category;
 
@@ -37,7 +76,11 @@ exports.getTemplates = async (req, res) => {
         const pages = Math.ceil(total / limitNum);
 
         const templates = await Template.find(query)
-            .populate('industry', 'name')
+            .populate({
+                path: 'industry',
+                select: 'name llm',
+                populate: { path: 'llm', select: 'name' }
+            })
             .populate('category', 'name')
             .populate('user', 'name')
             .sort({ createdAt: -1 })
@@ -56,7 +99,11 @@ exports.getTemplates = async (req, res) => {
 exports.getMyTemplates = async (req, res) => {
     try {
         const templates = await Template.find({ user: req.user._id })
-            .populate('industry', 'name')
+            .populate({
+                path: 'industry',
+                select: 'name llm',
+                populate: { path: 'llm', select: 'name' }
+            })
             .populate('category', 'name')
             .sort({ createdAt: -1 });
         res.json(templates);
@@ -103,12 +150,21 @@ exports.createTemplate = async (req, res, next) => {
         }
 
         // 2. Sample Output Image Validation
-        const sampleOutput = req.files ? req.files.map(file => file.path) : [];
-        if (sampleOutput.length === 0) {
+        const tempPaths = req.files ? req.files.map(file => file.path.replace(/\\/g, '/')) : [];
+        if (tempPaths.length === 0) {
             return res.status(400).json({ message: 'Validation Error: At least one sample output image is required.' });
+        }
+        if (tempPaths.length > 5) {
+            // Clean up uploaded temp files since we're rejecting
+            tempPaths.forEach(filePath => {
+                const fullPath = path.resolve(__dirname, '..', filePath);
+                if (fs.existsSync(fullPath)) fs.unlinkSync(fullPath);
+            });
+            return res.status(400).json({ message: 'Validation Error: A maximum of 5 sample output images are allowed.' });
         }
         // --- VALIDATION END ---
 
+        // Create template first (with temp paths temporarily)
         const template = await Template.create({
             user: req.user._id,
             title,
@@ -122,12 +178,21 @@ exports.createTemplate = async (req, res, next) => {
             structuralInstruction,
             basePromptText,
             variables,
-            sampleOutput,
+            sampleOutput: tempPaths, // temporary
             repurposingIdeas
         });
 
+        // Move files from temp to uploads/templates/{templateId}/
+        const finalPaths = await moveFilesToTemplateDir(tempPaths, template._id);
+        template.sampleOutput = finalPaths;
+        await template.save();
+
         const populatedTemplate = await Template.findById(template._id)
-            .populate('industry', 'name')
+            .populate({
+                path: 'industry',
+                select: 'name llm',
+                populate: { path: 'llm', select: 'name' }
+            })
             .populate('category', 'name');
 
         res.status(201).json(populatedTemplate);
@@ -208,75 +273,20 @@ exports.updateTemplate = async (req, res, next) => {
         if (req.body.existingImages) {
             try {
                 existingImages = typeof req.body.existingImages === 'string' ? JSON.parse(req.body.existingImages) : req.body.existingImages;
-                // Ensure it's an array of strings
                 if (!Array.isArray(existingImages)) existingImages = [existingImages];
             } catch (e) {
                 existingImages = [];
             }
-        } else {
-            // If existingImages is not sent, it might imply clearing them OR keeping all if no new files?
-            // Usually forms send what should remain.
-            // If we rely on req.files being present to change images...
-            // But user might want to delete images without adding new ones.
-            // So relying on `existingImages` array from frontend is best.
         }
 
-        // However, usually API expects:
-        // 1. New files in req.files
-        // 2. List of kept old files in req.body.existingImages (or similar field)
-        // If existingImages is not provided, we might assume we keep existing?
-        // Let's implement logic: if existingImages is provided, use it. then append new files.
-        // If not provided, but new files provided, replace all? OR append?
-        // Standard behavior: replace all collection or specific add/remove endpoints.
-        // Simplest for now:
-        // User sends `existingImages` (array of paths) they want to keep.
-        // And `req.files` for new ones.
-
-        let newImages = [];
+        // New files are in temp — will be moved to template dir
+        let tempNewImages = [];
         if (req.files && req.files.length > 0) {
-            newImages = req.files.map(file => file.path);
+            tempNewImages = req.files.map(file => file.path.replace(/\\/g, '/'));
         }
 
-        if (req.body.existingImages) {
-            // Parse if string
-            let kept = req.body.existingImages;
-            if (typeof kept === 'string') {
-                try {
-                    kept = JSON.parse(kept);
-                } catch (e) {
-                    kept = [kept]; // absolute fallback
-                }
-            }
-            if (!Array.isArray(kept)) kept = [kept];
-
-            template.sampleOutput = [...kept, ...newImages];
-        } else if (newImages.length > 0) {
-            // Only new images, replace old? Or append?
-            // If frontend sends existingImages empty array, it means delete all old.
-            // If frontend doesn't send existingImages, maybe we preserve old?
-            // Let's assume append if no existingImages field, but replace if explicit empty?
-            // Actually, safer to just append if not specified, or use new if specified.
-            // Let's go with: if new images, add them. To delete, we need explicit action.
-            // But for MVP, let's just make sampleOutput = [...(template.sampleOutput || []), ...newImages] if existingImages undefined.
-            // BUT, the user wants "preview with remove option".
-            // Frontend will likely send the list of "kept" images.
-            // So I will look for `existingImages`.
-            if (template.sampleOutput && Array.isArray(template.sampleOutput)) {
-                template.sampleOutput = [...template.sampleOutput, ...newImages];
-            } else {
-                template.sampleOutput = newImages;
-            }
-        }
-        // If req.body.existingImages IS sent (even empty), we respect it later. 
-        // Wait, multiple `if` blocks is messy.
-
-        // Revised Logic:
-        // 1. Get current images.
-        // 2. If `existingImages` is in body, use that as base. Else use current.
-        // 3. Append `newImages`.
-
+        // Determine base images: if existingImages sent, use it; otherwise keep current
         let currentBase = template.sampleOutput || [];
-        // normalize to array if string (migration)
         if (typeof currentBase === 'string') currentBase = [currentBase];
 
         if (req.body && Object.prototype.hasOwnProperty.call(req.body, 'existingImages')) {
@@ -285,17 +295,48 @@ exports.updateTemplate = async (req, res, next) => {
                 try {
                     provided = JSON.parse(provided);
                 } catch (e) {
-                    // might be single string path
                     provided = [provided];
                 }
             }
             if (!Array.isArray(provided)) provided = [provided];
+
+            // Clean up orphaned files (images in old list but not in kept list)
+            const removedImages = currentBase.filter(img => !provided.includes(img));
+            removedImages.forEach(imagePath => {
+                try {
+                    const fullPath = path.resolve(__dirname, '..', imagePath);
+                    if (fs.existsSync(fullPath)) {
+                        fs.unlinkSync(fullPath);
+                    }
+                } catch (err) {
+                    console.error(`Failed to delete orphaned image: ${imagePath}`, err.message);
+                }
+            });
+
             currentBase = provided;
         }
 
-        template.sampleOutput = [...currentBase, ...newImages];
+        // Enforce max 5 images (before moving files)
+        if (currentBase.length + tempNewImages.length > 5) {
+            // Clean up temp uploaded files since we're rejecting
+            tempNewImages.forEach(filePath => {
+                const fullPath = path.resolve(__dirname, '..', filePath);
+                if (fs.existsSync(fullPath)) fs.unlinkSync(fullPath);
+            });
+            return res.status(400).json({
+                message: `Validation Error: A maximum of 5 images are allowed. You have ${currentBase.length} existing + ${tempNewImages.length} new = ${currentBase.length + tempNewImages.length} total.`
+            });
+        }
 
-        // --- VALIDATION START (Image) ---
+        // Move new files from temp to uploads/templates/{templateId}/
+        let movedNewImages = [];
+        if (tempNewImages.length > 0) {
+            movedNewImages = await moveFilesToTemplateDir(tempNewImages, template._id);
+        }
+
+        template.sampleOutput = [...currentBase, ...movedNewImages];
+
+        // --- VALIDATION (Image min 1) ---
         if (!template.sampleOutput || template.sampleOutput.length === 0) {
             return res.status(400).json({ message: 'Validation Error: At least one sample output image is required.' });
         }
@@ -304,7 +345,11 @@ exports.updateTemplate = async (req, res, next) => {
         await template.save();
 
         const updatedTemplate = await Template.findById(template._id)
-            .populate('industry', 'name')
+            .populate({
+                path: 'industry',
+                select: 'name llm',
+                populate: { path: 'llm', select: 'name' }
+            })
             .populate('category', 'name');
 
         res.json(updatedTemplate);
@@ -314,9 +359,9 @@ exports.updateTemplate = async (req, res, next) => {
     }
 };
 
-// @desc    Delete a template
+// @desc    Delete a template and all associated data (images, comments, ratings)
 // @route   DELETE /api/templates/:id
-// @access  Private (Owner only)
+// @access  Private (Owner or Admin)
 exports.deleteTemplate = async (req, res) => {
     try {
         const template = await Template.findById(req.params.id);
@@ -330,22 +375,59 @@ exports.deleteTemplate = async (req, res) => {
             return res.status(401).json({ message: 'Not authorized to delete this template' });
         }
 
-        if (template.sampleOutput && template.sampleOutput.length > 0) {
-            template.sampleOutput.forEach(imagePath => {
-                const fullPath = path.resolve(__dirname, '..', imagePath);
-                fs.access(fullPath, fs.constants.F_OK, (err) => {
-                    if (!err) {
-                        fs.unlink(fullPath, (unlinkErr) => {
-                            if (unlinkErr) console.error("Failed to delete image:", fullPath, unlinkErr);
-                        });
-                    }
-                });
-            });
+        const templateId = template._id;
+        const cleanupSummary = { images: 0, comments: 0, ratings: 0 };
+
+        // 1. Delete the entire template image folder
+        const templateDir = path.resolve(__dirname, '..', 'uploads', 'templates', templateId.toString());
+        try {
+            if (fs.existsSync(templateDir)) {
+                const files = await fsPromises.readdir(templateDir);
+                cleanupSummary.images = files.length;
+                await fsPromises.rm(templateDir, { recursive: true, force: true });
+            }
+        } catch (err) {
+            console.error(`Failed to delete template folder: ${templateDir}`, err.message);
         }
 
+        // Also clean up any legacy images that aren't in the template folder
+        if (template.sampleOutput && template.sampleOutput.length > 0) {
+            for (const imagePath of template.sampleOutput) {
+                if (!imagePath.includes(`templates/${templateId.toString()}`)) {
+                    try {
+                        const fullPath = path.resolve(__dirname, '..', imagePath);
+                        if (fs.existsSync(fullPath)) {
+                            await fsPromises.unlink(fullPath);
+                            cleanupSummary.images++;
+                        }
+                    } catch (err) {
+                        if (err.code !== 'ENOENT') {
+                            console.error(`Failed to delete legacy image: ${imagePath}`, err.message);
+                        }
+                    }
+                }
+            }
+        }
+
+        // 2. Delete all associated comments (including nested replies)
+        const commentResult = await Comment.deleteMany({ templateId });
+        cleanupSummary.comments = commentResult.deletedCount;
+
+        // 3. Delete all associated ratings
+        const ratingResult = await Rating.deleteMany({ templateId });
+        cleanupSummary.ratings = ratingResult.deletedCount;
+
+        // 4. Delete the template document
         await template.deleteOne();
-        res.json({ message: 'Template removed successfully' });
+
+        console.log(`Template ${templateId} deleted. Cleanup: ${cleanupSummary.images} images, ${cleanupSummary.comments} comments, ${cleanupSummary.ratings} ratings removed.`);
+
+        res.json({
+            message: 'Template and all associated data removed successfully',
+            cleanup: cleanupSummary
+        });
     } catch (error) {
+        console.error('Delete Template Error:', error);
         res.status(500).json({ message: error.message });
     }
 };
@@ -356,7 +438,11 @@ exports.deleteTemplate = async (req, res) => {
 exports.getTemplateById = async (req, res) => {
     try {
         const template = await Template.findById(req.params.id)
-            .populate('industry', 'name')
+            .populate({
+                path: 'industry',
+                select: 'name llm',
+                populate: { path: 'llm', select: 'name' }
+            })
             .populate('category', 'name')
             .populate('user', 'name');
 

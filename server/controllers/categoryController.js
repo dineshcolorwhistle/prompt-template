@@ -41,7 +41,7 @@ const getCategories = async (req, res) => {
 
         const totalItems = await Category.countDocuments(query);
         const categories = await Category.find(query)
-            .populate('industry', 'name isActive') // Populate industry name
+            .populate({ path: 'industry', select: 'name isActive llm', populate: { path: 'llm', select: 'name' } })
             .sort({ createdAt: -1 })
             .skip(skip)
             .limit(limitNum);
@@ -62,7 +62,7 @@ const getCategories = async (req, res) => {
 // @access  Public
 const getCategoryById = async (req, res) => {
     try {
-        const category = await Category.findById(req.params.id).populate('industry', 'name');
+        const category = await Category.findById(req.params.id).populate({ path: 'industry', select: 'name llm', populate: { path: 'llm', select: 'name' } });
         if (!category) {
             return res.status(404).json({ message: 'Category not found' });
         }
@@ -110,7 +110,7 @@ const createCategory = async (req, res) => {
         });
 
         // Return populated category for immediate UI update
-        const populatedCategory = await Category.findById(category._id).populate('industry', 'name');
+        const populatedCategory = await Category.findById(category._id).populate({ path: 'industry', select: 'name llm', populate: { path: 'llm', select: 'name' } });
 
         res.status(201).json(populatedCategory);
     } catch (error) {
@@ -159,7 +159,7 @@ const updateCategory = async (req, res) => {
 
         await category.save();
 
-        const updatedCategory = await Category.findById(category._id).populate('industry', 'name');
+        const updatedCategory = await Category.findById(category._id).populate({ path: 'industry', select: 'name llm', populate: { path: 'llm', select: 'name' } });
 
         res.status(200).json(updatedCategory);
     } catch (error) {

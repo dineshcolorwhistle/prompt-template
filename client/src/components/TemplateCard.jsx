@@ -1,5 +1,5 @@
 import React from 'react';
-import { Sparkles, ArrowRight, Star, ShieldCheck } from 'lucide-react';
+import { Sparkles, ArrowRight, Star, ShieldCheck, Bot } from 'lucide-react';
 import { Link } from 'react-router-dom';
 
 export default function TemplateCard({ template }) {
@@ -9,8 +9,15 @@ export default function TemplateCard({ template }) {
     return (
         <div className="group bg-white rounded-2xl shadow-sm border border-gray-100 hover:shadow-xl hover:shadow-indigo-100 transition-all duration-300 flex flex-col h-full transform hover:-translate-y-1">
             <div className="p-6 flex-1 flex flex-col">
+                {/* LLM Badge + Industry + Category */}
                 <div className="flex justify-between items-start mb-4">
                     <div className="flex flex-wrap gap-2">
+                        {template.industry?.llm?.name && (
+                            <span className="px-2.5 py-1 text-xs font-semibold bg-gradient-to-r from-purple-50 to-indigo-50 text-purple-700 rounded-full border border-purple-200 inline-flex items-center gap-1">
+                                <Bot size={11} />
+                                {template.industry.llm.name}
+                            </span>
+                        )}
                         <span className="px-3 py-1 text-xs font-semibold bg-indigo-50 text-indigo-700 rounded-full border border-indigo-100">
                             {template.industry?.name || 'General'}
                         </span>

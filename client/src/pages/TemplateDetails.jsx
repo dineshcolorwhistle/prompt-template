@@ -385,6 +385,7 @@ function VariablesSection({ variables, userValues, setUserValues, isLoggedIn }) 
 
 function PromptSection({ template, userValues, isLoggedIn }) {
     const [copied, setCopied] = useState(false);
+    const promptRef = useRef(null);
 
     const getProcessedPrompt = useCallback(() => {
         let prompt = template.basePromptText || '';
@@ -397,6 +398,55 @@ function PromptSection({ template, userValues, isLoggedIn }) {
         }
         return prompt;
     }, [template, userValues]);
+
+    // ── Copy protection for non-logged-in users ──────────────────────────────
+    useEffect(() => {
+        if (isLoggedIn) return; // No restrictions for logged-in users
+
+        const promptEl = promptRef.current;
+        if (!promptEl) return;
+
+        // Block Ctrl+C / Cmd+C keyboard shortcut
+        const handleKeyDown = (e) => {
+            if ((e.ctrlKey || e.metaKey) && (e.key === 'c' || e.key === 'C')) {
+                e.preventDefault();
+                toast.error('Please login to copy prompts', { icon: '🔒' });
+            }
+        };
+
+        // Block right-click context menu
+        const handleContextMenu = (e) => {
+            e.preventDefault();
+            toast.error('Please login to copy prompts', { icon: '🔒' });
+        };
+
+        // Intercept the native copy event
+        const handleCopyEvent = (e) => {
+            e.preventDefault();
+            toast.error('Please login to copy prompts', { icon: '🔒' });
+        };
+
+        // Clear any text selection made by dragging
+        const handleMouseUp = () => {
+            const selection = window.getSelection();
+            if (selection && selection.toString().length > 0) {
+                selection.removeAllRanges();
+                toast.error('Please login to copy prompts', { icon: '🔒' });
+            }
+        };
+
+        promptEl.addEventListener('keydown', handleKeyDown);
+        promptEl.addEventListener('contextmenu', handleContextMenu);
+        promptEl.addEventListener('copy', handleCopyEvent);
+        promptEl.addEventListener('mouseup', handleMouseUp);
+
+        return () => {
+            promptEl.removeEventListener('keydown', handleKeyDown);
+            promptEl.removeEventListener('contextmenu', handleContextMenu);
+            promptEl.removeEventListener('copy', handleCopyEvent);
+            promptEl.removeEventListener('mouseup', handleMouseUp);
+        };
+    }, [isLoggedIn]);
 
     const handleCopy = async () => {
         if (!isLoggedIn) {
@@ -483,7 +533,7 @@ function PromptSection({ template, userValues, isLoggedIn }) {
                                     ? 'bg-indigo-600 text-white hover:bg-indigo-700 shadow-lg shadow-indigo-200'
                                     : 'bg-gray-200 text-gray-400 cursor-not-allowed'
                                 }`}
-                            disabled={!isLoggedIn && false}
+                            disabled={!isLoggedIn}
                             id="copy-prompt-btn"
                         >
                             {copied ? <><Check className="w-4 h-4" /> Copied!</> : <><Copy className="w-4 h-4" /> Copy Prompt</>}
@@ -497,7 +547,13 @@ function PromptSection({ template, userValues, isLoggedIn }) {
                     </div>
                 </div>
 
-                <div className="relative bg-gradient-to-br from-gray-50 to-slate-50 rounded-xl border border-gray-200 overflow-hidden">
+                <div
+                    ref={promptRef}
+                    className="relative bg-gradient-to-br from-gray-50 to-slate-50 rounded-xl border border-gray-200 overflow-hidden"
+                    tabIndex={0}
+                    style={!isLoggedIn ? { userSelect: 'none', WebkitUserSelect: 'none', MozUserSelect: 'none', msUserSelect: 'none' } : {}}
+                    onDragStart={!isLoggedIn ? (e) => e.preventDefault() : undefined}
+                >
                     <div className="absolute top-0 left-0 right-0 h-8 bg-gradient-to-b from-gray-100 to-transparent flex items-center px-4">
                         <div className="flex gap-1.5">
                             <span className="w-2.5 h-2.5 rounded-full bg-red-300"></span>
@@ -1016,10 +1072,10 @@ function EffectivenessRatingSection({ templateId, isLoggedIn, userInfo }) {
                                 onClick={() => handleRatingSelect(range.key)}
                                 disabled={submitting}
                                 className={`w-full group relative rounded-xl border-2 transition-all duration-200 text-left overflow-hidden ${isSelected
-                                        ? `${range.borderColor} ${range.bgLight} ring-2 ring-offset-1 ${range.borderColor.replace('border-', 'ring-')}`
-                                        : isLoggedIn
-                                            ? 'border-gray-150 hover:border-gray-300 bg-gray-50/40 hover:bg-gray-50'
-                                            : 'border-gray-100 bg-gray-50/30 cursor-default'
+                                    ? `${range.borderColor} ${range.bgLight} ring-2 ring-offset-1 ${range.borderColor.replace('border-', 'ring-')}`
+                                    : isLoggedIn
+                                        ? 'border-gray-150 hover:border-gray-300 bg-gray-50/40 hover:bg-gray-50'
+                                        : 'border-gray-100 bg-gray-50/30 cursor-default'
                                     }`}
                                 whileHover={isLoggedIn ? { scale: 1.01 } : {}}
                                 whileTap={isLoggedIn ? { scale: 0.99 } : {}}
@@ -1031,8 +1087,8 @@ function EffectivenessRatingSection({ templateId, isLoggedIn, userInfo }) {
                                 <div className="px-4 py-3 flex items-center gap-3">
                                     {/* Radio indicator */}
                                     <div className={`flex-shrink-0 w-5 h-5 rounded-full border-2 flex items-center justify-center transition-all ${isSelected
-                                            ? `${range.borderColor} ${range.bgLight}`
-                                            : 'border-gray-300'
+                                        ? `${range.borderColor} ${range.bgLight}`
+                                        : 'border-gray-300'
                                         }`}>
                                         <AnimatePresence>
                                             {isSelected && (
@@ -1175,10 +1231,10 @@ function UpvoteButton({ templateId, isLoggedIn, userInfo }) {
             onClick={handleToggle}
             disabled={toggling}
             className={`inline-flex items-center gap-2.5 px-5 py-2.5 rounded-xl font-semibold text-sm transition-all duration-200 border-2 ${hasUpvoted
-                    ? 'bg-indigo-50 text-indigo-700 border-indigo-200 shadow-sm shadow-indigo-100'
-                    : isLoggedIn
-                        ? 'bg-white text-gray-600 border-gray-200 hover:border-indigo-200 hover:text-indigo-600 hover:bg-indigo-50/50'
-                        : 'bg-gray-50 text-gray-400 border-gray-150 cursor-default'
+                ? 'bg-indigo-50 text-indigo-700 border-indigo-200 shadow-sm shadow-indigo-100'
+                : isLoggedIn
+                    ? 'bg-white text-gray-600 border-gray-200 hover:border-indigo-200 hover:text-indigo-600 hover:bg-indigo-50/50'
+                    : 'bg-gray-50 text-gray-400 border-gray-150 cursor-default'
                 }`}
             whileHover={isLoggedIn ? { scale: 1.03, y: -1 } : {}}
             whileTap={isLoggedIn ? { scale: 0.97 } : {}}

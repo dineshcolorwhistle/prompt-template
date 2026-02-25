@@ -49,6 +49,9 @@ const expertRequestRoutes = require('./routes/expertRequestRoutes');
 app.use('/api/expert-requests', expertRequestRoutes);
 const industryRoutes = require('./routes/industryRoutes');
 app.use('/api/industries', industryRoutes);
+
+const llmRoutes = require('./routes/llmRoutes');
+app.use('/api/llms', llmRoutes);
 const categoryRoutes = require('./routes/categoryRoutes');
 app.use('/api/categories', categoryRoutes);
 

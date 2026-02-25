@@ -2,7 +2,7 @@ import React, { useState, useEffect, useRef } from 'react';
 import { Link, useNavigate, useSearchParams } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import { dropdownVariants } from '../animations';
-import { Search, Menu, X, User, LogOut, LayoutDashboard, ChevronDown, CheckCircle, BadgeCheck, Filter } from 'lucide-react';
+import { Search, Menu, X, User, LogOut, LayoutDashboard, ChevronDown, CheckCircle, BadgeCheck, Filter, Bot } from 'lucide-react';
 
 import { useAuth } from '../context/AuthContext';
 import RequestExpertModal from './RequestExpertModal';
@@ -17,17 +17,40 @@ export default function Navbar() {
     const [searchParams] = useSearchParams();
 
     // Filters State
+    const [llms, setLLMs] = useState([]);
     const [industries, setIndustries] = useState([]);
     const [categories, setCategories] = useState([]);
     const [searchTerm, setSearchTerm] = useState(searchParams.get('search') || '');
 
+    const selectedLLM = searchParams.get('llm') || '';
     const selectedIndustry = searchParams.get('industry') || '';
     const selectedCategory = searchParams.get('category') || '';
 
+    // Fetch LLMs on mount
+    useEffect(() => {
+        const fetchLLMs = async () => {
+            try {
+                const response = await fetch(`${import.meta.env.VITE_API_URL}/api/llms?limit=100&status=active`);
+                const data = await response.json();
+                if (response.ok && data.result) {
+                    setLLMs(data.result);
+                }
+            } catch (error) {
+                console.error('Failed to fetch LLMs:', error);
+            }
+        };
+        fetchLLMs();
+    }, []);
+
+    // Fetch Industries based on selected LLM
     useEffect(() => {
         const fetchIndustries = async () => {
+            if (!selectedLLM) {
+                setIndustries([]);
+                return;
+            }
             try {
-                const response = await fetch(`${import.meta.env.VITE_API_URL}/api/industries?limit=100&status=active`);
+                const response = await fetch(`${import.meta.env.VITE_API_URL}/api/industries?limit=100&status=active&llm=${selectedLLM}`);
                 const data = await response.json();
                 if (response.ok && data.result) {
                     setIndustries(data.result);
@@ -37,8 +60,9 @@ export default function Navbar() {
             }
         };
         fetchIndustries();
-    }, []);
+    }, [selectedLLM]);
 
+    // Fetch Categories based on selected Industry
     useEffect(() => {
         const fetchCategories = async () => {
             if (!selectedIndustry) {
@@ -80,6 +104,20 @@ export default function Navbar() {
         navigate('/login');
     };
 
+    const handleLLMChange = (e) => {
+        const newLLM = e.target.value;
+        const params = new URLSearchParams(searchParams);
+        if (newLLM) {
+            params.set('llm', newLLM);
+        } else {
+            params.delete('llm');
+        }
+        params.delete('industry'); // Reset industry when LLM changes
+        params.delete('category'); // Reset category when LLM changes
+        params.delete('page');
+        navigate(`/?${params.toString()}`);
+    };
+
     const handleIndustryChange = (e) => {
         const newIndustry = e.target.value;
         const params = new URLSearchParams(searchParams);
@@ -118,7 +156,7 @@ export default function Navbar() {
         }
     };
 
-    const hasFilters = selectedIndustry || selectedCategory || searchTerm;
+    const hasFilters = selectedLLM || selectedIndustry || selectedCategory || searchTerm;
 
     const handleReset = () => {
         setSearchTerm('');
@@ -139,13 +177,29 @@ export default function Navbar() {
                         </Link>
 
                         {/* Desktop Search & Filters */}
-                        <div className="hidden md:flex items-center flex-1 max-w-3xl gap-4 mx-4">
+                        <div className="hidden md:flex items-center flex-1 max-w-4xl gap-3 mx-4">
+                            {/* LLM Dropdown */}
+                            <div className="relative min-w-[130px]">
+                                <select
+                                    value={selectedLLM}
+                                    onChange={handleLLMChange}
+                                    className="w-full appearance-none pl-4 pr-8 py-2 text-sm bg-gradient-to-r from-purple-50 to-indigo-50 border border-purple-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent text-purple-700 font-medium cursor-pointer hover:from-purple-100 hover:to-indigo-100 transition-colors"
+                                >
+                                    <option value="">All LLMs</option>
+                                    {llms.map(llm => (
+                                        <option key={llm._id} value={llm._id}>{llm.name}</option>
+                                    ))}
+                                </select>
+                                <ChevronDown className="absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 text-purple-400 pointer-events-none" />
+                            </div>
+
                             {/* Industry Dropdown */}
-                            <div className="relative min-w-[140px]">
+                            <div className="relative min-w-[130px]">
                                 <select
                                     value={selectedIndustry}
                                     onChange={handleIndustryChange}
-                                    className="w-full appearance-none pl-4 pr-8 py-2 text-sm bg-gray-50 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent text-gray-700 font-medium cursor-pointer hover:bg-gray-100 transition-colors"
+                                    disabled={!selectedLLM}
+                                    className={`w-full appearance-none pl-4 pr-8 py-2 text-sm border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent text-gray-700 font-medium transition-colors ${!selectedLLM ? 'bg-gray-100 text-gray-400 cursor-not-allowed' : 'bg-gray-50 cursor-pointer hover:bg-gray-100'}`}
                                 >
                                     <option value="">All Industries</option>
                                     {industries.map(ind => (
@@ -156,7 +210,7 @@ export default function Navbar() {
                             </div>
 
                             {/* Category Dropdown (Dependent) */}
-                            <div className="relative min-w-[140px]">
+                            <div className="relative min-w-[130px]">
                                 <select
                                     value={selectedCategory}
                                     onChange={handleCategoryChange}
@@ -290,7 +344,7 @@ export default function Navbar() {
 
                         {/* Mobile Menu Button */}
                         <div className="flex items-center gap-4 md:hidden">
-                            <Search className="w-5 h-5 text-gray-600" /> {/* Mobile Search Icon (Simplified) */}
+                            <Search className="w-5 h-5 text-gray-600" />
                             <button
                                 className="p-2 text-gray-600 hover:bg-gray-50 rounded-lg"
                                 onClick={() => setIsMenuOpen(!isMenuOpen)}
@@ -315,10 +369,24 @@ export default function Navbar() {
                                 {/* Mobile Filters */}
                                 <div className="space-y-3 pb-4 border-b border-gray-100">
                                     <label className="text-xs font-semibold text-gray-500 uppercase">Filters</label>
+
+                                    {/* LLM Dropdown - Mobile */}
+                                    <select
+                                        value={selectedLLM}
+                                        onChange={handleLLMChange}
+                                        className="w-full px-3 py-2 text-sm bg-gradient-to-r from-purple-50 to-indigo-50 border border-purple-200 rounded-lg text-purple-700 font-medium"
+                                    >
+                                        <option value="">All LLMs</option>
+                                        {llms.map(llm => (
+                                            <option key={llm._id} value={llm._id}>{llm.name}</option>
+                                        ))}
+                                    </select>
+
                                     <select
                                         value={selectedIndustry}
                                         onChange={handleIndustryChange}
-                                        className="w-full px-3 py-2 text-sm bg-gray-50 border border-gray-200 rounded-lg text-gray-700"
+                                        disabled={!selectedLLM}
+                                        className={`w-full px-3 py-2 text-sm border border-gray-200 rounded-lg text-gray-700 ${!selectedLLM ? 'bg-gray-100 text-gray-400' : 'bg-gray-50'}`}
                                     >
                                         <option value="">All Industries</option>
                                         {industries.map(ind => (
@@ -329,7 +397,7 @@ export default function Navbar() {
                                         value={selectedCategory}
                                         onChange={handleCategoryChange}
                                         disabled={!selectedIndustry}
-                                        className="w-full px-3 py-2 text-sm bg-gray-50 border border-gray-200 rounded-lg text-gray-700"
+                                        className={`w-full px-3 py-2 text-sm border border-gray-200 rounded-lg text-gray-700 ${!selectedIndustry ? 'bg-gray-100 text-gray-400' : 'bg-gray-50'}`}
                                     >
                                         <option value="">All Categories</option>
                                         {categories.map(cat => (

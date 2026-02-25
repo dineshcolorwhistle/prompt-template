@@ -1,6 +1,11 @@
 const mongoose = require('mongoose');
 
 const industrySchema = new mongoose.Schema({
+    llm: {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: 'LLM',
+        required: [true, 'Please select an LLM'],
+    },
     name: {
         type: String,
         required: [true, 'Please add a name for the industry'],

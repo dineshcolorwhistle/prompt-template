@@ -3,7 +3,7 @@ import useDebounce from '../hooks/useDebounce';
 import { useAuth } from '../context/AuthContext';
 import {
     Plus, Search, Edit2, Trash2, X, AlertCircle,
-    Filter, MoreHorizontal, Power, CheckCircle, Info
+    Filter, MoreHorizontal, Power, CheckCircle, Info, Bot
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { toast } from 'react-hot-toast';
@@ -33,9 +33,13 @@ const Industries = () => {
         name: '',
         slug: '',
         description: '',
+        llm: '',
         isActive: true
     });
     const [formLoading, setFormLoading] = useState(false);
+
+    // LLMs list for dropdown
+    const [llmsList, setLLMsList] = useState([]);
 
     // Debounce search term
     const debouncedSearchTerm = useDebounce(searchTerm, 500);
@@ -63,6 +67,22 @@ const Industries = () => {
         };
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [page, debouncedSearchTerm, statusFilter]);
+
+    // Fetch LLMs for dropdown
+    useEffect(() => {
+        const fetchLLMsList = async () => {
+            try {
+                const response = await fetch(`${import.meta.env.VITE_API_URL}/api/llms?limit=100&status=active`);
+                const data = await response.json();
+                if (response.ok && data.result) {
+                    setLLMsList(data.result);
+                }
+            } catch (error) {
+                console.error('Failed to fetch LLMs:', error);
+            }
+        };
+        fetchLLMsList();
+    }, []);
 
 
 
@@ -115,11 +135,12 @@ const Industries = () => {
                 name: industry.name,
                 slug: industry.slug,
                 description: industry.description || '',
+                llm: industry.llm?._id || industry.llm || '',
                 isActive: industry.isActive
             });
         } else {
             setCurrentIndustry(null);
-            setFormData({ name: '', slug: '', description: '', isActive: true });
+            setFormData({ name: '', slug: '', description: '', llm: '', isActive: true });
         }
         setIsModalOpen(true);
     };
@@ -127,7 +148,7 @@ const Industries = () => {
     const handleCloseModal = () => {
         setIsModalOpen(false);
         setCurrentIndustry(null);
-        setFormData({ name: '', slug: '', description: '', isActive: true });
+        setFormData({ name: '', slug: '', description: '', llm: '', isActive: true });
     };
 
     const handleInputChange = (e) => {
@@ -311,6 +332,7 @@ const Industries = () => {
                         <thead>
                             <tr className="bg-gray-50/50 border-b border-gray-100 text-xs uppercase text-gray-500 font-semibold tracking-wider">
                                 <th className="px-6 py-4">Name</th>
+                                <th className="px-6 py-4">LLM</th>
                                 <th className="px-6 py-4">Slug</th>
                                 <th className="px-6 py-4">Status</th>
                                 <th className="px-6 py-4">Created</th>
@@ -320,7 +342,7 @@ const Industries = () => {
                         <tbody className="divide-y divide-gray-100">
                             {loading ? (
                                 <tr>
-                                    <td colSpan="5" className="px-6 py-12 text-center text-gray-500">
+                                    <td colSpan="6" className="px-6 py-12 text-center text-gray-500">
                                         <div className="flex justify-center items-center flex-col">
                                             <div className="w-8 h-8 border-4 border-indigo-200 border-t-indigo-600 rounded-full animate-spin mb-3"></div>
                                             <p>Loading industries...</p>
@@ -329,7 +351,7 @@ const Industries = () => {
                                 </tr>
                             ) : industries.length === 0 ? (
                                 <tr>
-                                    <td colSpan="5" className="px-6 py-12 text-center text-gray-500">
+                                    <td colSpan="6" className="px-6 py-12 text-center text-gray-500">
                                         <div className="flex flex-col items-center justify-center">
                                             <div className="w-12 h-12 bg-gray-100 rounded-full flex items-center justify-center mb-3">
                                                 <Search className="text-gray-400" size={24} />
@@ -348,6 +370,16 @@ const Industries = () => {
                                         <span className="font-medium text-gray-900 block">{item.name || item.title || "Unnamed Category"}</span>
                                         {(item.description || item.desc) && (
                                             <span className="text-xs text-gray-500 truncate max-w-[200px] block">{item.description || item.desc}</span>
+                                        )}
+                                    </td>
+                                    <td className="px-6 py-4">
+                                        {item.llm ? (
+                                            <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-medium bg-purple-50 text-purple-700 border border-purple-200">
+                                                <Bot size={12} />
+                                                {item.llm.name || 'Unknown'}
+                                            </span>
+                                        ) : (
+                                            <span className="text-xs text-gray-400">—</span>
                                         )}
                                     </td>
                                     <td className="px-6 py-4">
@@ -438,6 +470,24 @@ const Industries = () => {
                             </div>
 
                             <form onSubmit={handleSubmit} className="p-6 space-y-5">
+                                <div>
+                                    <label className="block text-sm font-semibold text-gray-700 mb-1.5">
+                                        LLM <span className="text-red-500">*</span>
+                                    </label>
+                                    <select
+                                        name="llm"
+                                        required
+                                        value={formData.llm}
+                                        onChange={handleInputChange}
+                                        className="w-full px-3 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 outline-none transition bg-white"
+                                    >
+                                        <option value="">Select an LLM</option>
+                                        {llmsList.map(llm => (
+                                            <option key={llm._id} value={llm._id}>{llm.name}</option>
+                                        ))}
+                                    </select>
+                                </div>
+
                                 <div>
                                     <label className="block text-sm font-semibold text-gray-700 mb-1.5">
                                         Industry Name <span className="text-red-500">*</span>

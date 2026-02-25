@@ -13,20 +13,21 @@ const {
     getTemplates
 } = require('../controllers/templateController');
 
-// Configure Multer
+// Configure Multer — uploads go to temp folder first, then moved to /templates/{id}/ by the controller
 const storage = multer.diskStorage({
     destination: function (req, file, cb) {
-        cb(null, 'uploads/');
+        cb(null, 'uploads/templates/temp/');
     },
     filename: function (req, file, cb) {
-        cb(null, Date.now() + path.extname(file.originalname)); // Appending extension
+        cb(null, Date.now() + '-' + Math.round(Math.random() * 1E4) + path.extname(file.originalname));
     }
 });
 
 const upload = multer({
     storage: storage,
+    limits: { fileSize: 5 * 1024 * 1024 }, // 5MB per file
     fileFilter: function (req, file, cb) {
-        if (!file.originalname.match(/\.(jpg|jpeg|png|gif|webp)$/)) {
+        if (!file.originalname.match(/\.(jpg|jpeg|png|gif|webp)$/i)) {
             return cb(new Error('Only image files are allowed!'), false);
         }
         cb(null, true);

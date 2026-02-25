@@ -15,6 +15,7 @@ export default function Home() {
 
     // Get params from URL
     const page = parseInt(searchParams.get('page') || '1', 10);
+    const llm = searchParams.get('llm') || '';
     const industry = searchParams.get('industry') || '';
     const category = searchParams.get('category') || '';
     const search = searchParams.get('search') || '';
@@ -29,9 +30,10 @@ export default function Home() {
                     status: 'Approved' // Only show approved templates
                 });
 
+                if (llm) query.append('llm', llm);
                 if (industry) query.append('industry', industry);
                 if (category) query.append('category', category);
-                if (search) query.append('search', search); // Backend should support 'search' or 'title'
+                if (search) query.append('search', search);
 
                 const response = await fetch(`${import.meta.env.VITE_API_URL}/api/templates?${query.toString()}`);
 
@@ -43,7 +45,7 @@ export default function Home() {
                         setTotalItems(data.total);
                     } else {
                         setTemplates(Array.isArray(data) ? data : []);
-                        setTotalPages(1); // Fallback
+                        setTotalPages(1);
                         setTotalItems(Array.isArray(data) ? data.length : 0);
                     }
                 }
@@ -55,7 +57,7 @@ export default function Home() {
         };
 
         fetchTemplates();
-    }, [page, industry, category, search]);
+    }, [page, llm, industry, category, search]);
 
     const handlePageChange = (newPage) => {
         setSearchParams(prev => {
@@ -67,14 +69,15 @@ export default function Home() {
 
     return (
         <div className="pb-16 min-h-screen bg-gray-50/30">
-            {/* Header / Title Section (Dynamic based on selection) */}
+            {/* Header / Title Section */}
             <div className="bg-white border-b border-gray-100 py-4 mb-4">
                 <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
                     <h1 className="text-2xl font-bold text-gray-900">
                         {search ? `Results for "${search}"` :
                             category ? 'Category Templates' :
                                 industry ? 'Industry Templates' :
-                                    'Latest Templates'}
+                                    llm ? 'LLM Templates' :
+                                        'Latest Templates'}
                     </h1>
                     <p className="text-gray-500 mt-2">
                         {totalItems} templates available
@@ -122,7 +125,7 @@ export default function Home() {
                         <p className="text-gray-500 max-w-sm mx-auto">
                             We couldn't find any templates matching your criteria. Try adjusting your filters or search term.
                         </p>
-                        {(industry || category || search) && (
+                        {(llm || industry || category || search) && (
                             <button
                                 onClick={() => setSearchParams({})}
                                 className="mt-6 px-6 py-2 bg-indigo-600 text-white rounded-lg font-medium hover:bg-indigo-700 transition"
