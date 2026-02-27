@@ -14,6 +14,11 @@ const TemplateModal = ({ isOpen, onClose, template, onSave }) => {
         category: '',
         basePromptText: '',
         status: 'Draft',
+        useCase: '',
+        tone: '',
+        outputFormat: '',
+        structuralInstruction: '',
+        repurposingIdeas: '',
         variables: [] // Array of { name, description, defaultValue, required }
     });
 
@@ -48,6 +53,11 @@ const TemplateModal = ({ isOpen, onClose, template, onSave }) => {
                 category: template.category?._id || template.category || '',
                 basePromptText: template.basePromptText || template.content || '',
                 status: template.status || 'Draft',
+                useCase: template.useCase || '',
+                tone: template.tone || '',
+                outputFormat: template.outputFormat || '',
+                structuralInstruction: template.structuralInstruction || '',
+                repurposingIdeas: template.repurposingIdeas || '',
                 variables: Array.isArray(template.variables) ? template.variables : []
             });
             // Handle multiple images
@@ -63,6 +73,11 @@ const TemplateModal = ({ isOpen, onClose, template, onSave }) => {
                 category: '',
                 basePromptText: '',
                 status: 'Draft',
+                useCase: '',
+                tone: '',
+                outputFormat: '',
+                structuralInstruction: '',
+                repurposingIdeas: '',
                 variables: []
             });
             setExistingImages([]);
@@ -356,7 +371,7 @@ const TemplateModal = ({ isOpen, onClose, template, onSave }) => {
                 animate={{ opacity: 1, scale: 1 }}
                 exit={{ opacity: 0, scale: 0.95 }}
                 transition={{ duration: 0.2 }}
-                className="bg-white rounded-2xl shadow-xl w-full max-w-2xl max-h-[90vh] overflow-y-auto flex flex-col"
+                className="bg-white rounded-2xl shadow-xl w-full max-w-4xl max-h-[90vh] overflow-y-auto flex flex-col"
             >
                 <div className="px-6 py-4 border-b border-gray-100 flex justify-between items-center bg-gray-50/50 flex-shrink-0">
                     <h3 className="font-bold text-gray-900 text-lg">
@@ -370,7 +385,7 @@ const TemplateModal = ({ isOpen, onClose, template, onSave }) => {
                 <div className="p-6 overflow-y-auto flex-1">
 
 
-                    <form id="templateForm" onSubmit={handleSubmit} className="space-y-4">
+                    <form id="templateForm" onSubmit={handleSubmit} className="space-y-6">
                         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                             <div>
                                 <label className="block text-sm font-medium text-gray-700 mb-1">Title<span className="text-red-500 ml-1">*</span></label>
@@ -465,6 +480,28 @@ const TemplateModal = ({ isOpen, onClose, template, onSave }) => {
                                 className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent resize-none transition-colors"
                                 placeholder="Briefly describe what this template does..."
                             />
+                        </div>
+
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                            <div>
+                                <label className="block text-sm font-medium text-gray-700 mb-1">Use Case</label>
+                                <textarea name="useCase" value={formData.useCase} onChange={handleChange} rows={3} className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition-colors" />
+                            </div>
+                            <div>
+                                <label className="block text-sm font-medium text-gray-700 mb-1">Locked Tone</label>
+                                <textarea name="tone" value={formData.tone} onChange={handleChange} rows={3} className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition-colors" />
+                            </div>
+                        </div>
+
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                            <div>
+                                <label className="block text-sm font-medium text-gray-700 mb-1">Locked Output Format</label>
+                                <textarea name="outputFormat" value={formData.outputFormat} onChange={handleChange} rows={3} className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition-colors" />
+                            </div>
+                            <div>
+                                <label className="block text-sm font-medium text-gray-700 mb-1">Locked Structural Instruction</label>
+                                <textarea name="structuralInstruction" value={formData.structuralInstruction} onChange={handleChange} rows={3} className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition-colors" />
+                            </div>
                         </div>
 
                         {/* Variables Section */}
@@ -569,7 +606,7 @@ const TemplateModal = ({ isOpen, onClose, template, onSave }) => {
                         </div>
 
                         <div>
-                            <label className="block text-sm font-medium text-gray-700 mb-1">Prompt Content<span className="text-red-500 ml-1">*</span></label>
+                            <label className="block text-sm font-medium text-gray-700 mb-1">Base Prompt Text<span className="text-red-500 ml-1">*</span></label>
                             <textarea
                                 name="basePromptText"
                                 required
@@ -577,9 +614,20 @@ const TemplateModal = ({ isOpen, onClose, template, onSave }) => {
                                 value={formData.basePromptText}
                                 onChange={handleChange}
                                 className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent font-mono text-sm transition-colors"
-                                placeholder="Enter your prompt here. Use {{variable}} for placeholders."
+                                placeholder="Write the prompt here using {{variables}}..."
                             />
                             <p className="text-xs text-gray-500 mt-1">Use the variable names defined above in double curly braces, e.g. {`{{VariableName}}`}</p>
+                        </div>
+
+                        <div>
+                            <label className="block text-sm font-medium text-gray-700 mb-1">Repurposing Ideas</label>
+                            <textarea
+                                name="repurposingIdeas"
+                                rows={3}
+                                value={formData.repurposingIdeas}
+                                onChange={handleChange}
+                                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition-colors"
+                            />
                         </div>
 
                         {/* File Upload Section (New) */}

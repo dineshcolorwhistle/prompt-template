@@ -324,8 +324,14 @@ export default function Navbar() {
                                                 <div className="px-4 py-3 border-b border-gray-50 bg-gray-50/50">
                                                     <p className="text-sm font-bold text-gray-900 truncate">{userInfo.name}</p>
                                                     <p className="text-xs text-gray-500 truncate">{userInfo.email}</p>
-                                                    <div className="mt-2 inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-indigo-50 text-indigo-700 capitalize border border-indigo-100">
-                                                        {userInfo.role}
+                                                    <div className={`mt-2 inline-flex items-center px-2 py-0.5 rounded text-xs font-medium capitalize border gap-1 ${userInfo.role === 'Expert' && userInfo.isVerifiedExpert
+                                                        ? 'bg-blue-50 text-blue-700 border-blue-100'
+                                                        : 'bg-indigo-50 text-indigo-700 border-indigo-100'}`}>
+                                                        {userInfo.role === 'Expert'
+                                                            ? (userInfo.isVerifiedExpert
+                                                                ? <><BadgeCheck size={12} className="text-blue-600" /> Verified Expert</>
+                                                                : 'Expert (Provisional)')
+                                                            : userInfo.role}
                                                     </div>
                                                 </div>
 

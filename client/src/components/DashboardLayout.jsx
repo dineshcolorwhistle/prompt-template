@@ -91,7 +91,11 @@ const DashboardLayout = () => {
                             </div>
                             <div className="overflow-hidden">
                                 <p className="text-sm font-semibold text-gray-900 truncate">{userInfo.name}</p>
-                                <p className="text-xs text-gray-500 truncate capitalize">{userInfo.role}</p>
+                                <p className="text-xs text-gray-500 truncate capitalize">
+                                    {userInfo.role === 'Expert'
+                                        ? (userInfo.isVerifiedExpert ? 'Verified Expert' : 'Expert (Provisional)')
+                                        : userInfo.role}
+                                </p>
                             </div>
                         </div>
                     )}

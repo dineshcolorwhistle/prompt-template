@@ -1,6 +1,7 @@
 const Rating = require('../models/Rating');
 const Upvote = require('../models/Upvote');
 const Template = require('../models/Template');
+const checkVerifiedExpert = require('../utils/checkVerifiedExpert');
 
 // ─── EFFECTIVENESS RATING ───────────────────────────────────────────────────────
 
@@ -83,6 +84,13 @@ exports.submitRating = async (req, res) => {
             { effectivenessRange, updatedAt: Date.now() },
             { upsert: true, new: true, setDefaultsOnInsert: true }
         );
+
+        // Check if the template owner qualifies for Verified Expert
+        if (template.user) {
+            checkVerifiedExpert(template.user.toString()).catch(err =>
+                console.error('Verified Expert check failed:', err)
+            );
+        }
 
         res.json({
             message: 'Rating submitted successfully',

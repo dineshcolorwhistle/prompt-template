@@ -5,6 +5,7 @@ const Rating = require('../models/Rating');
 const fs = require('fs');
 const fsPromises = require('fs').promises;
 const path = require('path');
+const checkVerifiedExpert = require('../utils/checkVerifiedExpert');
 
 // Helper: Move files from temp to uploads/templates/{templateId}/
 const moveFilesToTemplateDir = async (tempPaths, templateId) => {
@@ -30,7 +31,7 @@ const moveFilesToTemplateDir = async (tempPaths, templateId) => {
             await fsPromises.unlink(fullOldPath);
         }
         // Ensure file is readable by web server (e.g. when process runs as different user on VPS)
-        await fsPromises.chmod(fullNewPath, 0o644).catch(() => {});
+        await fsPromises.chmod(fullNewPath, 0o644).catch(() => { });
         newPaths.push(newPath);
     }
     return newPaths;
@@ -393,6 +394,13 @@ exports.updateTemplate = async (req, res, next) => {
         // --- VALIDATION END ---
 
         await template.save();
+
+        // If template was just approved, check if the owner qualifies for Verified Expert
+        if (status === 'Approved') {
+            checkVerifiedExpert(template.user.toString()).catch(err =>
+                console.error('Verified Expert check failed:', err)
+            );
+        }
 
         const updatedTemplate = await Template.findById(template._id)
             .populate({

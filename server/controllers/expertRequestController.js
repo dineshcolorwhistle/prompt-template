@@ -7,7 +7,21 @@ const sendEmail = require('../utils/sendEmail');
 // @access  Private
 exports.createRequest = async (req, res) => {
     try {
-        const { details } = req.body;
+        const {
+            primaryIndustry,
+            yearsOfExperience,
+            portfolioLink,
+            samplePrompt,
+            methodologyExplanation,
+            details, // legacy field, optional
+        } = req.body;
+
+        // Validate required fields
+        if (!primaryIndustry || yearsOfExperience === undefined || !portfolioLink || !samplePrompt || !methodologyExplanation) {
+            return res.status(400).json({
+                message: 'All fields are required: Primary Industry, Years of Experience, Portfolio Link, Sample Prompt, and Methodology Explanation.',
+            });
+        }
 
         const existingRequest = await ExpertRequest.findOne({ user: req.user._id, status: 'Pending' });
 
@@ -17,7 +31,12 @@ exports.createRequest = async (req, res) => {
 
         const request = await ExpertRequest.create({
             user: req.user._id,
-            details,
+            primaryIndustry,
+            yearsOfExperience,
+            portfolioLink,
+            samplePrompt,
+            methodologyExplanation,
+            details: details || '',
         });
 
         // Send notification to all admins
@@ -27,7 +46,14 @@ exports.createRequest = async (req, res) => {
                 await sendEmail({
                     email: admin.email,
                     subject: 'New Expert Request',
-                    message: `A new expert request has been submitted by ${req.user.name}.\n\nDetails: ${details}\n\nPlease check the admin dashboard to review.`,
+                    message: `A new expert request has been submitted by ${req.user.name}.\n\n` +
+                        `Primary Industry: ${primaryIndustry}\n` +
+                        `Years of Experience: ${yearsOfExperience}\n` +
+                        `Portfolio: ${portfolioLink}\n` +
+                        `Sample Prompt: ${samplePrompt}\n` +
+                        `Methodology: ${methodologyExplanation}\n` +
+                        (details ? `\nAdditional Details: ${details}\n` : '') +
+                        `\nPlease check the admin dashboard to review.`,
                 });
             }
         } catch (emailError) {
@@ -81,8 +107,8 @@ exports.updateRequestStatus = async (req, res) => {
                 try {
                     await sendEmail({
                         email: user.email,
-                        subject: 'Expert Request Approved',
-                        message: `Congratulations! Your request to become an expert has been approved. You now have access to expert features.`,
+                        subject: 'Expert Request Approved – Welcome, Provisional Expert!',
+                        message: `Congratulations ${user.name}!\n\nYour request to become an expert has been approved. You are now a Provisional Expert with access to all expert features.\n\nTo earn Verified Expert status (with a verification badge), meet these criteria:\n• Minimum 3 approved templates\n• Minimum 50 total ratings across your templates\n• Average effectiveness score ≥ 70%\n\nThe system will automatically upgrade your status once these criteria are met. Start creating great templates!`,
                     });
                 } catch (emailError) {
                     console.error('Failed to send approval email:', emailError);
