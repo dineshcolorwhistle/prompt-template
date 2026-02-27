@@ -2,6 +2,7 @@ const express = require('express');
 const router = express.Router();
 const multer = require('multer');
 const path = require('path');
+const fs = require('fs');
 const { protect, optionalAuth } = require('../middleware/authMiddleware');
 const {
     createTemplate,
@@ -13,10 +14,14 @@ const {
     getTemplates
 } = require('../controllers/templateController');
 
+// Ensure the temp upload directory exists (prevents ENOENT on production)
+const tempUploadDir = path.join(__dirname, '..', 'uploads', 'templates', 'temp');
+fs.mkdirSync(tempUploadDir, { recursive: true, mode: 0o755 });
+
 // Configure Multer — uploads go to temp folder first, then moved to /templates/{id}/ by the controller
 const storage = multer.diskStorage({
     destination: function (req, file, cb) {
-        cb(null, 'uploads/templates/temp/');
+        cb(null, tempUploadDir);
     },
     filename: function (req, file, cb) {
         cb(null, Date.now() + '-' + Math.round(Math.random() * 1E4) + path.extname(file.originalname));
