@@ -2,7 +2,7 @@ import React, { useState, useEffect, useRef } from 'react';
 import { Link, useNavigate, useSearchParams } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import { dropdownVariants } from '../animations';
-import { Search, Menu, X, User, LogOut, LayoutDashboard, ChevronDown, CheckCircle, BadgeCheck, Filter, Bot } from 'lucide-react';
+import { Search, Menu, X, User, LogOut, LayoutDashboard, ChevronDown, CheckCircle, BadgeCheck, Filter, Bot, Bookmark } from 'lucide-react';
 
 import { useAuth } from '../context/AuthContext';
 import RequestExpertModal from './RequestExpertModal';
@@ -359,6 +359,15 @@ export default function Navbar() {
                                                     )}
 
                                                     <Link
+                                                        to="/my-library"
+                                                        className="px-4 py-2 text-sm text-gray-700 hover:bg-indigo-50 hover:text-indigo-600 flex items-center transition-colors"
+                                                        onClick={() => setIsProfileOpen(false)}
+                                                    >
+                                                        <Bookmark size={16} className="mr-3" />
+                                                        My Library
+                                                    </Link>
+
+                                                    <Link
                                                         to="/profile"
                                                         className="px-4 py-2 text-sm text-gray-700 hover:bg-indigo-50 hover:text-indigo-600 flex items-center transition-colors"
                                                         onClick={() => setIsProfileOpen(false)}
@@ -516,6 +525,10 @@ export default function Navbar() {
                                             </button>
                                         )}
 
+                                        <Link to="/my-library" className="text-gray-600 font-medium py-2 flex items-center hover:text-indigo-600">
+                                            <Bookmark size={18} className="mr-2" />
+                                            My Library
+                                        </Link>
                                         <Link to="/profile" className="text-gray-600 font-medium py-2 flex items-center hover:text-indigo-600">
                                             <User size={18} className="mr-2" />
                                             Profile

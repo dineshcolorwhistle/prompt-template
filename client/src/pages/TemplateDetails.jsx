@@ -5,7 +5,7 @@ import {
     ArrowLeft, Copy, Check, Lock, Edit3, Save, X, ChevronDown, ChevronUp,
     MessageSquare, Send, Reply, Shield, Award, Clock, User, Image as ImageIcon,
     ZoomIn, ChevronLeft, ChevronRight, Eye, Variable, FileText, Sparkles, Layers,
-    ThumbsUp, BarChart3, TrendingUp
+    ThumbsUp, BarChart3, TrendingUp, Bookmark
 } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 import toast from 'react-hot-toast';
@@ -381,9 +381,95 @@ function VariablesSection({ variables, userValues, setUserValues, isLoggedIn }) 
     );
 }
 
+// ─── Save/Bookmark Button ───────────────────────────────────────────────────────
+
+function SaveButton({ templateId, isLoggedIn, userInfo }) {
+    const [isSaved, setIsSaved] = useState(false);
+    const [toggling, setToggling] = useState(false);
+    const [loaded, setLoaded] = useState(false);
+
+    const fetchSaveStatus = useCallback(async () => {
+        try {
+            const headers = {};
+            if (userInfo?.token) headers.Authorization = `Bearer ${userInfo.token}`;
+            const res = await fetch(`${API_URL}/api/user-library/save/${templateId}`, { headers });
+            if (res.ok) {
+                const data = await res.json();
+                setIsSaved(data.isSaved);
+            }
+        } catch (err) {
+            console.error('Error fetching save status:', err);
+        } finally {
+            setLoaded(true);
+        }
+    }, [templateId, userInfo]);
+
+    useEffect(() => { fetchSaveStatus(); }, [fetchSaveStatus]);
+
+    const handleToggle = async () => {
+        if (!isLoggedIn) {
+            toast.error('Please login to save templates', { icon: '🔒' });
+            return;
+        }
+        if (toggling) return;
+
+        setToggling(true);
+        const previousState = isSaved;
+        setIsSaved(!isSaved); // optimistic update
+
+        try {
+            const res = await fetch(`${API_URL}/api/user-library/save/${templateId}`, {
+                method: 'POST',
+                headers: { Authorization: `Bearer ${userInfo.token}` },
+            });
+            if (res.ok) {
+                const data = await res.json();
+                setIsSaved(data.isSaved);
+                toast.success(data.isSaved ? 'Template saved!' : 'Template removed from saved', {
+                    icon: data.isSaved ? '🔖' : '📌',
+                });
+            } else {
+                setIsSaved(previousState);
+                toast.error('Failed to update save');
+            }
+        } catch (err) {
+            setIsSaved(previousState);
+            toast.error('Error saving template');
+        } finally {
+            setToggling(false);
+        }
+    };
+
+    if (!loaded) return null;
+
+    return (
+        <motion.button
+            onClick={handleToggle}
+            disabled={toggling}
+            className={`inline-flex items-center gap-2 px-5 py-2.5 rounded-xl font-semibold text-sm transition-all duration-200 border-2 ${isSaved
+                ? 'bg-amber-50 text-amber-700 border-amber-200 shadow-sm shadow-amber-100'
+                : isLoggedIn
+                    ? 'bg-white text-gray-600 border-gray-200 hover:border-amber-200 hover:text-amber-600 hover:bg-amber-50/50'
+                    : 'bg-gray-50 text-gray-400 border-gray-150 cursor-default'
+                }`}
+            whileHover={isLoggedIn ? { scale: 1.03, y: -1 } : {}}
+            whileTap={isLoggedIn ? { scale: 0.97 } : {}}
+            id="save-template-btn"
+        >
+            <motion.div
+                animate={isSaved ? { scale: [1, 1.3, 1] } : {}}
+                transition={{ duration: 0.3 }}
+            >
+                <Bookmark className={`w-5 h-5 transition-colors ${isSaved ? 'fill-amber-500 text-amber-500' : ''}`} />
+            </motion.div>
+            <span>{isSaved ? 'Saved' : 'Save'}</span>
+        </motion.button>
+    );
+}
+
 // ─── Prompt Copy Section with Variable Replacement ──────────────────────────────
 
-function PromptSection({ template, userValues, isLoggedIn }) {
+function PromptSection({ template, userValues, isLoggedIn, userInfo, templateId }) {
     const [copied, setCopied] = useState(false);
     const promptRef = useRef(null);
 
@@ -474,6 +560,14 @@ function PromptSection({ template, userValues, isLoggedIn }) {
             setCopied(true);
             toast.success('Prompt copied to clipboard!', { icon: '📋' });
             setTimeout(() => setCopied(false), 2500);
+
+            // Track copy event
+            if (userInfo?.token && templateId) {
+                fetch(`${API_URL}/api/user-library/copy/${templateId}`, {
+                    method: 'POST',
+                    headers: { Authorization: `Bearer ${userInfo.token}` },
+                }).catch(err => console.error('Failed to track copy:', err));
+            }
         } catch (err) {
             toast.error('Failed to copy to clipboard');
         }
@@ -1409,8 +1503,11 @@ export default function TemplateDetails() {
                                         </p>
                                     </div>
                                 </div>
-                                {/* Upvote in header */}
-                                <UpvoteButton templateId={id} isLoggedIn={isLoggedIn} userInfo={userInfo} />
+                                {/* Upvote + Save in header */}
+                                <div className="flex items-center gap-3 flex-wrap">
+                                    <SaveButton templateId={id} isLoggedIn={isLoggedIn} userInfo={userInfo} />
+                                    <UpvoteButton templateId={id} isLoggedIn={isLoggedIn} userInfo={userInfo} />
+                                </div>
                             </div>
                         </motion.div>
                     )}
@@ -1433,6 +1530,8 @@ export default function TemplateDetails() {
                                 template={template}
                                 userValues={userValues}
                                 isLoggedIn={isLoggedIn}
+                                userInfo={userInfo}
+                                templateId={id}
                             />
 
                             {/* Variables Section */}

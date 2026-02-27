@@ -65,6 +65,9 @@ app.use('/api/comments', commentRoutes);
 const ratingRoutes = require('./routes/ratingRoutes');
 app.use('/api/ratings', ratingRoutes);
 
+const userLibraryRoutes = require('./routes/userLibraryRoutes');
+app.use('/api/user-library', userLibraryRoutes);
+
 // Serve uploads from server/uploads (absolute path so it works when cwd is project root, e.g. PM2 on VPS)
 const uploadsDir = path.join(__dirname, 'uploads');
 app.use('/uploads', express.static(uploadsDir));
