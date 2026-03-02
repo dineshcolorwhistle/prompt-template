@@ -5,7 +5,7 @@ import {
     ArrowLeft, Copy, Check, Lock, Edit3, Save, X, ChevronDown, ChevronUp,
     MessageSquare, Send, Reply, Shield, Award, Clock, User, Image as ImageIcon,
     ZoomIn, ChevronLeft, ChevronRight, Eye, Variable, FileText, Sparkles, Layers,
-    ThumbsUp, BarChart3, TrendingUp, Bookmark
+    ThumbsUp, BarChart3, TrendingUp, Bookmark, Palette, Layout, Lightbulb, Info, Tag
 } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 import toast from 'react-hot-toast';
@@ -1357,6 +1357,291 @@ function UpvoteButton({ templateId, isLoggedIn, userInfo }) {
     );
 }
 
+// ─── Collapsible Text Component ─────────────────────────────────────────────────
+
+function CollapsibleText({ text, clampLines = 3 }) {
+    const [expanded, setExpanded] = useState(false);
+    const [isClamped, setIsClamped] = useState(false);
+    const textRef = useRef(null);
+
+    useEffect(() => {
+        const el = textRef.current;
+        if (el) {
+            // Check if content overflows the clamped height
+            setIsClamped(el.scrollHeight > el.clientHeight + 1);
+        }
+    }, [text]);
+
+    return (
+        <div>
+            <div
+                ref={!expanded ? textRef : undefined}
+                className="text-sm text-gray-700 leading-relaxed transition-all duration-300 overflow-hidden"
+                style={!expanded ? {
+                    display: '-webkit-box',
+                    WebkitLineClamp: clampLines,
+                    WebkitBoxOrient: 'vertical',
+                    overflow: 'hidden',
+                } : {}}
+            >
+                {text}
+            </div>
+            {(isClamped || expanded) && (
+                <button
+                    onClick={() => setExpanded(prev => !prev)}
+                    className="mt-2 inline-flex items-center gap-1 text-xs font-semibold text-indigo-600 hover:text-indigo-700 transition-colors group"
+                >
+                    {expanded ? (
+                        <>
+                            <ChevronUp className="w-3.5 h-3.5 transition-transform group-hover:-translate-y-0.5" />
+                            Show Less
+                        </>
+                    ) : (
+                        <>
+                            <ChevronDown className="w-3.5 h-3.5 transition-transform group-hover:translate-y-0.5" />
+                            Show More
+                        </>
+                    )}
+                </button>
+            )}
+        </div>
+    );
+}
+
+
+// ─── Template Info Card (Tabbed Redesign) ──────────────────────────────────────
+
+
+function TemplateInfoCard({ template, isLoggedIn }) {
+    const [activeTab, setActiveTab] = useState('details');
+
+    const tabs = [
+        { key: 'details', label: 'Details', icon: Info },
+        { key: 'usecase', label: 'Use Case', icon: Layers },
+        { key: 'more', label: 'More', icon: Lightbulb },
+    ];
+
+    return (
+        <motion.div
+            className="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden sticky top-6"
+            {...staggerItem}
+        >
+            {/* Card Header */}
+            <div className="px-5 pt-5 pb-0">
+                <div className="flex items-center gap-3 mb-4">
+                    <div className="p-2 bg-gradient-to-br from-indigo-100 to-violet-100 rounded-xl">
+                        <Sparkles className="w-5 h-5 text-indigo-600" />
+                    </div>
+                    <h3 className="text-lg font-bold text-gray-900">Template Info</h3>
+                </div>
+
+                {/* Tabs */}
+                <div className="flex gap-1 p-1 bg-gray-100/80 rounded-xl">
+                    {tabs.map(tab => {
+                        const Icon = tab.icon;
+                        const isActive = activeTab === tab.key;
+                        return (
+                            <button
+                                key={tab.key}
+                                onClick={() => setActiveTab(tab.key)}
+                                className={`flex-1 flex items-center justify-center gap-1.5 px-3 py-2 text-xs font-semibold rounded-lg transition-all duration-200 ${isActive
+                                    ? 'bg-white text-indigo-700 shadow-sm'
+                                    : 'text-gray-500 hover:text-gray-700 hover:bg-white/50'
+                                    }`}
+                                id={`template-info-tab-${tab.key}`}
+                            >
+                                <Icon className="w-3.5 h-3.5" />
+                                {tab.label}
+                            </button>
+                        );
+                    })}
+                </div>
+            </div>
+
+            {/* Tab Content */}
+            <div className="p-5 min-h-[180px]">
+                <AnimatePresence mode="wait">
+                    {activeTab === 'details' && (
+                        <motion.div
+                            key="details"
+                            initial={{ opacity: 0, y: 8 }}
+                            animate={{ opacity: 1, y: 0 }}
+                            exit={{ opacity: 0, y: -8 }}
+                            transition={{ duration: 0.2 }}
+                            className="space-y-4"
+                        >
+                            {/* Output Format – card with CollapsibleText */}
+                            {template.outputFormat && (
+                                <div className="p-4 rounded-xl bg-gradient-to-br from-indigo-50/80 to-blue-50/40 border border-indigo-100">
+                                    <div className="flex items-center gap-2 mb-2.5">
+                                        <Layout className="w-4 h-4 text-indigo-600" />
+                                        <span className="text-sm font-bold text-indigo-900">Output Format</span>
+                                    </div>
+                                    <CollapsibleText text={template.outputFormat} clampLines={3} />
+                                </div>
+                            )}
+
+                            {/* Tone – card with CollapsibleText */}
+                            {template.tone && (
+                                <div className="p-4 rounded-xl bg-gradient-to-br from-amber-50/80 to-yellow-50/40 border border-amber-100">
+                                    <div className="flex items-center gap-2 mb-2.5">
+                                        <Palette className="w-4 h-4 text-amber-600" />
+                                        <span className="text-sm font-bold text-amber-900">Tone</span>
+                                    </div>
+                                    <CollapsibleText text={template.tone} clampLines={3} />
+                                </div>
+                            )}
+
+                            {/* Compact info rows for short values */}
+                            <div className="space-y-2.5">
+                                {template.variables?.length > 0 && (
+                                    <div className="flex items-center gap-3 p-3 rounded-xl bg-gray-50/70 border border-gray-100">
+                                        <div className="flex-shrink-0 p-1.5 rounded-lg bg-emerald-50">
+                                            <Variable className="w-3.5 h-3.5 text-emerald-500" />
+                                        </div>
+                                        <span className="text-sm text-gray-500 flex-1">Variables</span>
+                                        <span className="text-sm font-semibold px-2.5 py-1 rounded-lg bg-emerald-50 text-emerald-700">
+                                            {template.variables.length} editable
+                                        </span>
+                                    </div>
+                                )}
+                                <div className="flex items-center gap-3 p-3 rounded-xl bg-gray-50/70 border border-gray-100">
+                                    <div className={`flex-shrink-0 p-1.5 rounded-lg ${template.status === 'Approved' ? 'bg-emerald-50' : template.status === 'Pending' ? 'bg-amber-50' : 'bg-gray-100'
+                                        }`}>
+                                        <Tag className={`w-3.5 h-3.5 ${template.status === 'Approved' ? 'text-emerald-500' : template.status === 'Pending' ? 'text-amber-500' : 'text-gray-500'
+                                            }`} />
+                                    </div>
+                                    <span className="text-sm text-gray-500 flex-1">Status</span>
+                                    <span className={`text-sm font-semibold px-2.5 py-1 rounded-lg ${template.status === 'Approved' ? 'bg-emerald-50 text-emerald-700'
+                                            : template.status === 'Pending' ? 'bg-amber-50 text-amber-700'
+                                                : 'bg-gray-100 text-gray-700'
+                                        }`}>
+                                        {template.status}
+                                    </span>
+                                </div>
+                            </div>
+                        </motion.div>
+                    )}
+
+                    {activeTab === 'usecase' && (
+                        <motion.div
+                            key="usecase"
+                            initial={{ opacity: 0, y: 8 }}
+                            animate={{ opacity: 1, y: 0 }}
+                            exit={{ opacity: 0, y: -8 }}
+                            transition={{ duration: 0.2 }}
+                            className="space-y-4"
+                        >
+                            {template.useCase ? (
+                                <div className="p-4 rounded-xl bg-gradient-to-br from-blue-50/80 to-indigo-50/40 border border-blue-100">
+                                    <div className="flex items-center gap-2 mb-2.5">
+                                        <Layers className="w-4 h-4 text-blue-600" />
+                                        <span className="text-sm font-bold text-blue-900">Use Case</span>
+                                    </div>
+                                    <CollapsibleText text={template.useCase} clampLines={3} />
+                                </div>
+                            ) : (
+                                <div className="flex flex-col items-center justify-center py-8 text-center">
+                                    <div className="p-3 bg-gray-100 rounded-full mb-3">
+                                        <Layers className="w-5 h-5 text-gray-400" />
+                                    </div>
+                                    <p className="text-sm text-gray-400">No use case documented</p>
+                                </div>
+                            )}
+
+                            {template.structuralInstruction && (
+                                <div className="p-4 rounded-xl bg-gradient-to-br from-violet-50/80 to-purple-50/40 border border-violet-100">
+                                    <div className="flex items-center gap-2 mb-2.5">
+                                        <FileText className="w-4 h-4 text-violet-600" />
+                                        <span className="text-sm font-bold text-violet-900">Structural Instruction</span>
+                                    </div>
+                                    <CollapsibleText text={template.structuralInstruction} clampLines={3} />
+                                </div>
+                            )}
+                        </motion.div>
+                    )}
+
+                    {activeTab === 'more' && (
+                        <motion.div
+                            key="more"
+                            initial={{ opacity: 0, y: 8 }}
+                            animate={{ opacity: 1, y: 0 }}
+                            exit={{ opacity: 0, y: -8 }}
+                            transition={{ duration: 0.2 }}
+                            className="space-y-4"
+                        >
+                            {template.repurposingIdeas ? (
+                                <div className="p-4 rounded-xl bg-gradient-to-br from-amber-50/80 to-orange-50/40 border border-amber-100">
+                                    <div className="flex items-center gap-2 mb-2.5">
+                                        <Lightbulb className="w-4 h-4 text-amber-600" />
+                                        <span className="text-sm font-bold text-amber-900">Repurposing Ideas</span>
+                                    </div>
+                                    <CollapsibleText text={template.repurposingIdeas} clampLines={3} />
+                                </div>
+                            ) : (
+                                <div className="flex flex-col items-center justify-center py-8 text-center">
+                                    <div className="p-3 bg-gray-100 rounded-full mb-3">
+                                        <Lightbulb className="w-5 h-5 text-gray-400" />
+                                    </div>
+                                    <p className="text-sm text-gray-400">No additional info available</p>
+                                </div>
+                            )}
+
+                            {/* Created / Updated meta */}
+                            <div className="grid grid-cols-2 gap-3">
+                                <div className="p-3 rounded-xl bg-gray-50 border border-gray-100 text-center">
+                                    <p className="text-[10px] uppercase tracking-wider text-gray-400 font-semibold mb-1">Created</p>
+                                    <p className="text-xs font-bold text-gray-700">
+                                        {new Date(template.createdAt).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}
+                                    </p>
+                                </div>
+                                <div className="p-3 rounded-xl bg-gray-50 border border-gray-100 text-center">
+                                    <p className="text-[10px] uppercase tracking-wider text-gray-400 font-semibold mb-1">Updated</p>
+                                    <p className="text-xs font-bold text-gray-700">
+                                        {new Date(template.updatedAt).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}
+                                    </p>
+                                </div>
+                            </div>
+                        </motion.div>
+                    )}
+                </AnimatePresence>
+            </div>
+
+            {/* Copy Prompt CTA */}
+            <div className="px-5 pb-5">
+                <motion.button
+                    whileHover={{ scale: 1.02, y: -1 }}
+                    whileTap={{ scale: 0.98 }}
+                    onClick={() => {
+                        if (!isLoggedIn) {
+                            toast.error('Please login to copy prompts', { icon: '🔒' });
+                            return;
+                        }
+                        document.getElementById('copy-prompt-btn')?.click();
+                    }}
+                    className={`w-full py-3.5 px-4 font-bold rounded-xl transition-all duration-200 ${isLoggedIn
+                        ? 'bg-gradient-to-r from-indigo-600 to-violet-600 hover:from-indigo-700 hover:to-violet-700 text-white shadow-lg shadow-indigo-200'
+                        : 'bg-gray-200 text-gray-400 cursor-not-allowed'
+                        }`}
+                    id="sidebar-copy-btn"
+                >
+                    {isLoggedIn ? (
+                        <span className="flex items-center justify-center gap-2">
+                            <Copy className="w-5 h-5" />
+                            Copy Prompt
+                        </span>
+                    ) : (
+                        <span className="flex items-center justify-center gap-2">
+                            <Lock className="w-5 h-5" />
+                            Login to Copy
+                        </span>
+                    )}
+                </motion.button>
+            </div>
+        </motion.div>
+    );
+}
+
 // ─── Main Template Details Page ─────────────────────────────────────────────────
 
 export default function TemplateDetails() {
@@ -1474,11 +1759,6 @@ export default function TemplateDetails() {
                                         {template.category.name}
                                     </span>
                                 )}
-                                {template.tone && (
-                                    <span className="px-3 py-1 text-xs font-medium bg-amber-400/20 text-amber-100 rounded-full backdrop-blur-sm border border-amber-400/20">
-                                        🎭 {template.tone}
-                                    </span>
-                                )}
                             </div>
 
                             {/* Title */}
@@ -1525,7 +1805,7 @@ export default function TemplateDetails() {
                     >
                         {/* ── Left Column (2/3) ── */}
                         <div className="lg:col-span-2 space-y-6">
-                            {/* Prompt Section */}
+                            {/* Prompt Section – Full Width */}
                             <PromptSection
                                 template={template}
                                 userValues={userValues}
@@ -1542,9 +1822,6 @@ export default function TemplateDetails() {
                                 isLoggedIn={isLoggedIn}
                             />
 
-                            {/* Sample Output Images */}
-                            <SampleOutputSection images={template.sampleOutput} />
-
                             {/* Comments Section */}
                             <CommentsSection
                                 templateId={id}
@@ -1555,6 +1832,9 @@ export default function TemplateDetails() {
 
                         {/* ── Right Sidebar (1/3) ── */}
                         <div className="space-y-6">
+                            {/* Sample Output Images */}
+                            <SampleOutputSection images={template.sampleOutput} />
+
                             {/* Effectiveness Rating */}
                             <EffectivenessRatingSection
                                 templateId={id}
@@ -1562,129 +1842,8 @@ export default function TemplateDetails() {
                                 userInfo={userInfo}
                             />
 
-                            {/* Quick Info Card */}
-                            <motion.div
-                                className="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden sticky top-6"
-                                {...staggerItem}
-                            >
-                                <div className="p-6">
-                                    <div className="flex items-center gap-3 mb-5">
-                                        <div className="p-2 bg-gradient-to-br from-indigo-100 to-violet-100 rounded-xl">
-                                            <Sparkles className="w-5 h-5 text-indigo-600" />
-                                        </div>
-                                        <h3 className="text-lg font-bold text-gray-900">Template Info</h3>
-                                    </div>
-
-                                    <div className="space-y-4">
-                                        {/* Output Format */}
-                                        {template.outputFormat && (
-                                            <div className="flex items-center justify-between">
-                                                <span className="text-sm text-gray-500">Output Format</span>
-                                                <span className="text-sm font-semibold text-gray-900 bg-gray-100 px-2.5 py-1 rounded-lg">
-                                                    {template.outputFormat}
-                                                </span>
-                                            </div>
-                                        )}
-
-                                        {/* Tone */}
-                                        {template.tone && (
-                                            <div className="flex items-center justify-between">
-                                                <span className="text-sm text-gray-500">Tone</span>
-                                                <span className="text-sm font-semibold text-gray-900 bg-amber-50 px-2.5 py-1 rounded-lg text-amber-700">
-                                                    {template.tone}
-                                                </span>
-                                            </div>
-                                        )}
-
-                                        {/* Variables Count */}
-                                        {template.variables?.length > 0 && (
-                                            <div className="flex items-center justify-between">
-                                                <span className="text-sm text-gray-500">Variables</span>
-                                                <span className="text-sm font-semibold text-emerald-700 bg-emerald-50 px-2.5 py-1 rounded-lg">
-                                                    {template.variables.length} editable
-                                                </span>
-                                            </div>
-                                        )}
-
-                                        {/* Status */}
-                                        <div className="flex items-center justify-between">
-                                            <span className="text-sm text-gray-500">Status</span>
-                                            <span className={`text-sm font-semibold px-2.5 py-1 rounded-lg ${template.status === 'Approved'
-                                                ? 'text-emerald-700 bg-emerald-50'
-                                                : template.status === 'Pending'
-                                                    ? 'text-amber-700 bg-amber-50'
-                                                    : 'text-gray-700 bg-gray-100'
-                                                }`}>
-                                                {template.status}
-                                            </span>
-                                        </div>
-                                    </div>
-
-                                    <div className="mt-6 pt-5 border-t border-gray-100">
-                                        <motion.button
-                                            whileHover={{ scale: 1.02, y: -1 }}
-                                            whileTap={{ scale: 0.98 }}
-                                            onClick={() => {
-                                                if (!isLoggedIn) {
-                                                    toast.error('Please login to copy prompts', { icon: '🔒' });
-                                                    return;
-                                                }
-                                                document.getElementById('copy-prompt-btn')?.click();
-                                            }}
-                                            className={`w-full py-3.5 px-4 font-bold rounded-xl transition-all duration-200 ${isLoggedIn
-                                                ? 'bg-gradient-to-r from-indigo-600 to-violet-600 hover:from-indigo-700 hover:to-violet-700 text-white shadow-lg shadow-indigo-200'
-                                                : 'bg-gray-200 text-gray-400 cursor-not-allowed'
-                                                }`}
-                                            id="sidebar-copy-btn"
-                                        >
-                                            {isLoggedIn ? (
-                                                <span className="flex items-center justify-center gap-2">
-                                                    <Copy className="w-5 h-5" />
-                                                    Copy Prompt
-                                                </span>
-                                            ) : (
-                                                <span className="flex items-center justify-center gap-2">
-                                                    <Lock className="w-5 h-5" />
-                                                    Login to Copy
-                                                </span>
-                                            )}
-                                        </motion.button>
-                                    </div>
-                                </div>
-
-                                {/* Use Case */}
-                                {template.useCase && (
-                                    <div className="border-t border-gray-100 p-6">
-                                        <div className="flex items-center gap-2 mb-3">
-                                            <Layers className="w-4 h-4 text-gray-400" />
-                                            <h4 className="text-sm font-bold text-gray-900">Use Case</h4>
-                                        </div>
-                                        <p className="text-sm text-gray-600 leading-relaxed">{template.useCase}</p>
-                                    </div>
-                                )}
-
-                                {/* Structural Instruction */}
-                                {template.structuralInstruction && (
-                                    <div className="border-t border-gray-100 p-6">
-                                        <div className="flex items-center gap-2 mb-3">
-                                            <FileText className="w-4 h-4 text-gray-400" />
-                                            <h4 className="text-sm font-bold text-gray-900">Structural Instruction</h4>
-                                        </div>
-                                        <p className="text-sm text-gray-600 leading-relaxed">{template.structuralInstruction}</p>
-                                    </div>
-                                )}
-
-                                {/* Repurposing Ideas */}
-                                {template.repurposingIdeas && (
-                                    <div className="border-t border-gray-100 p-6">
-                                        <div className="flex items-center gap-2 mb-3">
-                                            <Sparkles className="w-4 h-4 text-gray-400" />
-                                            <h4 className="text-sm font-bold text-gray-900">Repurposing Ideas</h4>
-                                        </div>
-                                        <p className="text-sm text-gray-600 leading-relaxed">{template.repurposingIdeas}</p>
-                                    </div>
-                                )}
-                            </motion.div>
+                            {/* Quick Info Card – Tabbed Redesign */}
+                            <TemplateInfoCard template={template} isLoggedIn={isLoggedIn} />
                         </div>
                     </motion.div>
                 </main>
