@@ -12,6 +12,7 @@ export default function Home() {
     const [loading, setLoading] = useState(true);
     const [totalPages, setTotalPages] = useState(1);
     const [totalItems, setTotalItems] = useState(0);
+    const [selectedLLMData, setSelectedLLMData] = useState(null);
 
     // Get params from URL
     const page = parseInt(searchParams.get('page') || '1', 10);
@@ -59,6 +60,26 @@ export default function Home() {
         fetchTemplates();
     }, [page, llm, industry, category, search]);
 
+    useEffect(() => {
+        const fetchLLMInfo = async () => {
+            if (!llm) {
+                setSelectedLLMData(null);
+                return;
+            }
+            try {
+                const response = await fetch(`${import.meta.env.VITE_API_URL}/api/llms/${llm}`);
+                if (response.ok) {
+                    const data = await response.json();
+                    setSelectedLLMData(data);
+                }
+            } catch (error) {
+                console.error('Failed to fetch LLM info:', error);
+            }
+        };
+
+        fetchLLMInfo();
+    }, [llm]);
+
     const handlePageChange = (newPage) => {
         setSearchParams(prev => {
             prev.set('page', newPage.toString());
@@ -72,13 +93,26 @@ export default function Home() {
             {/* Header / Title Section */}
             <div className="bg-white border-b border-gray-100 py-4 mb-4">
                 <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-                    <h1 className="text-2xl font-bold text-gray-900">
-                        {search ? `Results for "${search}"` :
-                            category ? 'Category Templates' :
-                                industry ? 'Industry Templates' :
-                                    llm ? 'LLM Templates' :
-                                        'Latest Templates'}
-                    </h1>
+                    <div className="flex items-center gap-3">
+                        {llm && selectedLLMData && selectedLLMData.icon && !search && !category && !industry && (
+                            <div key={selectedLLMData._id} className="flex-shrink-0 p-1 bg-gray-50 border border-gray-100 rounded-lg">
+                                <img
+                                    src={selectedLLMData.icon.startsWith('http') ? selectedLLMData.icon : `${import.meta.env.VITE_API_URL}/${selectedLLMData.icon.replace(/\\/g, '/')}`}
+                                    alt={selectedLLMData.name}
+                                    className="w-8 h-8 object-contain rounded"
+                                    onError={(e) => { e.target.style.display = 'none'; e.target.parentElement.style.display = 'none'; }}
+                                />
+                            </div>
+                        )}
+                        <h1 className="text-2xl font-bold text-gray-900">
+                            {search ? `Results for "${search}"` :
+                                category ? 'Category Templates' :
+                                    industry ? 'Industry Templates' :
+                                        llm && selectedLLMData ? `${selectedLLMData.name} Templates` :
+                                            llm ? 'LLM Templates' :
+                                                'Latest Templates'}
+                        </h1>
+                    </div>
                     <p className="text-gray-500 mt-2">
                         {totalItems} templates available
                     </p>

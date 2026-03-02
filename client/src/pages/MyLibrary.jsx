@@ -365,7 +365,7 @@ export default function MyLibrary() {
     return (
         <div className="min-h-screen bg-gradient-to-br from-gray-50 via-slate-50 to-gray-100 pb-20">
             {/* ── Hero Header ── */}
-            <div className="relative bg-gradient-to-r from-indigo-600 via-violet-600 to-purple-600 overflow-hidden">
+            <div className="relative bg-gradient-to-r from-indigo-600 via-violet-600 to-purple-600">
                 <div className="absolute inset-0 overflow-hidden">
                     <div className="absolute -top-24 -right-24 w-96 h-96 rounded-full bg-white/5 blur-3xl" />
                     <div className="absolute -bottom-32 -left-32 w-80 h-80 rounded-full bg-indigo-400/10 blur-3xl" />
@@ -426,7 +426,7 @@ export default function MyLibrary() {
             </div>
 
             {/* ── Main Content ── */}
-            <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 -mt-6">
+            <main className="relative z-10 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 -mt-6">
                 {/* Tab Navigation */}
                 <motion.div
                     className="bg-white rounded-2xl shadow-sm border border-gray-100 p-1.5 flex gap-1 mb-8"
