@@ -8,6 +8,7 @@ const DashboardOverview = () => {
     const { userInfo } = useAuth();
 
     const [stats, setStats] = useState([]);
+    const [recentActions, setRecentActions] = useState([]);
     const [loading, setLoading] = useState(true);
 
     useEffect(() => {
@@ -30,12 +31,23 @@ const DashboardOverview = () => {
                         { label: 'Drafts', value: data.draft || 0, change: 'In progress', icon: FileText, color: 'text-gray-600', bg: 'bg-gray-100' },
                     ]);
                 } else {
-                    setStats([
-                        { label: 'Total Sales', value: '$12,450', change: '+12%', icon: TrendingUp, color: 'text-green-600', bg: 'bg-green-100' },
-                        { label: 'Active Users', value: '1,234', change: '+5%', icon: Users, color: 'text-indigo-600', bg: 'bg-indigo-100' },
-                        { label: 'Pending Requests', value: '8', change: '-2', icon: FileText, color: 'text-orange-600', bg: 'bg-orange-100' },
-                        { label: 'Server Status', value: '99.9%', change: 'Stable', icon: Activity, color: 'text-blue-600', bg: 'bg-blue-100' },
-                    ]);
+                    const response = await fetch(`${import.meta.env.VITE_API_URL}/api/users/admin/dashboard`, {
+                        headers: { Authorization: `Bearer ${userInfo.token}` },
+                        signal: controller.signal
+                    });
+                    const data = await response.json();
+
+                    if (data.stats) {
+                        setStats([
+                            { label: 'Active User', value: data.stats.activeUsers || 0, change: 'Total', icon: Users, color: 'text-indigo-600', bg: 'bg-indigo-100' },
+                            { label: 'Template Count', value: data.stats.templates || 0, change: 'Total', icon: FileText, color: 'text-green-600', bg: 'bg-green-100' },
+                            { label: 'Expert Request Pending Count', value: data.stats.pendingExpertRequests || 0, change: 'Waiting', icon: Activity, color: 'text-orange-600', bg: 'bg-orange-100' },
+                            { label: 'Total Prompt Copied Count', value: data.stats.promptCopied || 0, change: 'Total', icon: TrendingUp, color: 'text-blue-600', bg: 'bg-blue-100' },
+                        ]);
+                    }
+                    if (data.recentActions) {
+                        setRecentActions(data.recentActions);
+                    }
                 }
             } catch (error) {
                 if (error.name !== 'AbortError') {
@@ -114,15 +126,24 @@ const DashboardOverview = () => {
                 >
                     <h3 className="text-lg font-semibold text-gray-900 mb-4">Recent Actions</h3>
                     <div className="space-y-4">
-                        {[1, 2, 3, 4].map((i) => (
-                            <div key={i} className="flex items-center gap-3 p-3 hover:bg-gray-50 rounded-lg transition-colors cursor-pointer">
-                                <div className="w-2 h-2 rounded-full bg-indigo-500"></div>
-                                <div>
-                                    <p className="text-sm font-medium text-gray-900">New expert request submitted</p>
-                                    <p className="text-xs text-gray-500">2 hours ago</p>
+                        {recentActions.map((action, i) => (
+                            <div key={i} className="flex flex-col gap-1 p-3 hover:bg-gray-50 rounded-lg transition-colors cursor-pointer">
+                                <div className="flex items-center gap-3">
+                                    <div className="w-2 h-2 rounded-full bg-indigo-500"></div>
+                                    <p className="text-sm font-medium text-gray-900">Template "{action.title}" {action.status !== 'Draft' ? 'updated' : 'drafted'}</p>
+                                </div>
+                                <div className="pl-5">
+                                    <p className="text-xs text-gray-500">By: {action.user?.name || 'Unknown User'} • Status: {action.status}</p>
+                                    <p className="text-xs text-gray-400">{new Date(action.updatedAt).toLocaleString()}</p>
                                 </div>
                             </div>
                         ))}
+                        {recentActions.length === 0 && userInfo?.role === 'Admin' && (
+                            <p className="text-sm text-gray-500 text-center py-4">No recent template updates found</p>
+                        )}
+                        {userInfo?.role === 'Expert' && (
+                            <p className="text-sm text-gray-500 text-center py-4">Recent actions are visible to Admins.</p>
+                        )}
                     </div>
                 </motion.div>
             </div>

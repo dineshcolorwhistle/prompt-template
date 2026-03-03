@@ -13,6 +13,16 @@ const MyTemplates = () => {
     const [loading, setLoading] = useState(true);
     const [searchTerm, setSearchTerm] = useState('');
 
+    // New filters
+    const [llmFilter, setLlmFilter] = useState('all');
+    const [industryFilter, setIndustryFilter] = useState('all');
+    const [categoryFilter, setCategoryFilter] = useState('all');
+
+    // Dropdown options
+    const [llms, setLlms] = useState([]);
+    const [industries, setIndustries] = useState([]);
+    const [categories, setCategories] = useState([]);
+
     // UI State
     const [isModalOpen, setIsModalOpen] = useState(false);
     const [editingTemplate, setEditingTemplate] = useState(null);
@@ -45,9 +55,53 @@ const MyTemplates = () => {
             }
         };
         loadTemplates();
+        fetchLlms();
         return () => controller.abort();
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [userInfo?.token]);
+
+    const fetchLlms = async () => {
+        try {
+            const res = await fetch(`${import.meta.env.VITE_API_URL}/api/llms?status=active&limit=100`, { headers: { Authorization: `Bearer ${userInfo.token}` } });
+            const data = await res.json();
+            if (res.ok) setLlms(data.result || data);
+        } catch (e) { }
+    };
+
+    // Dependent fetching
+    useEffect(() => {
+        setIndustryFilter('all');
+        setCategoryFilter('all');
+        setIndustries([]);
+        setCategories([]);
+        if (llmFilter && llmFilter !== 'all') {
+            fetchIndustries(llmFilter);
+        }
+    }, [llmFilter]);
+
+    useEffect(() => {
+        setCategoryFilter('all');
+        setCategories([]);
+        if (industryFilter && industryFilter !== 'all') {
+            fetchCategories(industryFilter);
+        }
+    }, [industryFilter]);
+
+    const fetchIndustries = async (llmId) => {
+        try {
+            const res = await fetch(`${import.meta.env.VITE_API_URL}/api/industries?status=active&limit=1000&llm=${llmId}`, { headers: { Authorization: `Bearer ${userInfo.token}` } });
+            const data = await res.json();
+            if (res.ok) setIndustries(data.result || data);
+        } catch (e) { }
+    };
+
+    const fetchCategories = async (indId) => {
+        try {
+            const res = await fetch(`${import.meta.env.VITE_API_URL}/api/categories?status=active&limit=1000&industry=${indId}`, { headers: { Authorization: `Bearer ${userInfo.token}` } });
+            const data = await res.json();
+            if (res.ok) setCategories(data.result || data);
+        } catch (e) { }
+    };
 
     const handleCreate = () => {
         setEditingTemplate(null);
@@ -100,10 +154,16 @@ const MyTemplates = () => {
         }
     };
 
-    const filteredTemplates = templates.filter(t =>
-        (t.title || '').toLowerCase().includes(searchTerm.toLowerCase()) ||
-        (t.description || '').toLowerCase().includes(searchTerm.toLowerCase())
-    );
+    const filteredTemplates = templates.filter(t => {
+        const matchesSearch = (t.title || '').toLowerCase().includes(searchTerm.toLowerCase()) ||
+            (t.description || '').toLowerCase().includes(searchTerm.toLowerCase());
+
+        const matchesLlm = llmFilter === 'all' || (t.industry?.llm?._id || t.industry?.llm) === llmFilter;
+        const matchesIndustry = industryFilter === 'all' || (t.industry?._id || t.industry) === industryFilter;
+        const matchesCategory = categoryFilter === 'all' || (t.category?._id || t.category) === categoryFilter;
+
+        return matchesSearch && matchesLlm && matchesIndustry && matchesCategory;
+    });
 
     return (
         <div className="space-y-6">
@@ -144,15 +204,53 @@ const MyTemplates = () => {
 
             {(!loading && templates.length > 0) && (
                 <div className="bg-white p-4 rounded-xl shadow-sm border border-gray-100">
-                    <div className="relative">
-                        <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" size={20} />
-                        <input
-                            type="text"
-                            placeholder="Search your templates..."
-                            value={searchTerm}
-                            onChange={(e) => setSearchTerm(e.target.value)}
-                            className="w-full pl-9 pr-4 py-2 text-sm border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition-colors"
-                        />
+                    <div className="flex flex-col lg:flex-row gap-4">
+                        <div className="relative flex-1">
+                            <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" size={20} />
+                            <input
+                                type="text"
+                                placeholder="Search your templates..."
+                                value={searchTerm}
+                                onChange={(e) => setSearchTerm(e.target.value)}
+                                className="w-full pl-9 pr-4 py-2 text-sm border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition-colors"
+                            />
+                        </div>
+                        <div className="flex flex-wrap items-center gap-2">
+                            <select
+                                value={llmFilter}
+                                onChange={(e) => setLlmFilter(e.target.value)}
+                                className="border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition-colors"
+                            >
+                                <option value="all">All LLMs</option>
+                                {llms.map(llm => (
+                                    <option key={llm._id} value={llm._id}>{llm.name}</option>
+                                ))}
+                            </select>
+
+                            <select
+                                value={industryFilter}
+                                onChange={(e) => setIndustryFilter(e.target.value)}
+                                disabled={llmFilter === 'all'}
+                                className="border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition-colors disabled:bg-gray-100 disabled:text-gray-500"
+                            >
+                                <option value="all">All Industries</option>
+                                {industries.map(ind => (
+                                    <option key={ind._id} value={ind._id}>{ind.name}</option>
+                                ))}
+                            </select>
+
+                            <select
+                                value={categoryFilter}
+                                onChange={(e) => setCategoryFilter(e.target.value)}
+                                disabled={industryFilter === 'all'}
+                                className="border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition-colors disabled:bg-gray-100 disabled:text-gray-500"
+                            >
+                                <option value="all">All Categories</option>
+                                {categories.map(cat => (
+                                    <option key={cat._id} value={cat._id}>{cat.name}</option>
+                                ))}
+                            </select>
+                        </div>
                     </div>
                 </div>
             )}

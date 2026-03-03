@@ -159,6 +159,7 @@ const Categories = () => {
             if (debouncedSearchTerm) url += `search=${debouncedSearchTerm}&`;
             if (statusFilter !== 'all') url += `status=${statusFilter}&`;
             if (industryFilter !== 'all') url += `industry=${industryFilter}&`;
+            if (llmFilter !== 'all') url += `llm=${llmFilter}&`;
 
             const response = await fetch(url, {
                 headers: { Authorization: `Bearer ${userInfo.token}` },

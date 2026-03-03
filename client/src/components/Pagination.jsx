@@ -50,8 +50,8 @@ const Pagination = ({
     };
 
     return (
-        <div className={`flex flex-col sm:flex-row items-center justify-between gap-4 mt-6 pt-6 border-t border-gray-100 ${className}`}>
-            <div className="text-sm text-gray-500">
+        <div className={`flex flex-col sm:flex-row items-center justify-between gap-4 mt-6 pt-6 border-t border-gray-100 dark:border-gray-800 ${className}`}>
+            <div className="text-sm text-gray-500 dark:text-gray-400">
                 Showing <span className="font-medium">{Math.min((currentPage - 1) * itemsPerPage + 1, totalItems)}</span> to <span className="font-medium">{Math.min(currentPage * itemsPerPage, totalItems)}</span> of <span className="font-medium">{totalItems}</span> results
             </div>
 
@@ -59,9 +59,9 @@ const Pagination = ({
                 <button
                     onClick={() => onPageChange(currentPage - 1)}
                     disabled={currentPage === 1}
-                    className="p-2 border border-gray-200 rounded-lg hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+                    className="p-2 border border-gray-200 dark:border-gray-700 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-800 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
                 >
-                    <ChevronLeft size={18} className="text-gray-600" />
+                    <ChevronLeft size={18} className="text-gray-600 dark:text-gray-300" />
                 </button>
 
                 <div className="flex items-center gap-1">
@@ -71,10 +71,10 @@ const Pagination = ({
                             onClick={() => typeof page === 'number' ? onPageChange(page) : null}
                             disabled={page === '...'}
                             className={`min-w-[36px] h-9 px-3 rounded-lg text-sm font-medium transition-colors ${page === currentPage
-                                    ? 'bg-indigo-600 text-white shadow-sm'
-                                    : page === '...'
-                                        ? 'text-gray-400 cursor-default'
-                                        : 'text-gray-600 hover:bg-gray-50 border border-gray-200'
+                                ? 'bg-indigo-600 text-white shadow-sm'
+                                : page === '...'
+                                    ? 'text-gray-400 dark:text-gray-500 cursor-default'
+                                    : 'text-gray-600 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-800 border border-gray-200 dark:border-gray-700'
                                 }`}
                         >
                             {page}
@@ -85,9 +85,9 @@ const Pagination = ({
                 <button
                     onClick={() => onPageChange(currentPage + 1)}
                     disabled={currentPage === totalPages}
-                    className="p-2 border border-gray-200 rounded-lg hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+                    className="p-2 border border-gray-200 dark:border-gray-700 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-800 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
                 >
-                    <ChevronRight size={18} className="text-gray-600" />
+                    <ChevronRight size={18} className="text-gray-600 dark:text-gray-300" />
                 </button>
             </div>
         </div>

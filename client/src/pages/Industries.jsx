@@ -18,6 +18,7 @@ const Industries = () => {
     // Filters
     const [searchTerm, setSearchTerm] = useState('');
     const [statusFilter, setStatusFilter] = useState('all');
+    const [llmFilter, setLlmFilter] = useState('all');
     const [page, setPage] = useState(1);
     const [totalPages, setTotalPages] = useState(1);
     const [totalItems, setTotalItems] = useState(0);
@@ -46,12 +47,13 @@ const Industries = () => {
     const abortControllerRef = useRef(null);
 
     // Unified fetch effect: reset page on filter change, then fetch
-    const prevFiltersRef = useRef({ debouncedSearchTerm, statusFilter });
+    const prevFiltersRef = useRef({ debouncedSearchTerm, statusFilter, llmFilter });
     useEffect(() => {
         const filtersChanged =
             prevFiltersRef.current.debouncedSearchTerm !== debouncedSearchTerm ||
-            prevFiltersRef.current.statusFilter !== statusFilter;
-        prevFiltersRef.current = { debouncedSearchTerm, statusFilter };
+            prevFiltersRef.current.statusFilter !== statusFilter ||
+            prevFiltersRef.current.llmFilter !== llmFilter;
+        prevFiltersRef.current = { debouncedSearchTerm, statusFilter, llmFilter };
 
         if (filtersChanged && page !== 1) {
             setPage(1);
@@ -66,7 +68,7 @@ const Industries = () => {
             }
         };
         // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [page, debouncedSearchTerm, statusFilter]);
+    }, [page, debouncedSearchTerm, statusFilter, llmFilter]);
 
     // Fetch LLMs for dropdown
     useEffect(() => {
@@ -97,6 +99,7 @@ const Industries = () => {
             let url = `${import.meta.env.VITE_API_URL}/api/industries?page=${page}&limit=10&`;
             if (debouncedSearchTerm) url += `search=${debouncedSearchTerm}&`;
             if (statusFilter !== 'all') url += `status=${statusFilter}&`;
+            if (llmFilter !== 'all') url += `llm=${llmFilter}&`;
 
             const response = await fetch(url, {
                 headers: { Authorization: `Bearer ${userInfo.token}` },
@@ -311,17 +314,32 @@ const Industries = () => {
                         className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition-all"
                     />
                 </div>
-                <div className="flex items-center gap-2">
-                    <Filter className="text-gray-400" size={20} />
-                    <select
-                        value={statusFilter}
-                        onChange={(e) => setStatusFilter(e.target.value)}
-                        className="border border-gray-300 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent bg-white min-w-[150px] transition-colors"
-                    >
-                        <option value="all">All Status</option>
-                        <option value="active">Active Only</option>
-                        <option value="inactive">Inactive Only</option>
-                    </select>
+                <div className="flex flex-wrap items-center gap-2">
+                    <div className="flex items-center gap-2">
+                        <Bot className="text-gray-400" size={20} />
+                        <select
+                            value={llmFilter}
+                            onChange={(e) => setLlmFilter(e.target.value)}
+                            className="border border-gray-300 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent bg-white min-w-[150px] transition-colors"
+                        >
+                            <option value="all">All LLMs</option>
+                            {llmsList.map(llm => (
+                                <option key={llm._id} value={llm._id}>{llm.name}</option>
+                            ))}
+                        </select>
+                    </div>
+                    <div className="flex items-center gap-2">
+                        <Filter className="text-gray-400" size={20} />
+                        <select
+                            value={statusFilter}
+                            onChange={(e) => setStatusFilter(e.target.value)}
+                            className="border border-gray-300 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent bg-white min-w-[150px] transition-colors"
+                        >
+                            <option value="all">All Status</option>
+                            <option value="active">Active Only</option>
+                            <option value="inactive">Inactive Only</option>
+                        </select>
+                    </div>
                 </div>
             </div>
 

@@ -89,13 +89,13 @@ export default function Home() {
     };
 
     return (
-        <div className="pb-16 min-h-screen bg-gray-50/30">
+        <div className="pb-16 min-h-screen bg-gray-50/30 dark:bg-gray-950 transition-colors duration-200">
             {/* Header / Title Section */}
-            <div className="bg-white border-b border-gray-100 py-4 mb-4">
+            <div className="bg-white dark:bg-gray-900 border-b border-gray-100 dark:border-gray-800 py-4 mb-4 transition-colors duration-200">
                 <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
                     <div className="flex items-center gap-3">
                         {llm && selectedLLMData && selectedLLMData.icon && !search && !category && !industry && (
-                            <div key={selectedLLMData._id} className="flex-shrink-0 p-1 bg-gray-50 border border-gray-100 rounded-lg">
+                            <div key={selectedLLMData._id} className="flex-shrink-0 p-1 bg-gray-50 dark:bg-gray-800 border border-gray-100 dark:border-gray-700 rounded-lg">
                                 <img
                                     src={selectedLLMData.icon.startsWith('http') ? selectedLLMData.icon : `${import.meta.env.VITE_API_URL}/${selectedLLMData.icon.replace(/\\/g, '/')}`}
                                     alt={selectedLLMData.name}
@@ -104,7 +104,7 @@ export default function Home() {
                                 />
                             </div>
                         )}
-                        <h1 className="text-2xl font-bold text-gray-900">
+                        <h1 className="text-2xl font-bold text-gray-900 dark:text-white">
                             {search ? `Results for "${search}"` :
                                 category ? 'Category Templates' :
                                     industry ? 'Industry Templates' :
@@ -113,7 +113,7 @@ export default function Home() {
                                                 'Latest Templates'}
                         </h1>
                     </div>
-                    <p className="text-gray-500 mt-2">
+                    <p className="text-gray-500 dark:text-gray-400 mt-2">
                         {totalItems} templates available
                     </p>
                 </div>
@@ -151,12 +151,12 @@ export default function Home() {
                         </div>
                     </>
                 ) : (
-                    <div className="text-center py-24 bg-white rounded-2xl border border-gray-100 shadow-sm">
-                        <div className="inline-flex items-center justify-center w-16 h-16 rounded-full bg-gray-100 mb-4">
-                            <Search className="w-8 h-8 text-gray-400" />
+                    <div className="text-center py-24 bg-white dark:bg-gray-900 rounded-2xl border border-gray-100 dark:border-gray-800 shadow-sm transition-colors duration-200">
+                        <div className="inline-flex items-center justify-center w-16 h-16 rounded-full bg-gray-100 dark:bg-gray-800 mb-4">
+                            <Search className="w-8 h-8 text-gray-400 dark:text-gray-500" />
                         </div>
-                        <h3 className="text-lg font-bold text-gray-900 mb-2">No templates found</h3>
-                        <p className="text-gray-500 max-w-sm mx-auto">
+                        <h3 className="text-lg font-bold text-gray-900 dark:text-white mb-2">No templates found</h3>
+                        <p className="text-gray-500 dark:text-gray-400 max-w-sm mx-auto">
                             We couldn't find any templates matching your criteria. Try adjusting your filters or search term.
                         </p>
                         {(llm || industry || category || search) && (

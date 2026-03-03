@@ -2,16 +2,19 @@ import React, { useState, useEffect, useRef } from 'react';
 import { Link, useNavigate, useSearchParams } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import { dropdownVariants } from '../animations';
-import { Search, Menu, X, User, LogOut, LayoutDashboard, ChevronDown, CheckCircle, BadgeCheck, Filter, Bot, Bookmark } from 'lucide-react';
+import { Search, Menu, X, User, LogOut, LayoutDashboard, ChevronDown, CheckCircle, BadgeCheck, Filter, Bot, Bookmark, Sun, Moon } from 'lucide-react';
 
 import { useAuth } from '../context/AuthContext';
 import RequestExpertModal from './RequestExpertModal';
+import useDarkMode from '../hooks/useDarkMode';
 
 export default function Navbar() {
     const [isMenuOpen, setIsMenuOpen] = useState(false);
     const [isProfileOpen, setIsProfileOpen] = useState(false);
     const [isRequestModalOpen, setIsRequestModalOpen] = useState(false);
     const { userInfo, logout } = useAuth();
+    const [theme, setTheme] = useDarkMode();
+    const toggleTheme = () => setTheme(theme === 'dark' ? 'light' : 'dark');
     const profileRef = useRef(null);
     const debounceRef = useRef(null);
     const searchParamsRef = useRef(null);
@@ -201,15 +204,15 @@ export default function Navbar() {
 
     return (
         <>
-            <nav className="fixed top-0 left-0 right-0 h-16 bg-white border-b border-gray-100 z-50">
+            <nav className="fixed top-0 left-0 right-0 h-16 bg-white dark:bg-gray-900 border-b border-gray-100 dark:border-gray-800 z-50 transition-colors duration-200">
                 <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-full">
                     <div className="flex justify-between items-center h-full gap-4">
                         {/* Logo */}
                         <Link to="/" className="flex items-center gap-2 flex-shrink-0">
-                            <div className="w-8 h-8 bg-indigo-600 rounded-lg flex items-center justify-center text-white font-bold text-lg shadow-sm shadow-indigo-200">
+                            <div className="w-8 h-8 bg-indigo-600 dark:bg-indigo-500 rounded-lg flex items-center justify-center text-white font-bold text-lg shadow-sm shadow-indigo-200 dark:shadow-none">
                                 P
                             </div>
-                            <span className="text-xl font-bold text-gray-900 hidden lg:block">PromptMarket</span>
+                            <span className="text-xl font-bold text-gray-900 dark:text-white hidden lg:block">PromptMarket</span>
                         </Link>
 
                         {/* Desktop Search & Filters */}
@@ -270,7 +273,7 @@ export default function Navbar() {
                                     value={searchTerm}
                                     onChange={(e) => setSearchTerm(e.target.value)}
                                     onKeyDown={handleSearch}
-                                    className="w-full pl-9 pr-10 py-2 text-sm bg-white border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent shadow-sm"
+                                    className="w-full pl-9 pr-10 py-2 text-sm bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent shadow-sm text-gray-900 dark:text-gray-100"
                                 />
                                 <button
                                     onClick={submitSearch}
@@ -294,13 +297,20 @@ export default function Navbar() {
 
                         {/* User Profile / Actions */}
                         <div className="hidden md:flex items-center space-x-4 flex-shrink-0">
+                            <button
+                                onClick={toggleTheme}
+                                className="p-2 text-gray-500 dark:text-gray-400 hover:text-indigo-600 dark:hover:text-indigo-400 rounded-full hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors"
+                                aria-label="Toggle theme"
+                            >
+                                {theme === 'dark' ? <Sun size={20} /> : <Moon size={20} />}
+                            </button>
                             {userInfo ? (
                                 <div className="relative" ref={profileRef}>
                                     <button
                                         onClick={() => setIsProfileOpen(!isProfileOpen)}
-                                        className="flex items-center space-x-2 text-gray-700 hover:text-indigo-600 focus:outline-none p-1 rounded-full hover:bg-gray-50 transition-colors"
+                                        className="flex items-center space-x-2 text-gray-700 dark:text-gray-200 hover:text-indigo-600 dark:hover:text-indigo-400 focus:outline-none p-1 rounded-full hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors"
                                     >
-                                        <div className="w-8 h-8 rounded-full bg-indigo-100 flex items-center justify-center text-indigo-600 font-bold border border-indigo-200 relative">
+                                        <div className="w-8 h-8 rounded-full bg-indigo-100 dark:bg-indigo-900/50 flex items-center justify-center text-indigo-600 dark:text-indigo-400 font-bold border border-indigo-200 dark:border-indigo-800 relative">
                                             {userInfo.name ? userInfo.name.charAt(0).toUpperCase() : <User size={16} />}
                                             {userInfo.isVerifiedExpert && (
                                                 <div className="absolute -bottom-1 -right-1 bg-white rounded-full p-0.5">
@@ -403,13 +413,20 @@ export default function Navbar() {
                         {/* Mobile Menu Button */}
                         <div className="flex items-center gap-2 md:hidden">
                             <button
-                                className="p-2 text-gray-600 hover:bg-gray-50 rounded-lg"
+                                onClick={toggleTheme}
+                                className="p-2 text-gray-600 dark:text-gray-400 hover:bg-gray-50 dark:hover:bg-gray-800 rounded-lg"
+                                aria-label="Toggle theme"
+                            >
+                                {theme === 'dark' ? <Sun size={20} /> : <Moon size={20} />}
+                            </button>
+                            <button
+                                className="p-2 text-gray-600 dark:text-gray-400 hover:bg-gray-50 dark:hover:bg-gray-800 rounded-lg"
                                 onClick={() => setIsMenuOpen(true)}
                             >
                                 <Search className="w-5 h-5" />
                             </button>
                             <button
-                                className="p-2 text-gray-600 hover:bg-gray-50 rounded-lg"
+                                className="p-2 text-gray-600 dark:text-gray-400 hover:bg-gray-50 dark:hover:bg-gray-800 rounded-lg"
                                 onClick={() => setIsMenuOpen(!isMenuOpen)}
                             >
                                 {isMenuOpen ? <X className="w-6 h-6" /> : <Menu className="w-6 h-6" />}
@@ -425,7 +442,7 @@ export default function Navbar() {
                             initial={{ opacity: 0, height: 0 }}
                             animate={{ opacity: 1, height: 'auto' }}
                             exit={{ opacity: 0, height: 0 }}
-                            className="absolute top-16 left-0 right-0 bg-white border-b border-gray-100 md:hidden shadow-lg overflow-hidden max-h-[90vh] overflow-y-auto"
+                            className="absolute top-16 left-0 right-0 bg-white dark:bg-gray-900 border-b border-gray-100 dark:border-gray-800 md:hidden shadow-lg overflow-hidden max-h-[90vh] overflow-y-auto z-50"
                             transition={{ duration: 0.2 }}
                         >
                             <div className="p-4 flex flex-col space-y-4">
@@ -438,7 +455,7 @@ export default function Navbar() {
                                         value={searchTerm}
                                         onChange={(e) => setSearchTerm(e.target.value)}
                                         onKeyDown={handleSearch}
-                                        className="w-full pl-9 pr-20 py-2.5 text-sm bg-white border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
+                                        className="w-full pl-9 pr-20 py-2.5 text-sm bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent text-gray-900 dark:text-gray-100"
                                         autoFocus
                                     />
                                     <button
@@ -451,8 +468,8 @@ export default function Navbar() {
                                 </div>
 
                                 {/* Mobile Filters */}
-                                <div className="space-y-3 pb-4 border-b border-gray-100">
-                                    <label className="text-xs font-semibold text-gray-500 uppercase">Filters</label>
+                                <div className="space-y-3 pb-4 border-b border-gray-100 dark:border-gray-800">
+                                    <label className="text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase">Filters</label>
 
                                     {/* LLM Dropdown - Mobile */}
                                     <select

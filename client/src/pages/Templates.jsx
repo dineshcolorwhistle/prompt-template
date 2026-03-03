@@ -16,6 +16,16 @@ const Templates = () => {
     const [isModalOpen, setIsModalOpen] = useState(false);
     const [currentTemplate, setCurrentTemplate] = useState(null);
 
+    // New filters
+    const [llmFilter, setLlmFilter] = useState('all');
+    const [industryFilter, setIndustryFilter] = useState('all');
+    const [categoryFilter, setCategoryFilter] = useState('all');
+
+    // Dropdown options
+    const [llms, setLlms] = useState([]);
+    const [industries, setIndustries] = useState([]);
+    const [categories, setCategories] = useState([]);
+
 
     // Confirmation Modal State
     const [deleteModal, setDeleteModal] = useState({
@@ -27,13 +37,57 @@ const Templates = () => {
     useEffect(() => {
         if (!userInfo?.token) return;
         fetchTemplates();
+        fetchLlms();
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [userInfo?.token]);
+
+    const fetchLlms = async () => {
+        try {
+            const res = await fetch(`${import.meta.env.VITE_API_URL}/api/llms?status=active&limit=100`, { headers: { Authorization: `Bearer ${userInfo.token}` } });
+            const data = await res.json();
+            if (res.ok) setLlms(data.result || data);
+        } catch (e) { }
+    };
+
+    // Dependent fetching
+    useEffect(() => {
+        setIndustryFilter('all');
+        setCategoryFilter('all');
+        setIndustries([]);
+        setCategories([]);
+        if (llmFilter && llmFilter !== 'all') {
+            fetchIndustries(llmFilter);
+        }
+    }, [llmFilter]);
+
+    useEffect(() => {
+        setCategoryFilter('all');
+        setCategories([]);
+        if (industryFilter && industryFilter !== 'all') {
+            fetchCategories(industryFilter);
+        }
+    }, [industryFilter]);
+
+    const fetchIndustries = async (llmId) => {
+        try {
+            const res = await fetch(`${import.meta.env.VITE_API_URL}/api/industries?status=active&limit=1000&llm=${llmId}`, { headers: { Authorization: `Bearer ${userInfo.token}` } });
+            const data = await res.json();
+            if (res.ok) setIndustries(data.result || data);
+        } catch (e) { }
+    };
+
+    const fetchCategories = async (indId) => {
+        try {
+            const res = await fetch(`${import.meta.env.VITE_API_URL}/api/categories?status=active&limit=1000&industry=${indId}`, { headers: { Authorization: `Bearer ${userInfo.token}` } });
+            const data = await res.json();
+            if (res.ok) setCategories(data.result || data);
+        } catch (e) { }
+    };
 
     const fetchTemplates = async () => {
         try {
             setLoading(true);
-            const response = await fetch(`${import.meta.env.VITE_API_URL}/api/templates`, {
+            const response = await fetch(`${import.meta.env.VITE_API_URL}/api/templates?limit=1000`, {
                 headers: { Authorization: `Bearer ${userInfo.token}` }
             });
             const data = await response.json();
@@ -100,7 +154,12 @@ const Templates = () => {
         const matchesSearch = (t.title || '').toLowerCase().includes(searchTerm.toLowerCase()) ||
             (t.description || '').toLowerCase().includes(searchTerm.toLowerCase());
         const matchesStatus = statusFilter === 'All' || t.status === statusFilter;
-        return matchesSearch && matchesStatus;
+
+        const matchesLlm = llmFilter === 'all' || (t.industry?.llm?._id || t.industry?.llm) === llmFilter;
+        const matchesIndustry = industryFilter === 'all' || (t.industry?._id || t.industry) === industryFilter;
+        const matchesCategory = categoryFilter === 'all' || (t.category?._id || t.category) === categoryFilter;
+
+        return matchesSearch && matchesStatus && matchesLlm && matchesIndustry && matchesCategory;
     });
 
     const getStatusColor = (status) => {
@@ -140,19 +199,56 @@ const Templates = () => {
                             className="w-full pl-9 pr-4 py-2 text-sm border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition-colors"
                         />
                     </div>
-                    <div className="flex items-center gap-2">
-                        <Filter size={16} className="text-gray-400" />
+                    <div className="flex flex-wrap items-center gap-2">
                         <select
-                            value={statusFilter}
-                            onChange={(e) => setStatusFilter(e.target.value)}
+                            value={llmFilter}
+                            onChange={(e) => setLlmFilter(e.target.value)}
                             className="border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition-colors"
                         >
-                            <option value="All">All Status</option>
-                            <option value="Draft">Draft</option>
-                            <option value="Pending">Pending</option>
-                            <option value="Approved">Approved</option>
-                            <option value="Rejected">Rejected</option>
+                            <option value="all">All LLMs</option>
+                            {llms.map(llm => (
+                                <option key={llm._id} value={llm._id}>{llm.name}</option>
+                            ))}
                         </select>
+
+                        <select
+                            value={industryFilter}
+                            onChange={(e) => setIndustryFilter(e.target.value)}
+                            disabled={llmFilter === 'all'}
+                            className="border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition-colors disabled:bg-gray-100 disabled:text-gray-500"
+                        >
+                            <option value="all">All Industries</option>
+                            {industries.map(ind => (
+                                <option key={ind._id} value={ind._id}>{ind.name}</option>
+                            ))}
+                        </select>
+
+                        <select
+                            value={categoryFilter}
+                            onChange={(e) => setCategoryFilter(e.target.value)}
+                            disabled={industryFilter === 'all'}
+                            className="border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition-colors disabled:bg-gray-100 disabled:text-gray-500"
+                        >
+                            <option value="all">All Categories</option>
+                            {categories.map(cat => (
+                                <option key={cat._id} value={cat._id}>{cat.name}</option>
+                            ))}
+                        </select>
+
+                        <div className="flex items-center gap-2 border-l pl-2 border-gray-200">
+                            <Filter size={16} className="text-gray-400" />
+                            <select
+                                value={statusFilter}
+                                onChange={(e) => setStatusFilter(e.target.value)}
+                                className="border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition-colors"
+                            >
+                                <option value="All">All Status</option>
+                                <option value="Draft">Draft</option>
+                                <option value="Pending">Pending</option>
+                                <option value="Approved">Approved</option>
+                                <option value="Rejected">Rejected</option>
+                            </select>
+                        </div>
                     </div>
                 </div>
 

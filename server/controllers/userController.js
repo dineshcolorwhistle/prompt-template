@@ -1,4 +1,7 @@
 const User = require('../models/User');
+const Template = require('../models/Template');
+const ExpertRequest = require('../models/ExpertRequest');
+const CopyHistory = require('../models/CopyHistory');
 const crypto = require('crypto');
 const sendEmail = require('../utils/sendEmail');
 
@@ -152,9 +155,42 @@ const getUserProfile = async (req, res) => {
     }
 };
 
+// @desc    Get Admin Dashboard Stats
+// @route   GET /api/users/dashboard
+// @access  Private/Admin
+const getAdminDashboardOverview = async (req, res) => {
+    try {
+        const activeUsersCount = await User.countDocuments();
+        const templatesCount = await Template.countDocuments();
+        const pendingExpertRequests = await ExpertRequest.countDocuments({ status: 'Pending' });
+        const totalPromptCopiedCount = await CopyHistory.countDocuments();
+
+        // Recently updated template related details
+        const recentTemplates = await Template.find()
+            .sort({ updatedAt: -1 })
+            .limit(5)
+            .select('title status updatedAt user')
+            .populate('user', 'name email');
+
+        res.json({
+            stats: {
+                activeUsers: activeUsersCount,
+                templates: templatesCount,
+                pendingExpertRequests: pendingExpertRequests,
+                promptCopied: totalPromptCopiedCount
+            },
+            recentActions: recentTemplates
+        });
+    } catch (error) {
+        console.error(error);
+        res.status(500).json({ message: 'Server Error' });
+    }
+};
+
 module.exports = {
     getUsers,
     addAdmin,
     deleteUser,
-    getUserProfile
+    getUserProfile,
+    getAdminDashboardOverview
 };

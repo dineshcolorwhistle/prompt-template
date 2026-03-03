@@ -47,9 +47,30 @@ const expandCollapse = {
 
 function RoleBadge({ role }) {
     const config = {
-        admin: { label: 'Admin', icon: Shield, bg: 'bg-red-50', text: 'text-red-700', border: 'border-red-200', ring: 'ring-red-100' },
-        expert: { label: 'Expert', icon: Award, bg: 'bg-amber-50', text: 'text-amber-700', border: 'border-amber-200', ring: 'ring-amber-100' },
-        user: { label: 'User', icon: User, bg: 'bg-slate-50', text: 'text-slate-600', border: 'border-slate-200', ring: 'ring-slate-100' },
+        admin: {
+            label: 'Admin',
+            icon: Shield,
+            bg: 'bg-red-50 dark:bg-red-900/30',
+            text: 'text-red-700 dark:text-red-400',
+            border: 'border-red-200 dark:border-red-800',
+            ring: 'ring-red-100 dark:ring-red-900/20'
+        },
+        expert: {
+            label: 'Expert',
+            icon: Award,
+            bg: 'bg-amber-50 dark:bg-amber-900/30',
+            text: 'text-amber-700 dark:text-amber-400',
+            border: 'border-amber-200 dark:border-amber-800',
+            ring: 'ring-amber-100 dark:ring-amber-900/20'
+        },
+        user: {
+            label: 'User',
+            icon: User,
+            bg: 'bg-slate-50 dark:bg-slate-800',
+            text: 'text-slate-600 dark:text-slate-400',
+            border: 'border-slate-200 dark:border-slate-700',
+            ring: 'ring-slate-100 dark:ring-slate-900/20'
+        },
     };
     const c = config[role] || config.user;
     const Icon = c.icon;
@@ -166,15 +187,15 @@ function SampleOutputSection({ images }) {
 
     return (
         <motion.div
-            className="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden"
+            className="bg-white dark:bg-gray-900 rounded-2xl shadow-sm border border-gray-100 dark:border-gray-800 overflow-hidden"
             {...staggerItem}
         >
             <div className="p-6 sm:p-8">
                 <div className="flex items-center gap-3 mb-6">
-                    <div className="p-2 bg-gradient-to-br from-violet-100 to-purple-100 rounded-xl">
-                        <ImageIcon className="w-5 h-5 text-violet-600" />
+                    <div className="p-2 bg-gradient-to-br from-violet-100 to-purple-100 dark:from-violet-900/30 dark:to-purple-900/30 rounded-xl">
+                        <ImageIcon className="w-5 h-5 text-violet-600 dark:text-violet-400" />
                     </div>
-                    <h2 className="text-xl font-bold text-gray-900">Sample Outputs</h2>
+                    <h2 className="text-xl font-bold text-gray-900 dark:text-white">Sample Outputs</h2>
                 </div>
                 <div className="grid grid-cols-2 sm:grid-cols-3 gap-4">
                     {images.map((img, i) => {
@@ -182,7 +203,7 @@ function SampleOutputSection({ images }) {
                         return (
                             <motion.div
                                 key={i}
-                                className="group relative aspect-video rounded-xl overflow-hidden border border-gray-200 bg-gray-50 cursor-pointer"
+                                className="group relative aspect-video rounded-xl overflow-hidden border border-gray-200 dark:border-gray-800 bg-gray-50 dark:bg-gray-800/50 cursor-pointer"
                                 whileHover={{ scale: 1.02, y: -2 }}
                                 transition={{ duration: 0.2 }}
                                 onClick={() => setPreviewIndex(i)}
@@ -195,7 +216,7 @@ function SampleOutputSection({ images }) {
                                     loading="lazy"
                                 />
                                 <div className="absolute inset-0 bg-gradient-to-t from-black/50 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex items-end justify-center pb-3">
-                                    <span className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-white/90 backdrop-blur-sm text-xs font-semibold rounded-full text-gray-800">
+                                    <span className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-white/95 dark:bg-gray-900/90 backdrop-blur-sm text-xs font-semibold rounded-full text-gray-800 dark:text-gray-100 shadow-sm border border-black/5 dark:border-white/10">
                                         <Eye className="w-3.5 h-3.5" />
                                         Preview
                                     </span>
@@ -261,17 +282,17 @@ function VariablesSection({ variables, userValues, setUserValues, isLoggedIn }) 
 
     return (
         <motion.div
-            className="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden"
+            className="bg-white dark:bg-gray-900 rounded-2xl shadow-sm border border-gray-100 dark:border-gray-800 overflow-hidden"
             {...staggerItem}
         >
             <div className="p-6 sm:p-8">
                 <div className="flex items-center gap-3 mb-6">
-                    <div className="p-2 bg-gradient-to-br from-emerald-100 to-teal-100 rounded-xl">
-                        <Variable className="w-5 h-5 text-emerald-600" />
+                    <div className="p-2 bg-gradient-to-br from-emerald-100 to-teal-100 dark:from-emerald-900/30 dark:to-teal-900/30 rounded-xl">
+                        <Variable className="w-5 h-5 text-emerald-600 dark:text-emerald-400" />
                     </div>
                     <div>
-                        <h2 className="text-xl font-bold text-gray-900">Editable Variables</h2>
-                        <p className="text-sm text-gray-500 mt-0.5">Customize values before copying the prompt</p>
+                        <h2 className="text-xl font-bold text-gray-900 dark:text-white">Editable Variables</h2>
+                        <p className="text-sm text-gray-500 dark:text-gray-400 mt-0.5">Customize values before copying the prompt</p>
                     </div>
                 </div>
 
@@ -284,7 +305,7 @@ function VariablesSection({ variables, userValues, setUserValues, isLoggedIn }) 
                         return (
                             <motion.div
                                 key={v.name}
-                                className={`rounded-xl border transition-all duration-200 ${isEditing ? 'border-indigo-300 ring-2 ring-indigo-100 bg-indigo-50/30' : 'border-gray-200 hover:border-gray-300 bg-gray-50/50'}`}
+                                className={`rounded-xl border transition-all duration-200 ${isEditing ? 'border-indigo-300 dark:border-indigo-600 ring-2 ring-indigo-100 dark:ring-indigo-900/50 bg-indigo-50/30 dark:bg-indigo-900/20' : 'border-gray-200 dark:border-gray-800 hover:border-gray-300 dark:hover:border-gray-700 bg-gray-50/50 dark:bg-gray-800/50'}`}
                                 initial={{ opacity: 0, y: 10 }}
                                 animate={{ opacity: 1, y: 0 }}
                                 transition={{ delay: i * 0.05 }}
@@ -294,18 +315,18 @@ function VariablesSection({ variables, userValues, setUserValues, isLoggedIn }) 
                                     <div className="flex items-start justify-between gap-3">
                                         <div className="flex-1 min-w-0">
                                             <div className="flex items-center gap-2 mb-1">
-                                                <code className="text-sm font-bold text-indigo-700 bg-indigo-100 px-2 py-0.5 rounded-md">
+                                                <code className="text-sm font-bold text-indigo-700 dark:text-indigo-400 bg-indigo-100 dark:bg-indigo-900/50 px-2 py-0.5 rounded-md">
                                                     {`{{${v.name}}}`}
                                                 </code>
                                                 {v.required && (
-                                                    <span className="text-xs font-semibold text-red-500 bg-red-50 px-1.5 py-0.5 rounded">Required</span>
+                                                    <span className="text-xs font-semibold text-red-500 dark:text-red-400 bg-red-50 dark:bg-red-900/30 px-1.5 py-0.5 rounded">Required</span>
                                                 )}
                                                 {hasCustomValue && (
-                                                    <span className="text-xs font-medium text-emerald-600 bg-emerald-50 px-1.5 py-0.5 rounded">Customized</span>
+                                                    <span className="text-xs font-medium text-emerald-600 dark:text-emerald-400 bg-emerald-50 dark:bg-emerald-900/30 px-1.5 py-0.5 rounded">Customized</span>
                                                 )}
                                             </div>
                                             {v.description && (
-                                                <p className="text-sm text-gray-500 mb-2">{v.description}</p>
+                                                <p className="text-sm text-gray-500 dark:text-gray-400 mb-2">{v.description}</p>
                                             )}
 
                                             {isEditing ? (
@@ -314,7 +335,7 @@ function VariablesSection({ variables, userValues, setUserValues, isLoggedIn }) 
                                                         type="text"
                                                         value={draftValue}
                                                         onChange={(e) => setDraftValue(e.target.value)}
-                                                        className="flex-1 px-3 py-2 text-sm border border-indigo-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-300 bg-white"
+                                                        className="flex-1 px-3 py-2 text-sm border border-indigo-200 dark:border-indigo-700 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-300 dark:focus:ring-indigo-600 bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100"
                                                         placeholder={`Enter value for ${v.name}`}
                                                         autoFocus
                                                         onKeyDown={(e) => {
@@ -336,15 +357,15 @@ function VariablesSection({ variables, userValues, setUserValues, isLoggedIn }) 
                                                         whileHover={{ scale: 1.05 }}
                                                         whileTap={{ scale: 0.95 }}
                                                         onClick={cancelEdit}
-                                                        className="p-2 bg-gray-200 text-gray-600 rounded-lg hover:bg-gray-300 transition-colors"
+                                                        className="p-2 bg-gray-200 dark:bg-gray-700 text-gray-600 dark:text-gray-300 rounded-lg hover:bg-gray-300 dark:hover:bg-gray-600 transition-colors"
                                                     >
                                                         <X className="w-4 h-4" />
                                                     </motion.button>
                                                 </div>
                                             ) : (
                                                 <div className="flex items-center gap-2 mt-1">
-                                                    <span className="text-sm text-gray-700 font-medium truncate">
-                                                        {currentValue || <span className="italic text-gray-400">No default value</span>}
+                                                    <span className="text-sm text-gray-700 dark:text-gray-300 font-medium truncate">
+                                                        {currentValue || <span className="italic text-gray-400 dark:text-gray-500">No default value</span>}
                                                     </span>
                                                 </div>
                                             )}
@@ -447,10 +468,10 @@ function SaveButton({ templateId, isLoggedIn, userInfo }) {
             onClick={handleToggle}
             disabled={toggling}
             className={`inline-flex items-center gap-2 px-5 py-2.5 rounded-xl font-semibold text-sm transition-all duration-200 border-2 ${isSaved
-                ? 'bg-amber-50 text-amber-700 border-amber-200 shadow-sm shadow-amber-100'
+                ? 'bg-amber-50 dark:bg-amber-900/30 text-amber-700 dark:text-amber-400 border-amber-200 dark:border-amber-800 shadow-sm shadow-amber-100 dark:shadow-none'
                 : isLoggedIn
-                    ? 'bg-white text-gray-600 border-gray-200 hover:border-amber-200 hover:text-amber-600 hover:bg-amber-50/50'
-                    : 'bg-gray-50 text-gray-400 border-gray-150 cursor-default'
+                    ? 'bg-white dark:bg-gray-800 text-gray-600 dark:text-gray-300 border-gray-200 dark:border-gray-700 hover:border-amber-200 dark:hover:border-amber-800 hover:text-amber-600 dark:hover:text-amber-400 hover:bg-amber-50/50 dark:hover:bg-amber-900/20'
+                    : 'bg-gray-50 dark:bg-gray-800/50 text-gray-400 dark:text-gray-500 border-gray-100 dark:border-gray-800 cursor-default'
                 }`}
             whileHover={isLoggedIn ? { scale: 1.03, y: -1 } : {}}
             whileTap={isLoggedIn ? { scale: 0.97 } : {}}
@@ -589,7 +610,7 @@ function PromptSection({ template, userValues, isLoggedIn, userInfo, templateId 
                 return (
                     <span
                         key={i}
-                        className={`inline-block px-1.5 py-0.5 rounded font-semibold transition-colors ${displayValue ? 'bg-emerald-100 text-emerald-800 border border-emerald-200' : 'bg-amber-100 text-amber-800 border border-amber-200'}`}
+                        className={`inline-block px-1.5 py-0.5 rounded font-semibold transition-colors ${displayValue ? 'bg-emerald-100 dark:bg-emerald-900/30 text-emerald-800 dark:text-emerald-400 border border-emerald-200 dark:border-emerald-800' : 'bg-amber-100 dark:bg-amber-900/30 text-amber-800 dark:text-amber-400 border border-amber-200 dark:border-amber-800'}`}
                         title={displayValue ? `Will be replaced with: ${displayValue}` : 'No value set'}
                     >
                         {displayValue || part}
@@ -602,18 +623,18 @@ function PromptSection({ template, userValues, isLoggedIn, userInfo, templateId 
 
     return (
         <motion.div
-            className="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden"
+            className="bg-white dark:bg-gray-900 rounded-2xl shadow-sm border border-gray-100 dark:border-gray-800 overflow-hidden"
             {...staggerItem}
         >
             <div className="p-6 sm:p-8">
                 <div className="flex items-center justify-between mb-6">
                     <div className="flex items-center gap-3">
-                        <div className="p-2 bg-gradient-to-br from-blue-100 to-cyan-100 rounded-xl">
-                            <FileText className="w-5 h-5 text-blue-600" />
+                        <div className="p-2 bg-gradient-to-br from-blue-100 to-cyan-100 dark:from-blue-900/30 dark:to-cyan-900/30 rounded-xl">
+                            <FileText className="w-5 h-5 text-blue-600 dark:text-blue-400" />
                         </div>
                         <div>
-                            <h2 className="text-xl font-bold text-gray-900">Prompt</h2>
-                            <p className="text-sm text-gray-500 mt-0.5">Variables are highlighted for replacement</p>
+                            <h2 className="text-xl font-bold text-gray-900 dark:text-white">Prompt</h2>
+                            <p className="text-sm text-gray-500 dark:text-gray-400 mt-0.5">Variables are highlighted for replacement</p>
                         </div>
                     </div>
                     <div className="relative group/copy">
@@ -622,10 +643,10 @@ function PromptSection({ template, userValues, isLoggedIn, userInfo, templateId 
                             whileTap={{ scale: 0.95 }}
                             onClick={handleCopy}
                             className={`inline-flex items-center gap-2 px-4 py-2.5 rounded-xl font-semibold text-sm transition-all duration-200 ${copied
-                                ? 'bg-emerald-100 text-emerald-700 border border-emerald-200'
+                                ? 'bg-emerald-100 text-emerald-700 border border-emerald-200 dark:bg-emerald-900/30 dark:text-emerald-400 dark:border-emerald-800'
                                 : isLoggedIn
-                                    ? 'bg-indigo-600 text-white hover:bg-indigo-700 shadow-lg shadow-indigo-200'
-                                    : 'bg-gray-200 text-gray-400 cursor-not-allowed'
+                                    ? 'bg-indigo-600 text-white hover:bg-indigo-700 shadow-lg shadow-indigo-200 dark:shadow-indigo-900/20'
+                                    : 'bg-gray-200 dark:bg-gray-800 text-gray-400 dark:text-gray-500 cursor-not-allowed'
                                 }`}
                             disabled={!isLoggedIn}
                             id="copy-prompt-btn"
@@ -643,20 +664,20 @@ function PromptSection({ template, userValues, isLoggedIn, userInfo, templateId 
 
                 <div
                     ref={promptRef}
-                    className="relative bg-gradient-to-br from-gray-50 to-slate-50 rounded-xl border border-gray-200 overflow-hidden"
+                    className="relative bg-gradient-to-br from-gray-50 to-slate-50 dark:from-gray-950 dark:to-gray-900 rounded-xl border border-gray-200 dark:border-gray-800 overflow-hidden"
                     tabIndex={0}
                     style={!isLoggedIn ? { userSelect: 'none', WebkitUserSelect: 'none', MozUserSelect: 'none', msUserSelect: 'none' } : {}}
                     onDragStart={!isLoggedIn ? (e) => e.preventDefault() : undefined}
                 >
-                    <div className="absolute top-0 left-0 right-0 h-8 bg-gradient-to-b from-gray-100 to-transparent flex items-center px-4">
+                    <div className="absolute top-0 left-0 right-0 h-8 bg-gradient-to-b from-gray-100 dark:from-gray-800 to-transparent flex items-center px-4">
                         <div className="flex gap-1.5">
-                            <span className="w-2.5 h-2.5 rounded-full bg-red-300"></span>
-                            <span className="w-2.5 h-2.5 rounded-full bg-amber-300"></span>
-                            <span className="w-2.5 h-2.5 rounded-full bg-green-300"></span>
+                            <span className="w-2.5 h-2.5 rounded-full bg-red-300 dark:bg-red-400"></span>
+                            <span className="w-2.5 h-2.5 rounded-full bg-amber-300 dark:bg-amber-400"></span>
+                            <span className="w-2.5 h-2.5 rounded-full bg-green-300 dark:bg-green-400"></span>
                         </div>
                     </div>
                     <div className="pt-10 pb-6 px-5 max-h-96 overflow-y-auto scrollbar-thin">
-                        <pre className="whitespace-pre-wrap text-sm leading-relaxed font-mono text-gray-700">
+                        <pre className="whitespace-pre-wrap text-sm leading-relaxed font-mono text-gray-700 dark:text-gray-300">
                             {renderHighlightedPrompt()}
                         </pre>
                     </div>
@@ -716,26 +737,26 @@ function CommentItem({ comment, depth = 0, isLoggedIn, userInfo, onReply, onDele
             transition={{ duration: 0.3 }}
         >
             <div className={`relative rounded-xl p-4 transition-all ${isOfficialReply
-                ? 'bg-gradient-to-r from-indigo-50/80 to-violet-50/50 border border-indigo-200 shadow-sm'
-                : 'bg-gray-50/80 border border-gray-100 hover:border-gray-200'
+                ? 'bg-gradient-to-r from-indigo-50/80 to-violet-50/50 dark:from-indigo-900/20 dark:to-violet-900/20 border border-indigo-200 dark:border-indigo-800 shadow-sm'
+                : 'bg-gray-50/80 dark:bg-gray-800/80 border border-gray-100 dark:border-gray-700 hover:border-gray-200 dark:hover:border-gray-600'
                 }`}>
                 {/* Thread line */}
                 {indentLevel > 0 && (
-                    <div className="absolute -left-4 top-0 bottom-0 w-px bg-gradient-to-b from-indigo-200 via-gray-200 to-transparent" />
+                    <div className="absolute -left-4 top-0 bottom-0 w-px bg-gradient-to-b from-indigo-200 via-gray-200 dark:from-indigo-800 dark:via-gray-700 to-transparent" />
                 )}
 
                 <div className="flex items-start gap-3">
                     {/* Avatar */}
                     <div className={`flex-shrink-0 w-8 h-8 rounded-full flex items-center justify-center text-sm font-bold ${isOfficialReply
                         ? 'bg-gradient-to-br from-indigo-500 to-violet-500 text-white'
-                        : 'bg-gradient-to-br from-gray-300 to-gray-400 text-white'
+                        : 'bg-gradient-to-br from-gray-300 to-gray-400 dark:from-gray-600 dark:to-gray-700 text-white'
                         }`}>
                         {comment.userId?.name?.charAt(0)?.toUpperCase() || 'U'}
                     </div>
 
                     <div className="flex-1 min-w-0">
                         <div className="flex items-center gap-2 flex-wrap">
-                            <span className={`text-sm font-semibold ${isOfficialReply ? 'text-indigo-900' : 'text-gray-900'}`}>
+                            <span className={`text-sm font-semibold ${isOfficialReply ? 'text-indigo-900 dark:text-indigo-400' : 'text-gray-900 dark:text-gray-200'}`}>
                                 {comment.userId?.name || 'Unknown User'}
                             </span>
                             <RoleBadge role={comment.role} />
@@ -745,7 +766,7 @@ function CommentItem({ comment, depth = 0, isLoggedIn, userInfo, onReply, onDele
                             </span>
                         </div>
 
-                        <p className={`mt-1.5 text-sm leading-relaxed ${isOfficialReply ? 'text-indigo-800' : 'text-gray-700'}`}>
+                        <p className={`mt-1.5 text-sm leading-relaxed ${isOfficialReply ? 'text-indigo-800 dark:text-indigo-300' : 'text-gray-700 dark:text-gray-300'}`}>
                             {comment.content}
                         </p>
 
@@ -793,7 +814,7 @@ function CommentItem({ comment, depth = 0, isLoggedIn, userInfo, onReply, onDele
                                             value={replyContent}
                                             onChange={(e) => setReplyContent(e.target.value)}
                                             placeholder="Write a reply..."
-                                            className="flex-1 px-3 py-2 text-sm border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-200 focus:border-indigo-300"
+                                            className="flex-1 px-3 py-2 text-sm border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-200 dark:focus:ring-indigo-800 focus:border-indigo-300 dark:focus:border-indigo-600"
                                             onKeyDown={(e) => { if (e.key === 'Enter' && !submitting) handleSubmitReply(); }}
                                             id={`reply-input-${comment._id}`}
                                         />
@@ -935,17 +956,17 @@ function CommentsSection({ templateId, isLoggedIn, userInfo }) {
 
     return (
         <motion.div
-            className="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden"
+            className="bg-white dark:bg-gray-900 rounded-2xl shadow-sm border border-gray-100 dark:border-gray-800 overflow-hidden"
             {...staggerItem}
         >
             <div className="p-6 sm:p-8">
                 <div className="flex items-center gap-3 mb-6">
-                    <div className="p-2 bg-gradient-to-br from-orange-100 to-rose-100 rounded-xl">
-                        <MessageSquare className="w-5 h-5 text-orange-600" />
+                    <div className="p-2 bg-gradient-to-br from-orange-100 to-rose-100 dark:from-orange-900/30 dark:to-rose-900/30 rounded-xl">
+                        <MessageSquare className="w-5 h-5 text-orange-600 dark:text-orange-400" />
                     </div>
                     <div>
-                        <h2 className="text-xl font-bold text-gray-900">Discussion</h2>
-                        <p className="text-sm text-gray-500 mt-0.5">{comments.length} comment{comments.length !== 1 ? 's' : ''}</p>
+                        <h2 className="text-xl font-bold text-gray-900 dark:text-white">Discussion</h2>
+                        <p className="text-sm text-gray-500 dark:text-gray-400 mt-0.5">{comments.length} comment{comments.length !== 1 ? 's' : ''}</p>
                     </div>
                 </div>
 
@@ -961,7 +982,7 @@ function CommentsSection({ templateId, isLoggedIn, userInfo }) {
                                 onChange={(e) => setNewComment(e.target.value)}
                                 placeholder="Add a comment..."
                                 rows={3}
-                                className="w-full px-4 py-3 text-sm border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-indigo-200 focus:border-indigo-300 resize-none transition-all"
+                                className="w-full px-4 py-3 text-sm border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 rounded-xl focus:outline-none focus:ring-2 focus:ring-indigo-200 dark:focus:ring-indigo-800 focus:border-indigo-300 dark:focus:border-indigo-600 resize-none transition-all"
                                 id="new-comment-input"
                             />
                             <div className="flex justify-end mt-2">
@@ -980,10 +1001,10 @@ function CommentsSection({ templateId, isLoggedIn, userInfo }) {
                         </div>
                     </div>
                 ) : (
-                    <div className="mb-6 p-4 bg-gray-50 border border-gray-200 rounded-xl text-center">
-                        <Lock className="w-5 h-5 mx-auto text-gray-400 mb-2" />
-                        <p className="text-sm text-gray-500">
-                            <Link to="/login" className="text-indigo-600 hover:text-indigo-700 font-semibold">Login</Link> to join the discussion
+                    <div className="mb-6 p-4 bg-gray-50 dark:bg-gray-800/50 border border-gray-200 dark:border-gray-700 rounded-xl text-center">
+                        <Lock className="w-5 h-5 mx-auto text-gray-400 dark:text-gray-500 mb-2" />
+                        <p className="text-sm text-gray-500 dark:text-gray-400">
+                            <Link to="/login" className="text-indigo-600 dark:text-indigo-400 hover:text-indigo-700 dark:hover:text-indigo-300 font-semibold">Login</Link> to join the discussion
                         </p>
                     </div>
                 )}
@@ -1021,10 +1042,46 @@ function CommentsSection({ templateId, isLoggedIn, userInfo }) {
 // ─── Effectiveness Rating Section ──────────────────────────────────────────────
 
 const RATING_RANGES = [
-    { key: '0-10', label: '0–10%', color: 'from-red-500 to-rose-400', bgLight: 'bg-red-50', textColor: 'text-red-700', borderColor: 'border-red-200', emoji: '😟' },
-    { key: '10-50', label: '10–50%', color: 'from-amber-500 to-orange-400', bgLight: 'bg-amber-50', textColor: 'text-amber-700', borderColor: 'border-amber-200', emoji: '🤔' },
-    { key: '50-80', label: '50–80%', color: 'from-blue-500 to-cyan-400', bgLight: 'bg-blue-50', textColor: 'text-blue-700', borderColor: 'border-blue-200', emoji: '👍' },
-    { key: '80-100', label: '80–100%', color: 'from-emerald-500 to-green-400', bgLight: 'bg-emerald-50', textColor: 'text-emerald-700', borderColor: 'border-emerald-200', emoji: '🚀' },
+    {
+        key: '0-10',
+        label: '0–10%',
+        color: 'from-red-500 to-rose-400',
+        bgLight: 'bg-red-50 dark:bg-red-950/30',
+        textColor: 'text-red-700 dark:text-red-400',
+        borderColor: 'border-red-200 dark:border-red-800',
+        ringColor: 'ring-red-100 dark:ring-red-950/50',
+        emoji: '😟'
+    },
+    {
+        key: '10-50',
+        label: '10–50%',
+        color: 'from-amber-500 to-orange-400',
+        bgLight: 'bg-amber-50 dark:bg-amber-950/30',
+        textColor: 'text-amber-700 dark:text-amber-400',
+        borderColor: 'border-amber-200 dark:border-amber-800',
+        ringColor: 'ring-amber-100 dark:ring-amber-950/50',
+        emoji: '🤔'
+    },
+    {
+        key: '50-80',
+        label: '50–80%',
+        color: 'from-blue-500 to-cyan-400',
+        bgLight: 'bg-blue-50 dark:bg-blue-950/30',
+        textColor: 'text-blue-700 dark:text-blue-400',
+        borderColor: 'border-blue-200 dark:border-blue-800',
+        ringColor: 'ring-blue-100 dark:ring-blue-950/50',
+        emoji: '👍'
+    },
+    {
+        key: '80-100',
+        label: '80–100%',
+        color: 'from-emerald-500 to-green-400',
+        bgLight: 'bg-emerald-50 dark:bg-emerald-950/30',
+        textColor: 'text-emerald-700 dark:text-emerald-400',
+        borderColor: 'border-emerald-200 dark:border-emerald-800',
+        ringColor: 'ring-emerald-100 dark:ring-emerald-950/50',
+        emoji: '🚀'
+    },
 ];
 
 function EffectivenessRatingSection({ templateId, isLoggedIn, userInfo }) {
@@ -1095,7 +1152,7 @@ function EffectivenessRatingSection({ templateId, isLoggedIn, userInfo }) {
 
     if (loadingRating) {
         return (
-            <motion.div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-6" {...staggerItem}>
+            <motion.div className="bg-white dark:bg-gray-900 rounded-2xl shadow-sm border border-gray-100 dark:border-gray-800 p-6" {...staggerItem}>
                 <div className="flex items-center justify-center py-8">
                     <div className="animate-spin rounded-full h-6 w-6 border-t-2 border-b-2 border-indigo-500" />
                 </div>
@@ -1109,40 +1166,40 @@ function EffectivenessRatingSection({ templateId, isLoggedIn, userInfo }) {
 
     return (
         <motion.div
-            className="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden"
+            className="bg-white dark:bg-gray-900 rounded-2xl shadow-sm border border-gray-100 dark:border-gray-800 overflow-hidden"
             {...staggerItem}
         >
             <div className="p-6">
                 {/* Header */}
                 <div className="flex items-center gap-3 mb-5">
-                    <div className="p-2 bg-gradient-to-br from-rose-100 to-pink-100 rounded-xl">
-                        <BarChart3 className="w-5 h-5 text-rose-600" />
+                    <div className="p-2 bg-gradient-to-br from-rose-100 to-pink-100 dark:from-rose-900/30 dark:to-pink-900/30 rounded-xl">
+                        <BarChart3 className="w-5 h-5 text-rose-600 dark:text-rose-400" />
                     </div>
                     <div>
-                        <h3 className="text-lg font-bold text-gray-900">Effectiveness Rating</h3>
-                        <p className="text-xs text-gray-500 mt-0.5">{totalRatings} rating{totalRatings !== 1 ? 's' : ''}</p>
+                        <h3 className="text-lg font-bold text-gray-900 dark:text-white">Effectiveness Rating</h3>
+                        <p className="text-xs text-gray-500 dark:text-gray-400 mt-0.5">{totalRatings} rating{totalRatings !== 1 ? 's' : ''}</p>
                     </div>
                 </div>
 
                 {/* Average Score Badge */}
                 {averageScore !== null && averageScore !== undefined && (
                     <motion.div
-                        className="mb-5 p-3 rounded-xl bg-gradient-to-r from-indigo-50 to-violet-50 border border-indigo-100"
+                        className="mb-5 p-3 rounded-xl bg-gradient-to-r from-indigo-50 to-violet-50 dark:from-indigo-900/20 dark:to-violet-900/20 border border-indigo-100 dark:border-indigo-800"
                         initial={{ opacity: 0, scale: 0.95 }}
                         animate={{ opacity: 1, scale: 1 }}
                         transition={{ delay: 0.1 }}
                     >
                         <div className="flex items-center justify-between">
                             <div className="flex items-center gap-2">
-                                <TrendingUp className="w-4 h-4 text-indigo-600" />
-                                <span className="text-sm font-semibold text-indigo-800">Average Effectiveness</span>
+                                <TrendingUp className="w-4 h-4 text-indigo-600 dark:text-indigo-400" />
+                                <span className="text-sm font-semibold text-indigo-800 dark:text-indigo-300">Average Effectiveness</span>
                             </div>
                             <div className="flex items-center gap-1.5">
-                                <span className="text-xl font-extrabold text-indigo-700">{averageScore}%</span>
+                                <span className="text-xl font-extrabold text-indigo-700 dark:text-indigo-400">{averageScore}%</span>
                             </div>
                         </div>
                         {/* Mini progress bar */}
-                        <div className="mt-2 h-1.5 bg-indigo-100 rounded-full overflow-hidden">
+                        <div className="mt-2 h-1.5 bg-indigo-100 dark:bg-indigo-900/50 rounded-full overflow-hidden">
                             <motion.div
                                 className="h-full bg-gradient-to-r from-indigo-500 to-violet-500 rounded-full"
                                 initial={{ width: 0 }}
@@ -1166,10 +1223,10 @@ function EffectivenessRatingSection({ templateId, isLoggedIn, userInfo }) {
                                 onClick={() => handleRatingSelect(range.key)}
                                 disabled={submitting}
                                 className={`w-full group relative rounded-xl border-2 transition-all duration-200 text-left overflow-hidden ${isSelected
-                                    ? `${range.borderColor} ${range.bgLight} ring-2 ring-offset-1 ${range.borderColor.replace('border-', 'ring-')}`
+                                    ? `${range.borderColor} ${range.bgLight} ring-2 ring-offset-1 dark:ring-offset-gray-900 ${range.ringColor}`
                                     : isLoggedIn
-                                        ? 'border-gray-150 hover:border-gray-300 bg-gray-50/40 hover:bg-gray-50'
-                                        : 'border-gray-100 bg-gray-50/30 cursor-default'
+                                        ? 'border-gray-150 dark:border-gray-800 hover:border-gray-300 dark:hover:border-gray-700 bg-gray-50/40 dark:bg-gray-800/40 hover:bg-gray-50 dark:hover:bg-gray-800'
+                                        : 'border-gray-100 dark:border-gray-800 bg-gray-50/30 dark:bg-gray-800/30 cursor-default'
                                     }`}
                                 whileHover={isLoggedIn ? { scale: 1.01 } : {}}
                                 whileTap={isLoggedIn ? { scale: 0.99 } : {}}
@@ -1182,7 +1239,7 @@ function EffectivenessRatingSection({ templateId, isLoggedIn, userInfo }) {
                                     {/* Radio indicator */}
                                     <div className={`flex-shrink-0 w-5 h-5 rounded-full border-2 flex items-center justify-center transition-all ${isSelected
                                         ? `${range.borderColor} ${range.bgLight}`
-                                        : 'border-gray-300'
+                                        : 'border-gray-300 dark:border-gray-600'
                                         }`}>
                                         <AnimatePresence>
                                             {isSelected && (
@@ -1208,7 +1265,7 @@ function EffectivenessRatingSection({ templateId, isLoggedIn, userInfo }) {
 
                                     {/* Count + Bar */}
                                     <div className="flex-1 flex items-center gap-2 ml-auto">
-                                        <div className="flex-1 h-1.5 bg-gray-100 rounded-full overflow-hidden">
+                                        <div className="flex-1 h-1.5 bg-gray-100 dark:bg-gray-800 rounded-full overflow-hidden">
                                             <motion.div
                                                 className={`h-full rounded-full bg-gradient-to-r ${range.color}`}
                                                 initial={{ width: 0 }}
@@ -1216,7 +1273,7 @@ function EffectivenessRatingSection({ templateId, isLoggedIn, userInfo }) {
                                                 transition={{ duration: 0.6, ease: [0.22, 1, 0.36, 1], delay: 0.15 + i * 0.06 }}
                                             />
                                         </div>
-                                        <span className={`text-xs font-medium w-8 text-right tabular-nums ${isSelected ? range.textColor : 'text-gray-400'
+                                        <span className={`text-xs font-medium w-8 text-right tabular-nums ${isSelected ? range.textColor : 'text-gray-400 dark:text-gray-500'
                                             }`}>
                                             {count}
                                         </span>
@@ -1229,9 +1286,9 @@ function EffectivenessRatingSection({ templateId, isLoggedIn, userInfo }) {
 
                 {/* Login prompt for non-authenticated */}
                 {!isLoggedIn && (
-                    <div className="mt-4 p-3 bg-gray-50 border border-gray-200 rounded-xl text-center">
-                        <p className="text-xs text-gray-500">
-                            <Link to="/login" className="text-indigo-600 hover:text-indigo-700 font-semibold">Login</Link> to rate this template
+                    <div className="mt-4 p-3 bg-gray-50 dark:bg-gray-800/50 border border-gray-200 dark:border-gray-700 rounded-xl text-center">
+                        <p className="text-xs text-gray-500 dark:text-gray-400">
+                            <Link to="/login" className="text-indigo-600 dark:text-indigo-400 hover:text-indigo-700 dark:hover:text-indigo-300 font-semibold">Login</Link> to rate this template
                         </p>
                     </div>
                 )}
@@ -1239,13 +1296,13 @@ function EffectivenessRatingSection({ templateId, isLoggedIn, userInfo }) {
                 {/* Confirmation for logged-in user */}
                 {isLoggedIn && selectedRange && (
                     <motion.div
-                        className="mt-4 flex items-center gap-2 text-xs text-gray-500"
+                        className="mt-4 flex items-center gap-2 text-xs text-gray-500 dark:text-gray-400"
                         initial={{ opacity: 0 }}
                         animate={{ opacity: 1 }}
                     >
                         <Check className="w-3.5 h-3.5 text-emerald-500" />
-                        <span>Your rating: <strong className="text-gray-700">{RATING_RANGES.find(r => r.key === selectedRange)?.label}</strong></span>
-                        <span className="text-gray-400">· Tap another to change</span>
+                        <span>Your rating: <strong className="text-gray-700 dark:text-gray-300">{RATING_RANGES.find(r => r.key === selectedRange)?.label}</strong></span>
+                        <span className="text-gray-400 dark:text-gray-500">· Tap another to change</span>
                     </motion.div>
                 )}
             </div>
@@ -1325,10 +1382,10 @@ function UpvoteButton({ templateId, isLoggedIn, userInfo }) {
             onClick={handleToggle}
             disabled={toggling}
             className={`inline-flex items-center gap-2.5 px-5 py-2.5 rounded-xl font-semibold text-sm transition-all duration-200 border-2 ${hasUpvoted
-                ? 'bg-indigo-50 text-indigo-700 border-indigo-200 shadow-sm shadow-indigo-100'
+                ? 'bg-indigo-50 dark:bg-indigo-900/30 text-indigo-700 dark:text-indigo-400 border-indigo-200 dark:border-indigo-800 shadow-sm shadow-indigo-100 dark:shadow-none'
                 : isLoggedIn
-                    ? 'bg-white text-gray-600 border-gray-200 hover:border-indigo-200 hover:text-indigo-600 hover:bg-indigo-50/50'
-                    : 'bg-gray-50 text-gray-400 border-gray-150 cursor-default'
+                    ? 'bg-white dark:bg-gray-800 text-gray-600 dark:text-gray-300 border-gray-200 dark:border-gray-700 hover:border-indigo-200 dark:hover:border-indigo-800 hover:text-indigo-600 dark:hover:text-indigo-400 hover:bg-indigo-50/50 dark:hover:bg-indigo-900/20'
+                    : 'bg-gray-50 dark:bg-gray-800/50 text-gray-400 dark:text-gray-500 border-gray-100 dark:border-gray-800 cursor-default'
                 }`}
             whileHover={isLoggedIn ? { scale: 1.03, y: -1 } : {}}
             whileTap={isLoggedIn ? { scale: 0.97 } : {}}
@@ -1376,7 +1433,7 @@ function CollapsibleText({ text, clampLines = 3 }) {
         <div>
             <div
                 ref={!expanded ? textRef : undefined}
-                className="text-sm text-gray-700 leading-relaxed transition-all duration-300 overflow-hidden"
+                className="text-sm text-gray-700 dark:text-gray-300 leading-relaxed transition-all duration-300 overflow-hidden"
                 style={!expanded ? {
                     display: '-webkit-box',
                     WebkitLineClamp: clampLines,
@@ -1389,7 +1446,7 @@ function CollapsibleText({ text, clampLines = 3 }) {
             {(isClamped || expanded) && (
                 <button
                     onClick={() => setExpanded(prev => !prev)}
-                    className="mt-2 inline-flex items-center gap-1 text-xs font-semibold text-indigo-600 hover:text-indigo-700 transition-colors group"
+                    className="mt-2 inline-flex items-center gap-1 text-xs font-semibold text-indigo-600 dark:text-indigo-400 hover:text-indigo-700 dark:hover:text-indigo-300 transition-colors group"
                 >
                     {expanded ? (
                         <>
@@ -1423,20 +1480,20 @@ function TemplateInfoCard({ template, isLoggedIn }) {
 
     return (
         <motion.div
-            className="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden sticky top-6"
+            className="bg-white dark:bg-gray-900 rounded-2xl shadow-sm border border-gray-100 dark:border-gray-800 overflow-hidden sticky top-6"
             {...staggerItem}
         >
             {/* Card Header */}
             <div className="px-5 pt-5 pb-0">
                 <div className="flex items-center gap-3 mb-4">
-                    <div className="p-2 bg-gradient-to-br from-indigo-100 to-violet-100 rounded-xl">
-                        <Sparkles className="w-5 h-5 text-indigo-600" />
+                    <div className="p-2 bg-gradient-to-br from-indigo-100 to-violet-100 dark:from-indigo-900/30 dark:to-violet-900/30 rounded-xl">
+                        <Sparkles className="w-5 h-5 text-indigo-600 dark:text-indigo-400" />
                     </div>
-                    <h3 className="text-lg font-bold text-gray-900">Template Info</h3>
+                    <h3 className="text-lg font-bold text-gray-900 dark:text-white">Template Info</h3>
                 </div>
 
                 {/* Tabs */}
-                <div className="flex gap-1 p-1 bg-gray-100/80 rounded-xl">
+                <div className="flex gap-1 p-1 bg-gray-100/80 dark:bg-gray-800/80 rounded-xl">
                     {tabs.map(tab => {
                         const Icon = tab.icon;
                         const isActive = activeTab === tab.key;
@@ -1445,8 +1502,8 @@ function TemplateInfoCard({ template, isLoggedIn }) {
                                 key={tab.key}
                                 onClick={() => setActiveTab(tab.key)}
                                 className={`flex-1 flex items-center justify-center gap-1.5 px-3 py-2 text-xs font-semibold rounded-lg transition-all duration-200 ${isActive
-                                    ? 'bg-white text-indigo-700 shadow-sm'
-                                    : 'text-gray-500 hover:text-gray-700 hover:bg-white/50'
+                                    ? 'bg-white dark:bg-gray-700 text-indigo-700 dark:text-indigo-400 shadow-sm'
+                                    : 'text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-200 hover:bg-white/50 dark:hover:bg-gray-700/50'
                                     }`}
                                 id={`template-info-tab-${tab.key}`}
                             >
@@ -1472,10 +1529,10 @@ function TemplateInfoCard({ template, isLoggedIn }) {
                         >
                             {/* Output Format – card with CollapsibleText */}
                             {template.outputFormat && (
-                                <div className="p-4 rounded-xl bg-gradient-to-br from-indigo-50/80 to-blue-50/40 border border-indigo-100">
+                                <div className="p-4 rounded-xl bg-gradient-to-br from-indigo-50/80 to-blue-50/40 dark:from-indigo-900/20 dark:to-blue-900/10 border border-indigo-100 dark:border-indigo-800">
                                     <div className="flex items-center gap-2 mb-2.5">
-                                        <Layout className="w-4 h-4 text-indigo-600" />
-                                        <span className="text-sm font-bold text-indigo-900">Output Format</span>
+                                        <Layout className="w-4 h-4 text-indigo-600 dark:text-indigo-400" />
+                                        <span className="text-sm font-bold text-indigo-900 dark:text-indigo-300">Output Format</span>
                                     </div>
                                     <CollapsibleText text={template.outputFormat} clampLines={3} />
                                 </div>
@@ -1483,10 +1540,10 @@ function TemplateInfoCard({ template, isLoggedIn }) {
 
                             {/* Tone – card with CollapsibleText */}
                             {template.tone && (
-                                <div className="p-4 rounded-xl bg-gradient-to-br from-amber-50/80 to-yellow-50/40 border border-amber-100">
+                                <div className="p-4 rounded-xl bg-gradient-to-br from-amber-50/80 to-yellow-50/40 dark:from-amber-900/20 dark:to-yellow-900/10 border border-amber-100 dark:border-amber-800">
                                     <div className="flex items-center gap-2 mb-2.5">
-                                        <Palette className="w-4 h-4 text-amber-600" />
-                                        <span className="text-sm font-bold text-amber-900">Tone</span>
+                                        <Palette className="w-4 h-4 text-amber-600 dark:text-amber-400" />
+                                        <span className="text-sm font-bold text-amber-900 dark:text-amber-300">Tone</span>
                                     </div>
                                     <CollapsibleText text={template.tone} clampLines={3} />
                                 </div>
@@ -1495,26 +1552,26 @@ function TemplateInfoCard({ template, isLoggedIn }) {
                             {/* Compact info rows for short values */}
                             <div className="space-y-2.5">
                                 {template.variables?.length > 0 && (
-                                    <div className="flex items-center gap-3 p-3 rounded-xl bg-gray-50/70 border border-gray-100">
-                                        <div className="flex-shrink-0 p-1.5 rounded-lg bg-emerald-50">
-                                            <Variable className="w-3.5 h-3.5 text-emerald-500" />
+                                    <div className="flex items-center gap-3 p-3 rounded-xl bg-gray-50/70 dark:bg-gray-800/50 border border-gray-100 dark:border-gray-700">
+                                        <div className="flex-shrink-0 p-1.5 rounded-lg bg-emerald-50 dark:bg-emerald-900/30">
+                                            <Variable className="w-3.5 h-3.5 text-emerald-500 dark:text-emerald-400" />
                                         </div>
-                                        <span className="text-sm text-gray-500 flex-1">Variables</span>
-                                        <span className="text-sm font-semibold px-2.5 py-1 rounded-lg bg-emerald-50 text-emerald-700">
+                                        <span className="text-sm text-gray-500 dark:text-gray-400 flex-1">Variables</span>
+                                        <span className="text-sm font-semibold px-2.5 py-1 rounded-lg bg-emerald-50 dark:bg-emerald-900/30 text-emerald-700 dark:text-emerald-400">
                                             {template.variables.length} editable
                                         </span>
                                     </div>
                                 )}
-                                <div className="flex items-center gap-3 p-3 rounded-xl bg-gray-50/70 border border-gray-100">
-                                    <div className={`flex-shrink-0 p-1.5 rounded-lg ${template.status === 'Approved' ? 'bg-emerald-50' : template.status === 'Pending' ? 'bg-amber-50' : 'bg-gray-100'
+                                <div className="flex items-center gap-3 p-3 rounded-xl bg-gray-50/70 dark:bg-gray-800/50 border border-gray-100 dark:border-gray-700">
+                                    <div className={`flex-shrink-0 p-1.5 rounded-lg ${template.status === 'Approved' ? 'bg-emerald-50 dark:bg-emerald-900/30' : template.status === 'Pending' ? 'bg-amber-50 dark:bg-amber-900/30' : 'bg-gray-100 dark:bg-gray-800'
                                         }`}>
-                                        <Tag className={`w-3.5 h-3.5 ${template.status === 'Approved' ? 'text-emerald-500' : template.status === 'Pending' ? 'text-amber-500' : 'text-gray-500'
+                                        <Tag className={`w-3.5 h-3.5 ${template.status === 'Approved' ? 'text-emerald-500 dark:text-emerald-400' : template.status === 'Pending' ? 'text-amber-500 dark:text-amber-400' : 'text-gray-500 dark:text-gray-400'
                                             }`} />
                                     </div>
-                                    <span className="text-sm text-gray-500 flex-1">Status</span>
-                                    <span className={`text-sm font-semibold px-2.5 py-1 rounded-lg ${template.status === 'Approved' ? 'bg-emerald-50 text-emerald-700'
-                                            : template.status === 'Pending' ? 'bg-amber-50 text-amber-700'
-                                                : 'bg-gray-100 text-gray-700'
+                                    <span className="text-sm text-gray-500 dark:text-gray-400 flex-1">Status</span>
+                                    <span className={`text-sm font-semibold px-2.5 py-1 rounded-lg ${template.status === 'Approved' ? 'bg-emerald-50 dark:bg-emerald-900/30 text-emerald-700 dark:text-emerald-400'
+                                        : template.status === 'Pending' ? 'bg-amber-50 dark:bg-amber-900/30 text-amber-700 dark:text-amber-400'
+                                            : 'bg-gray-100 dark:bg-gray-800 text-gray-700 dark:text-gray-300'
                                         }`}>
                                         {template.status}
                                     </span>
@@ -1533,27 +1590,27 @@ function TemplateInfoCard({ template, isLoggedIn }) {
                             className="space-y-4"
                         >
                             {template.useCase ? (
-                                <div className="p-4 rounded-xl bg-gradient-to-br from-blue-50/80 to-indigo-50/40 border border-blue-100">
+                                <div className="p-4 rounded-xl bg-gradient-to-br from-blue-50/80 to-indigo-50/40 dark:from-blue-900/20 dark:to-indigo-900/10 border border-blue-100 dark:border-blue-800">
                                     <div className="flex items-center gap-2 mb-2.5">
-                                        <Layers className="w-4 h-4 text-blue-600" />
-                                        <span className="text-sm font-bold text-blue-900">Use Case</span>
+                                        <Layers className="w-4 h-4 text-blue-600 dark:text-blue-400" />
+                                        <span className="text-sm font-bold text-blue-900 dark:text-blue-300">Use Case</span>
                                     </div>
                                     <CollapsibleText text={template.useCase} clampLines={3} />
                                 </div>
                             ) : (
                                 <div className="flex flex-col items-center justify-center py-8 text-center">
-                                    <div className="p-3 bg-gray-100 rounded-full mb-3">
-                                        <Layers className="w-5 h-5 text-gray-400" />
+                                    <div className="p-3 bg-gray-100 dark:bg-gray-800 rounded-full mb-3">
+                                        <Layers className="w-5 h-5 text-gray-400 dark:text-gray-500" />
                                     </div>
-                                    <p className="text-sm text-gray-400">No use case documented</p>
+                                    <p className="text-sm text-gray-400 dark:text-gray-500">No use case documented</p>
                                 </div>
                             )}
 
                             {template.structuralInstruction && (
-                                <div className="p-4 rounded-xl bg-gradient-to-br from-violet-50/80 to-purple-50/40 border border-violet-100">
+                                <div className="p-4 rounded-xl bg-gradient-to-br from-violet-50/80 to-purple-50/40 dark:from-violet-900/20 dark:to-purple-900/10 border border-violet-100 dark:border-violet-800">
                                     <div className="flex items-center gap-2 mb-2.5">
-                                        <FileText className="w-4 h-4 text-violet-600" />
-                                        <span className="text-sm font-bold text-violet-900">Structural Instruction</span>
+                                        <FileText className="w-4 h-4 text-violet-600 dark:text-violet-400" />
+                                        <span className="text-sm font-bold text-violet-900 dark:text-violet-300">Structural Instruction</span>
                                     </div>
                                     <CollapsibleText text={template.structuralInstruction} clampLines={3} />
                                 </div>
@@ -1571,33 +1628,33 @@ function TemplateInfoCard({ template, isLoggedIn }) {
                             className="space-y-4"
                         >
                             {template.repurposingIdeas ? (
-                                <div className="p-4 rounded-xl bg-gradient-to-br from-amber-50/80 to-orange-50/40 border border-amber-100">
+                                <div className="p-4 rounded-xl bg-gradient-to-br from-amber-50/80 to-orange-50/40 dark:from-amber-900/20 dark:to-orange-900/10 border border-amber-100 dark:border-amber-800">
                                     <div className="flex items-center gap-2 mb-2.5">
-                                        <Lightbulb className="w-4 h-4 text-amber-600" />
-                                        <span className="text-sm font-bold text-amber-900">Repurposing Ideas</span>
+                                        <Lightbulb className="w-4 h-4 text-amber-600 dark:text-amber-400" />
+                                        <span className="text-sm font-bold text-amber-900 dark:text-amber-300">Repurposing Ideas</span>
                                     </div>
                                     <CollapsibleText text={template.repurposingIdeas} clampLines={3} />
                                 </div>
                             ) : (
                                 <div className="flex flex-col items-center justify-center py-8 text-center">
-                                    <div className="p-3 bg-gray-100 rounded-full mb-3">
-                                        <Lightbulb className="w-5 h-5 text-gray-400" />
+                                    <div className="p-3 bg-gray-100 dark:bg-gray-800 rounded-full mb-3">
+                                        <Lightbulb className="w-5 h-5 text-gray-400 dark:text-gray-500" />
                                     </div>
-                                    <p className="text-sm text-gray-400">No additional info available</p>
+                                    <p className="text-sm text-gray-400 dark:text-gray-500">No additional info available</p>
                                 </div>
                             )}
 
                             {/* Created / Updated meta */}
                             <div className="grid grid-cols-2 gap-3">
-                                <div className="p-3 rounded-xl bg-gray-50 border border-gray-100 text-center">
-                                    <p className="text-[10px] uppercase tracking-wider text-gray-400 font-semibold mb-1">Created</p>
-                                    <p className="text-xs font-bold text-gray-700">
+                                <div className="p-3 rounded-xl bg-gray-50 dark:bg-gray-800/50 border border-gray-100 dark:border-gray-700 text-center">
+                                    <p className="text-[10px] uppercase tracking-wider text-gray-400 dark:text-gray-500 font-semibold mb-1">Created</p>
+                                    <p className="text-xs font-bold text-gray-700 dark:text-gray-300">
                                         {new Date(template.createdAt).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}
                                     </p>
                                 </div>
-                                <div className="p-3 rounded-xl bg-gray-50 border border-gray-100 text-center">
-                                    <p className="text-[10px] uppercase tracking-wider text-gray-400 font-semibold mb-1">Updated</p>
-                                    <p className="text-xs font-bold text-gray-700">
+                                <div className="p-3 rounded-xl bg-gray-50 dark:bg-gray-800/50 border border-gray-100 dark:border-gray-700 text-center">
+                                    <p className="text-[10px] uppercase tracking-wider text-gray-400 dark:text-gray-500 font-semibold mb-1">Updated</p>
+                                    <p className="text-xs font-bold text-gray-700 dark:text-gray-300">
                                         {new Date(template.updatedAt).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}
                                     </p>
                                 </div>
@@ -1620,8 +1677,8 @@ function TemplateInfoCard({ template, isLoggedIn }) {
                         document.getElementById('copy-prompt-btn')?.click();
                     }}
                     className={`w-full py-3.5 px-4 font-bold rounded-xl transition-all duration-200 ${isLoggedIn
-                        ? 'bg-gradient-to-r from-indigo-600 to-violet-600 hover:from-indigo-700 hover:to-violet-700 text-white shadow-lg shadow-indigo-200'
-                        : 'bg-gray-200 text-gray-400 cursor-not-allowed'
+                        ? 'bg-gradient-to-r from-indigo-600 to-violet-600 hover:from-indigo-700 hover:to-violet-700 text-white shadow-lg shadow-indigo-200 dark:shadow-indigo-900/20'
+                        : 'bg-gray-200 dark:bg-gray-800 text-gray-400 dark:text-gray-500 cursor-not-allowed'
                         }`}
                     id="sidebar-copy-btn"
                 >
@@ -1677,7 +1734,7 @@ export default function TemplateDetails() {
     // ── Loading State ──
     if (loading) {
         return (
-            <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-gray-50 to-slate-100">
+            <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-gray-50 to-slate-100 dark:from-gray-950 dark:to-gray-900">
                 <motion.div
                     className="flex flex-col items-center gap-4"
                     initial={{ opacity: 0, y: 20 }}
@@ -1685,9 +1742,9 @@ export default function TemplateDetails() {
                 >
                     <div className="relative">
                         <div className="w-16 h-16 rounded-2xl bg-gradient-to-br from-indigo-500 to-violet-500 animate-pulse" />
-                        <div className="absolute inset-0 w-16 h-16 rounded-2xl border-4 border-indigo-200 animate-spin border-t-transparent" />
+                        <div className="absolute inset-0 w-16 h-16 rounded-2xl border-4 border-indigo-200 dark:border-indigo-800 animate-spin border-t-transparent dark:border-t-transparent" />
                     </div>
-                    <p className="text-gray-500 font-medium">Loading template...</p>
+                    <p className="text-gray-500 dark:text-gray-400 font-medium">Loading template...</p>
                 </motion.div>
             </div>
         );
@@ -1696,17 +1753,17 @@ export default function TemplateDetails() {
     // ── Error State ──
     if (error) {
         return (
-            <div className="min-h-screen flex flex-col items-center justify-center bg-gradient-to-br from-gray-50 to-slate-100 text-center px-4">
+            <div className="min-h-screen flex flex-col items-center justify-center bg-gradient-to-br from-gray-50 to-slate-100 dark:from-gray-950 dark:to-gray-900 text-center px-4">
                 <motion.div
                     initial={{ opacity: 0, scale: 0.9 }}
                     animate={{ opacity: 1, scale: 1 }}
-                    className="bg-white rounded-2xl shadow-xl border border-gray-100 p-10 max-w-md"
+                    className="bg-white dark:bg-gray-900 rounded-2xl shadow-xl border border-gray-100 dark:border-gray-800 p-10 max-w-md"
                 >
-                    <div className="w-16 h-16 mx-auto mb-4 rounded-2xl bg-red-50 flex items-center justify-center">
-                        <X className="w-8 h-8 text-red-500" />
+                    <div className="w-16 h-16 mx-auto mb-4 rounded-2xl bg-red-50 dark:bg-red-900/30 flex items-center justify-center">
+                        <X className="w-8 h-8 text-red-500 dark:text-red-400" />
                     </div>
-                    <h2 className="text-2xl font-bold text-gray-900 mb-2">Template Not Found</h2>
-                    <p className="text-gray-500 mb-6">{error}</p>
+                    <h2 className="text-2xl font-bold text-gray-900 dark:text-white mb-2">Template Not Found</h2>
+                    <p className="text-gray-500 dark:text-gray-400 mb-6">{error}</p>
                     <Link
                         to="/"
                         className="inline-flex items-center gap-2 px-6 py-3 bg-indigo-600 text-white font-semibold rounded-xl hover:bg-indigo-700 transition-colors"
@@ -1720,14 +1777,14 @@ export default function TemplateDetails() {
     }
 
     return (
-        <div className="bg-gradient-to-br from-gray-50 via-slate-50 to-gray-100 min-h-screen pb-20">
+        <div className="bg-gradient-to-br from-gray-50 via-slate-50 to-gray-100 dark:from-gray-950 dark:via-gray-900 dark:to-gray-950 min-h-screen pb-20 transition-colors duration-200">
             {/* ── Hero Header ── */}
-            <div className="relative bg-gradient-to-r from-indigo-600 via-violet-600 to-purple-600 overflow-hidden">
+            <div className="relative bg-gradient-to-r from-indigo-600 via-violet-600 to-purple-600 dark:from-indigo-900 dark:via-purple-900 dark:to-indigo-950 overflow-hidden transition-colors duration-500">
                 {/* Decorative background elements */}
-                <div className="absolute inset-0 overflow-hidden">
-                    <div className="absolute -top-24 -right-24 w-96 h-96 rounded-full bg-white/5 blur-3xl" />
-                    <div className="absolute -bottom-32 -left-32 w-80 h-80 rounded-full bg-indigo-400/10 blur-3xl" />
-                    <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[600px] h-[600px] rounded-full bg-violet-500/5 blur-3xl" />
+                <div className="absolute inset-0 overflow-hidden pointer-events-none">
+                    <div className="absolute -top-24 -right-24 w-96 h-96 rounded-full bg-white/5 dark:bg-white/2 blur-3xl" />
+                    <div className="absolute -bottom-32 -left-32 w-80 h-80 rounded-full bg-indigo-400/10 dark:bg-indigo-500/5 blur-3xl" />
+                    <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[600px] h-[600px] rounded-full bg-violet-500/5 dark:bg-violet-600/5 blur-3xl" />
                 </div>
 
                 <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">

@@ -16,7 +16,7 @@ const generateSlug = (text) => {
 // @access  Public (or Protected)
 const getCategories = async (req, res) => {
     try {
-        const { search, status, industry, page = 1, limit = 10 } = req.query;
+        const { search, status, industry, llm, page = 1, limit = 10 } = req.query;
         let query = {};
 
         if (search) {
@@ -33,6 +33,19 @@ const getCategories = async (req, res) => {
 
         if (industry && industry !== 'all') {
             query.industry = industry;
+        }
+
+        if (llm && llm !== 'all') {
+            const industriesForLlm = await Industry.find({ llm }).select('_id');
+            const industryIds = industriesForLlm.map(ind => ind._id);
+            if (query.industry) {
+                // If an industry is already selected, make sure it belongs to the selected LLM
+                if (!industryIds.some(id => id.toString() === query.industry.toString())) {
+                    query.industry = null; // Will result in empty findings
+                }
+            } else {
+                query.industry = { $in: industryIds };
+            }
         }
 
         const pageNum = parseInt(page);
