@@ -2,7 +2,7 @@ import React, { useState, useEffect, useRef } from 'react';
 import { Link, useNavigate, useSearchParams } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import { dropdownVariants } from '../animations';
-import { Search, Menu, X, User, LogOut, LayoutDashboard, ChevronDown, CheckCircle, BadgeCheck, Filter, Bot, Bookmark, Sun, Moon } from 'lucide-react';
+import { Menu, X, User, LogOut, LayoutDashboard, ChevronDown, CheckCircle, BadgeCheck, Bot, Bookmark, Sun, Moon } from 'lucide-react';
 
 import { useAuth } from '../context/AuthContext';
 import RequestExpertModal from './RequestExpertModal';
@@ -11,26 +11,19 @@ import useDarkMode from '../hooks/useDarkMode';
 export default function Navbar() {
     const [isMenuOpen, setIsMenuOpen] = useState(false);
     const [isProfileOpen, setIsProfileOpen] = useState(false);
+    const [isLLMDropdownOpen, setIsLLMDropdownOpen] = useState(false);
     const [isRequestModalOpen, setIsRequestModalOpen] = useState(false);
     const { userInfo, logout } = useAuth();
     const [theme, setTheme] = useDarkMode();
     const toggleTheme = () => setTheme(theme === 'dark' ? 'light' : 'dark');
     const profileRef = useRef(null);
-    const debounceRef = useRef(null);
-    const searchParamsRef = useRef(null);
+    const llmDropdownRef = useRef(null);
     const navigate = useNavigate();
     const [searchParams] = useSearchParams();
-    searchParamsRef.current = searchParams;
 
-    // Filters State
+    // LLM State
     const [llms, setLLMs] = useState([]);
-    const [industries, setIndustries] = useState([]);
-    const [categories, setCategories] = useState([]);
-    const [searchTerm, setSearchTerm] = useState(searchParams.get('search') || '');
-
     const selectedLLM = searchParams.get('llm') || '';
-    const selectedIndustry = searchParams.get('industry') || '';
-    const selectedCategory = searchParams.get('category') || '';
 
     // Fetch LLMs on mount
     useEffect(() => {
@@ -48,80 +41,13 @@ export default function Navbar() {
         fetchLLMs();
     }, []);
 
-    // Fetch Industries based on selected LLM
-    useEffect(() => {
-        const fetchIndustries = async () => {
-            if (!selectedLLM) {
-                setIndustries([]);
-                return;
-            }
-            try {
-                const response = await fetch(`${import.meta.env.VITE_API_URL}/api/industries?limit=100&status=active&llm=${selectedLLM}`);
-                const data = await response.json();
-                if (response.ok && data.result) {
-                    setIndustries(data.result);
-                }
-            } catch (error) {
-                console.error('Failed to fetch industries:', error);
-            }
-        };
-        fetchIndustries();
-    }, [selectedLLM]);
-
-    // Fetch Categories based on selected Industry
-    useEffect(() => {
-        const fetchCategories = async () => {
-            if (!selectedIndustry) {
-                setCategories([]);
-                return;
-            }
-            try {
-                const response = await fetch(`${import.meta.env.VITE_API_URL}/api/categories?industry=${selectedIndustry}&limit=100&status=active`);
-                const data = await response.json();
-                if (response.ok && data.result) {
-                    setCategories(data.result);
-                }
-            } catch (error) {
-                console.error('Failed to fetch categories:', error);
-            }
-        };
-        fetchCategories();
-    }, [selectedIndustry]);
-
-    useEffect(() => {
-        const urlSearch = searchParams.get('search') || '';
-        setSearchTerm(prev => prev.trim() === urlSearch ? prev : urlSearch);
-    }, [searchParams]);
-
-    useEffect(() => {
-        if (debounceRef.current) clearTimeout(debounceRef.current);
-
-        debounceRef.current = setTimeout(() => {
-            const currentParams = searchParamsRef.current;
-            const currentSearch = currentParams.get('search') || '';
-            const trimmed = searchTerm.trim();
-
-            if (trimmed !== currentSearch) {
-                const params = new URLSearchParams(currentParams);
-                if (trimmed) {
-                    params.set('search', trimmed);
-                } else {
-                    params.delete('search');
-                }
-                params.delete('page');
-                navigate(`/?${params.toString()}`, { replace: true });
-            }
-        }, 300);
-
-        return () => {
-            if (debounceRef.current) clearTimeout(debounceRef.current);
-        };
-    }, [searchTerm, navigate]);
-
     useEffect(() => {
         const handleClickOutside = (event) => {
             if (profileRef.current && !profileRef.current.contains(event.target)) {
                 setIsProfileOpen(false);
+            }
+            if (llmDropdownRef.current && !llmDropdownRef.current.contains(event.target)) {
+                setIsLLMDropdownOpen(false);
             }
         };
 
@@ -136,190 +62,184 @@ export default function Navbar() {
         navigate('/login');
     };
 
-    const handleLLMChange = (e) => {
-        const newLLM = e.target.value;
-        const params = new URLSearchParams(searchParams);
-        if (newLLM) {
-            params.set('llm', newLLM);
-        } else {
-            params.delete('llm');
+    const handleLLMSelect = (llmId) => {
+        const params = new URLSearchParams();
+        if (llmId) {
+            params.set('llm', llmId);
         }
-        params.delete('industry'); // Reset industry when LLM changes
-        params.delete('category'); // Reset category when LLM changes
-        params.delete('page');
         navigate(`/?${params.toString()}`);
-    };
-
-    const handleIndustryChange = (e) => {
-        const newIndustry = e.target.value;
-        const params = new URLSearchParams(searchParams);
-        if (newIndustry) {
-            params.set('industry', newIndustry);
-        } else {
-            params.delete('industry');
-        }
-        params.delete('category'); // Reset category when industry changes
-        params.delete('page'); // Reset to page 1
-        navigate(`/?${params.toString()}`);
-    };
-
-    const handleCategoryChange = (e) => {
-        const newCategory = e.target.value;
-        const params = new URLSearchParams(searchParams);
-        if (newCategory) {
-            params.set('category', newCategory);
-        } else {
-            params.delete('category');
-        }
-        params.delete('page');
-        navigate(`/?${params.toString()}`);
-    };
-
-    const submitSearch = () => {
-        if (debounceRef.current) clearTimeout(debounceRef.current);
-        const params = new URLSearchParams(searchParams);
-        if (searchTerm.trim()) {
-            params.set('search', searchTerm.trim());
-        } else {
-            params.delete('search');
-        }
-        params.delete('page');
-        navigate(`/?${params.toString()}`);
+        setIsLLMDropdownOpen(false);
         setIsMenuOpen(false);
     };
 
-    const handleSearch = (e) => {
-        if (e.key === 'Enter') {
-            submitSearch();
-        }
+    const getSelectedLLMName = () => {
+        if (!selectedLLM) return 'Select LLM';
+        const found = llms.find(l => l._id === selectedLLM);
+        return found ? found.name : 'Select LLM';
     };
 
-    const hasFilters = selectedLLM || selectedIndustry || selectedCategory || searchTerm;
-
-    const handleReset = () => {
-        if (debounceRef.current) clearTimeout(debounceRef.current);
-        setSearchTerm('');
-        navigate('/');
+    const getSelectedLLMIcon = () => {
+        if (!selectedLLM) return null;
+        const found = llms.find(l => l._id === selectedLLM);
+        return found?.icon || null;
     };
 
     return (
         <>
-            <nav className="fixed top-0 left-0 right-0 h-16 bg-white dark:bg-gray-900 border-b border-gray-100 dark:border-gray-800 z-50 transition-colors duration-200">
+            <nav className="fixed top-0 left-0 right-0 h-16 bg-white/80 dark:bg-gray-900/80 backdrop-blur-xl border-b border-gray-200/50 dark:border-gray-800/50 z-50 transition-all duration-300">
                 <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-full">
-                    <div className="flex justify-between items-center h-full gap-4">
-                        {/* Logo */}
-                        <Link to="/" className="flex items-center gap-2 flex-shrink-0">
-                            <div className="w-8 h-8 bg-indigo-600 dark:bg-indigo-500 rounded-lg flex items-center justify-center text-white font-bold text-lg shadow-sm shadow-indigo-200 dark:shadow-none">
-                                P
+                    <div className="flex justify-between items-center h-full">
+                        {/* Left Section: Logo + Product Name */}
+                        <Link to="/" className="flex items-center gap-3 flex-shrink-0 group">
+                            <div className="relative">
+                                <div className="w-9 h-9 bg-gradient-to-br from-indigo-500 to-purple-600 rounded-xl flex items-center justify-center text-white font-bold text-lg shadow-lg shadow-indigo-200 dark:shadow-indigo-900/30 group-hover:shadow-indigo-300 dark:group-hover:shadow-indigo-800/40 transition-all duration-300 group-hover:scale-105">
+                                    P
+                                </div>
+                                <div className="absolute -inset-1 bg-gradient-to-br from-indigo-500 to-purple-600 rounded-xl opacity-0 group-hover:opacity-20 blur transition-opacity duration-300"></div>
                             </div>
-                            <span className="text-xl font-bold text-gray-900 dark:text-white hidden lg:block">PromptMarket</span>
+                            <span className="text-xl font-bold bg-gradient-to-r from-gray-900 to-gray-600 dark:from-white dark:to-gray-300 bg-clip-text text-transparent hidden sm:block">
+                                PromptMarket
+                            </span>
                         </Link>
 
-                        {/* Desktop Search & Filters */}
-                        <div className="hidden md:flex items-center flex-1 max-w-4xl gap-3 mx-4">
+                        {/* Right Section: LLM Dropdown + Theme Toggle + User */}
+                        <div className="hidden md:flex items-center gap-2">
                             {/* LLM Dropdown */}
-                            <div className="relative min-w-[130px]">
-                                <select
-                                    value={selectedLLM}
-                                    onChange={handleLLMChange}
-                                    className="w-full appearance-none pl-4 pr-8 py-2 text-sm bg-gradient-to-r from-purple-50 to-indigo-50 border border-purple-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent text-purple-700 font-medium cursor-pointer hover:from-purple-100 hover:to-indigo-100 transition-colors"
-                                >
-                                    <option value="">All LLMs</option>
-                                    {llms.map(llm => (
-                                        <option key={llm._id} value={llm._id}>{llm.name}</option>
-                                    ))}
-                                </select>
-                                <ChevronDown className="absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 text-purple-400 pointer-events-none" />
-                            </div>
-
-                            {/* Industry Dropdown */}
-                            <div className="relative min-w-[130px]">
-                                <select
-                                    value={selectedIndustry}
-                                    onChange={handleIndustryChange}
-                                    disabled={!selectedLLM}
-                                    className={`w-full appearance-none pl-4 pr-8 py-2 text-sm border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent text-gray-700 font-medium transition-colors ${!selectedLLM ? 'bg-gray-100 text-gray-400 cursor-not-allowed' : 'bg-gray-50 cursor-pointer hover:bg-gray-100'}`}
-                                >
-                                    <option value="">All Industries</option>
-                                    {industries.map(ind => (
-                                        <option key={ind._id} value={ind._id}>{ind.name}</option>
-                                    ))}
-                                </select>
-                                <ChevronDown className="absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400 pointer-events-none" />
-                            </div>
-
-                            {/* Category Dropdown (Dependent) */}
-                            <div className="relative min-w-[130px]">
-                                <select
-                                    value={selectedCategory}
-                                    onChange={handleCategoryChange}
-                                    disabled={!selectedIndustry}
-                                    className={`w-full appearance-none pl-4 pr-8 py-2 text-sm border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent text-gray-700 font-medium transition-colors ${!selectedIndustry ? 'bg-gray-100 text-gray-400 cursor-not-allowed' : 'bg-gray-50 cursor-pointer hover:bg-gray-100'}`}
-                                >
-                                    <option value="">All Categories</option>
-                                    {categories.map(cat => (
-                                        <option key={cat._id} value={cat._id}>{cat.name}</option>
-                                    ))}
-                                </select>
-                                <ChevronDown className="absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400 pointer-events-none" />
-                            </div>
-
-                            {/* Search Bar */}
-                            <div className="relative flex-1">
-                                <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400 pointer-events-none" />
-                                <input
-                                    type="text"
-                                    placeholder="Search templates..."
-                                    value={searchTerm}
-                                    onChange={(e) => setSearchTerm(e.target.value)}
-                                    onKeyDown={handleSearch}
-                                    className="w-full pl-9 pr-10 py-2 text-sm bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent shadow-sm text-gray-900 dark:text-gray-100"
-                                />
+                            <div className="relative" ref={llmDropdownRef}>
                                 <button
-                                    onClick={submitSearch}
-                                    type="button"
-                                    className="absolute right-2 top-1/2 -translate-y-1/2 p-1 text-gray-400 hover:text-indigo-600 rounded transition-colors"
+                                    onClick={() => setIsLLMDropdownOpen(!isLLMDropdownOpen)}
+                                    className={`flex items-center gap-2 px-4 py-2 text-sm font-medium rounded-xl border transition-all duration-200 ${
+                                        selectedLLM
+                                            ? 'bg-gradient-to-r from-purple-50 to-indigo-50 dark:from-purple-900/30 dark:to-indigo-900/30 border-purple-200 dark:border-purple-800 text-purple-700 dark:text-purple-300 shadow-sm'
+                                            : 'bg-gray-50 dark:bg-gray-800 border-gray-200 dark:border-gray-700 text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700'
+                                    }`}
                                 >
-                                    <Search className="w-4 h-4" />
+                                    {getSelectedLLMIcon() ? (
+                                        <img
+                                            src={getSelectedLLMIcon().startsWith('http') ? getSelectedLLMIcon() : `${import.meta.env.VITE_API_URL}/${getSelectedLLMIcon().replace(/\\/g, '/')}`}
+                                            alt=""
+                                            className="w-5 h-5 object-contain rounded"
+                                            onError={(e) => { e.target.style.display = 'none'; }}
+                                        />
+                                    ) : (
+                                        <Bot size={16} />
+                                    )}
+                                    <span className="max-w-[120px] truncate">{getSelectedLLMName()}</span>
+                                    <ChevronDown size={14} className={`transform transition-transform duration-200 ${isLLMDropdownOpen ? 'rotate-180' : ''}`} />
                                 </button>
+
+                                <AnimatePresence>
+                                    {isLLMDropdownOpen && (
+                                        <motion.div
+                                            variants={dropdownVariants}
+                                            initial="initial"
+                                            animate="animate"
+                                            exit="exit"
+                                            className="absolute right-0 mt-2 w-64 bg-white dark:bg-gray-900 rounded-xl shadow-2xl border border-gray-100 dark:border-gray-800 py-2 origin-top-right z-50 overflow-hidden"
+                                        >
+                                            <div className="px-3 py-2 border-b border-gray-100 dark:border-gray-800">
+                                                <p className="text-xs font-semibold text-gray-400 dark:text-gray-500 uppercase tracking-wider">Choose an LLM</p>
+                                            </div>
+                                            <div className="max-h-72 overflow-y-auto scrollbar-thin py-1">
+                                                <button
+                                                    onClick={() => handleLLMSelect('')}
+                                                    className={`w-full text-left px-4 py-2.5 text-sm flex items-center gap-3 transition-colors ${
+                                                        !selectedLLM
+                                                            ? 'bg-indigo-50 dark:bg-indigo-900/30 text-indigo-700 dark:text-indigo-300 font-medium'
+                                                            : 'text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-800'
+                                                    }`}
+                                                >
+                                                    <div className="w-7 h-7 rounded-lg bg-gray-100 dark:bg-gray-800 flex items-center justify-center">
+                                                        <Bot size={14} className="text-gray-500 dark:text-gray-400" />
+                                                    </div>
+                                                    <span>All LLMs</span>
+                                                    {!selectedLLM && (
+                                                        <div className="ml-auto w-2 h-2 bg-indigo-500 rounded-full"></div>
+                                                    )}
+                                                </button>
+                                                {llms.map(llm => (
+                                                    <button
+                                                        key={llm._id}
+                                                        onClick={() => handleLLMSelect(llm._id)}
+                                                        className={`w-full text-left px-4 py-2.5 text-sm flex items-center gap-3 transition-colors ${
+                                                            selectedLLM === llm._id
+                                                                ? 'bg-indigo-50 dark:bg-indigo-900/30 text-indigo-700 dark:text-indigo-300 font-medium'
+                                                                : 'text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-800'
+                                                        }`}
+                                                    >
+                                                        <div className="w-7 h-7 rounded-lg bg-gray-100 dark:bg-gray-800 flex items-center justify-center overflow-hidden flex-shrink-0">
+                                                            {llm.icon ? (
+                                                                <img
+                                                                    src={llm.icon.startsWith('http') ? llm.icon : `${import.meta.env.VITE_API_URL}/${llm.icon.replace(/\\/g, '/')}`}
+                                                                    alt={llm.name}
+                                                                    className="w-5 h-5 object-contain"
+                                                                    onError={(e) => { e.target.parentElement.innerHTML = `<svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="text-gray-400"><path d="M12 8V4H8"/><rect width="16" height="12" x="4" y="8" rx="2"/><path d="M2 14h2"/><path d="M20 14h2"/><path d="M15 13v2"/><path d="M9 13v2"/></svg>`; }}
+                                                                />
+                                                            ) : (
+                                                                <Bot size={14} className="text-gray-400 dark:text-gray-500" />
+                                                            )}
+                                                        </div>
+                                                        <span className="truncate">{llm.name}</span>
+                                                        {selectedLLM === llm._id && (
+                                                            <div className="ml-auto w-2 h-2 bg-indigo-500 rounded-full flex-shrink-0"></div>
+                                                        )}
+                                                    </button>
+                                                ))}
+                                            </div>
+                                        </motion.div>
+                                    )}
+                                </AnimatePresence>
                             </div>
 
-                            {hasFilters && (
-                                <button
-                                    onClick={handleReset}
-                                    className="p-2 text-gray-500 hover:text-red-500 hover:bg-red-50 rounded-lg transition-colors flex-shrink-0"
-                                    title="Reset Filters"
-                                >
-                                    <X size={20} />
-                                </button>
-                            )}
-                        </div>
+                            {/* Divider */}
+                            <div className="w-px h-6 bg-gray-200 dark:bg-gray-700 mx-1"></div>
 
-                        {/* User Profile / Actions */}
-                        <div className="hidden md:flex items-center space-x-4 flex-shrink-0">
+                            {/* Theme Toggle */}
                             <button
                                 onClick={toggleTheme}
-                                className="p-2 text-gray-500 dark:text-gray-400 hover:text-indigo-600 dark:hover:text-indigo-400 rounded-full hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors"
+                                className="relative p-2.5 rounded-xl text-gray-500 dark:text-gray-400 hover:text-indigo-600 dark:hover:text-indigo-400 hover:bg-gray-100 dark:hover:bg-gray-800 transition-all duration-200 group"
                                 aria-label="Toggle theme"
                             >
-                                {theme === 'dark' ? <Sun size={20} /> : <Moon size={20} />}
+                                <div className="relative w-5 h-5">
+                                    <Sun
+                                        size={20}
+                                        className={`absolute inset-0 transform transition-all duration-300 ${
+                                            theme === 'dark'
+                                                ? 'rotate-0 scale-100 opacity-100'
+                                                : 'rotate-90 scale-0 opacity-0'
+                                        }`}
+                                    />
+                                    <Moon
+                                        size={20}
+                                        className={`absolute inset-0 transform transition-all duration-300 ${
+                                            theme === 'dark'
+                                                ? '-rotate-90 scale-0 opacity-0'
+                                                : 'rotate-0 scale-100 opacity-100'
+                                        }`}
+                                    />
+                                </div>
                             </button>
+
+                            {/* User Account Section */}
                             {userInfo ? (
                                 <div className="relative" ref={profileRef}>
                                     <button
                                         onClick={() => setIsProfileOpen(!isProfileOpen)}
-                                        className="flex items-center space-x-2 text-gray-700 dark:text-gray-200 hover:text-indigo-600 dark:hover:text-indigo-400 focus:outline-none p-1 rounded-full hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors"
+                                        className="flex items-center gap-2 p-1.5 rounded-xl hover:bg-gray-100 dark:hover:bg-gray-800 transition-all duration-200"
                                     >
-                                        <div className="w-8 h-8 rounded-full bg-indigo-100 dark:bg-indigo-900/50 flex items-center justify-center text-indigo-600 dark:text-indigo-400 font-bold border border-indigo-200 dark:border-indigo-800 relative">
-                                            {userInfo.name ? userInfo.name.charAt(0).toUpperCase() : <User size={16} />}
+                                        <div className="w-8 h-8 rounded-xl bg-gradient-to-br from-indigo-500 to-purple-600 flex items-center justify-center text-white font-bold text-sm shadow-sm relative">
+                                            {userInfo.name ? userInfo.name.charAt(0).toUpperCase() : <User size={14} />}
                                             {userInfo.isVerifiedExpert && (
-                                                <div className="absolute -bottom-1 -right-1 bg-white rounded-full p-0.5">
-                                                    <BadgeCheck size={12} className="text-blue-600 fill-blue-50" />
+                                                <div className="absolute -bottom-0.5 -right-0.5 bg-white dark:bg-gray-900 rounded-full p-0.5">
+                                                    <BadgeCheck size={10} className="text-blue-500 fill-blue-50" />
                                                 </div>
                                             )}
                                         </div>
-                                        <span className="font-medium text-sm max-w-[100px] truncate">{userInfo.name}</span>
-                                        <ChevronDown size={14} className={`transform transition-transform ${isProfileOpen ? 'rotate-180' : ''} text-gray-400`} />
+                                        <div className="hidden lg:block text-left">
+                                            <p className="text-sm font-medium text-gray-900 dark:text-white max-w-[100px] truncate leading-tight">{userInfo.name}</p>
+                                            <p className="text-[10px] text-gray-400 dark:text-gray-500 capitalize leading-tight">{userInfo.role}</p>
+                                        </div>
+                                        <ChevronDown size={14} className={`text-gray-400 transform transition-transform ${isProfileOpen ? 'rotate-180' : ''}`} />
                                     </button>
 
                                     <AnimatePresence>
@@ -329,30 +249,37 @@ export default function Navbar() {
                                                 initial="initial"
                                                 animate="animate"
                                                 exit="exit"
-                                                className="absolute right-0 mt-2 w-60 bg-white rounded-xl shadow-xl border border-gray-100 py-2 origin-top-right z-50"
+                                                className="absolute right-0 mt-2 w-64 bg-white dark:bg-gray-900 rounded-xl shadow-2xl border border-gray-100 dark:border-gray-800 py-2 origin-top-right z-50"
                                             >
-                                                <div className="px-4 py-3 border-b border-gray-50 bg-gray-50/50">
-                                                    <p className="text-sm font-bold text-gray-900 truncate">{userInfo.name}</p>
-                                                    <p className="text-xs text-gray-500 truncate">{userInfo.email}</p>
-                                                    <div className={`mt-2 inline-flex items-center px-2 py-0.5 rounded text-xs font-medium capitalize border gap-1 ${userInfo.role === 'Expert' && userInfo.isVerifiedExpert
-                                                        ? 'bg-blue-50 text-blue-700 border-blue-100'
-                                                        : 'bg-indigo-50 text-indigo-700 border-indigo-100'}`}>
+                                                <div className="px-4 py-3 border-b border-gray-100 dark:border-gray-800">
+                                                    <div className="flex items-center gap-3">
+                                                        <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-indigo-500 to-purple-600 flex items-center justify-center text-white font-bold shadow-sm">
+                                                            {userInfo.name ? userInfo.name.charAt(0).toUpperCase() : <User size={16} />}
+                                                        </div>
+                                                        <div className="flex-1 min-w-0">
+                                                            <p className="text-sm font-bold text-gray-900 dark:text-white truncate">{userInfo.name}</p>
+                                                            <p className="text-xs text-gray-500 dark:text-gray-400 truncate">{userInfo.email}</p>
+                                                        </div>
+                                                    </div>
+                                                    <div className={`mt-2 inline-flex items-center px-2.5 py-1 rounded-lg text-xs font-medium capitalize gap-1 ${userInfo.role === 'Expert' && userInfo.isVerifiedExpert
+                                                        ? 'bg-blue-50 dark:bg-blue-900/30 text-blue-700 dark:text-blue-300'
+                                                        : 'bg-indigo-50 dark:bg-indigo-900/30 text-indigo-700 dark:text-indigo-300'}`}>
                                                         {userInfo.role === 'Expert'
                                                             ? (userInfo.isVerifiedExpert
-                                                                ? <><BadgeCheck size={12} className="text-blue-600" /> Verified Expert</>
+                                                                ? <><BadgeCheck size={12} className="text-blue-600 dark:text-blue-400" /> Verified Expert</>
                                                                 : 'Expert (Provisional)')
                                                             : userInfo.role}
                                                     </div>
                                                 </div>
 
-                                                <div className="py-2">
+                                                <div className="py-1">
                                                     {['Admin', 'Expert'].includes(userInfo.role) ? (
                                                         <Link
                                                             to="/dashboard"
-                                                            className="px-4 py-2 text-sm text-gray-700 hover:bg-indigo-50 hover:text-indigo-600 flex items-center transition-colors"
+                                                            className="px-4 py-2.5 text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-800 hover:text-indigo-600 dark:hover:text-indigo-400 flex items-center gap-3 transition-colors"
                                                             onClick={() => setIsProfileOpen(false)}
                                                         >
-                                                            <LayoutDashboard size={16} className="mr-3" />
+                                                            <LayoutDashboard size={16} />
                                                             Dashboard
                                                         </Link>
                                                     ) : (
@@ -361,38 +288,38 @@ export default function Navbar() {
                                                                 setIsProfileOpen(false);
                                                                 setIsRequestModalOpen(true);
                                                             }}
-                                                            className="w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-indigo-50 hover:text-indigo-600 flex items-center transition-colors"
+                                                            className="w-full text-left px-4 py-2.5 text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-800 hover:text-indigo-600 dark:hover:text-indigo-400 flex items-center gap-3 transition-colors"
                                                         >
-                                                            <CheckCircle size={16} className="mr-3" />
+                                                            <CheckCircle size={16} />
                                                             Become an Expert
                                                         </button>
                                                     )}
 
                                                     <Link
                                                         to="/my-library"
-                                                        className="px-4 py-2 text-sm text-gray-700 hover:bg-indigo-50 hover:text-indigo-600 flex items-center transition-colors"
+                                                        className="px-4 py-2.5 text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-800 hover:text-indigo-600 dark:hover:text-indigo-400 flex items-center gap-3 transition-colors"
                                                         onClick={() => setIsProfileOpen(false)}
                                                     >
-                                                        <Bookmark size={16} className="mr-3" />
+                                                        <Bookmark size={16} />
                                                         My Library
                                                     </Link>
 
                                                     <Link
                                                         to="/profile"
-                                                        className="px-4 py-2 text-sm text-gray-700 hover:bg-indigo-50 hover:text-indigo-600 flex items-center transition-colors"
+                                                        className="px-4 py-2.5 text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-800 hover:text-indigo-600 dark:hover:text-indigo-400 flex items-center gap-3 transition-colors"
                                                         onClick={() => setIsProfileOpen(false)}
                                                     >
-                                                        <User size={16} className="mr-3" />
+                                                        <User size={16} />
                                                         Profile
                                                     </Link>
                                                 </div>
 
-                                                <div className="border-t border-gray-50 pt-2 pb-1">
+                                                <div className="border-t border-gray-100 dark:border-gray-800 pt-1 pb-1">
                                                     <button
                                                         onClick={handleLogout}
-                                                        className="w-full text-left px-4 py-2 text-sm text-red-600 hover:bg-red-50 flex items-center transition-colors"
+                                                        className="w-full text-left px-4 py-2.5 text-sm text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-900/20 flex items-center gap-3 transition-colors"
                                                     >
-                                                        <LogOut size={16} className="mr-3" />
+                                                        <LogOut size={16} />
                                                         Sign out
                                                     </button>
                                                 </div>
@@ -401,32 +328,28 @@ export default function Navbar() {
                                     </AnimatePresence>
                                 </div>
                             ) : (
-                                <div className="flex items-center gap-3">
-                                    <Link to="/login" className="text-gray-600 hover:text-gray-900 font-medium text-sm px-3 py-2 rounded-lg hover:bg-gray-50 transition-colors">Log in</Link>
-                                    <Link to="/signup" className="bg-indigo-600 text-white px-4 py-2 rounded-lg text-sm font-bold hover:bg-indigo-700 transition-colors shadow-lg shadow-indigo-200 hover:shadow-indigo-300 transform active:scale-95">
+                                <div className="flex items-center gap-2">
+                                    <Link to="/login" className="text-gray-600 dark:text-gray-300 hover:text-gray-900 dark:hover:text-white font-medium text-sm px-4 py-2 rounded-xl hover:bg-gray-100 dark:hover:bg-gray-800 transition-all duration-200">
+                                        Log in
+                                    </Link>
+                                    <Link to="/signup" className="bg-gradient-to-r from-indigo-600 to-purple-600 text-white px-5 py-2 rounded-xl text-sm font-bold hover:from-indigo-700 hover:to-purple-700 transition-all duration-200 shadow-lg shadow-indigo-200/50 dark:shadow-indigo-900/30 hover:shadow-indigo-300/50 transform active:scale-95">
                                         Sign up
                                     </Link>
                                 </div>
                             )}
                         </div>
 
-                        {/* Mobile Menu Button */}
-                        <div className="flex items-center gap-2 md:hidden">
+                        {/* Mobile: Theme + Menu Button */}
+                        <div className="flex items-center gap-1 md:hidden">
                             <button
                                 onClick={toggleTheme}
-                                className="p-2 text-gray-600 dark:text-gray-400 hover:bg-gray-50 dark:hover:bg-gray-800 rounded-lg"
+                                className="p-2 text-gray-500 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-800 rounded-xl transition-colors"
                                 aria-label="Toggle theme"
                             >
                                 {theme === 'dark' ? <Sun size={20} /> : <Moon size={20} />}
                             </button>
                             <button
-                                className="p-2 text-gray-600 dark:text-gray-400 hover:bg-gray-50 dark:hover:bg-gray-800 rounded-lg"
-                                onClick={() => setIsMenuOpen(true)}
-                            >
-                                <Search className="w-5 h-5" />
-                            </button>
-                            <button
-                                className="p-2 text-gray-600 dark:text-gray-400 hover:bg-gray-50 dark:hover:bg-gray-800 rounded-lg"
+                                className="p-2 text-gray-500 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-800 rounded-xl transition-colors"
                                 onClick={() => setIsMenuOpen(!isMenuOpen)}
                             >
                                 {isMenuOpen ? <X className="w-6 h-6" /> : <Menu className="w-6 h-6" />}
@@ -442,126 +365,102 @@ export default function Navbar() {
                             initial={{ opacity: 0, height: 0 }}
                             animate={{ opacity: 1, height: 'auto' }}
                             exit={{ opacity: 0, height: 0 }}
-                            className="absolute top-16 left-0 right-0 bg-white dark:bg-gray-900 border-b border-gray-100 dark:border-gray-800 md:hidden shadow-lg overflow-hidden max-h-[90vh] overflow-y-auto z-50"
+                            className="absolute top-16 left-0 right-0 bg-white dark:bg-gray-900 border-b border-gray-200 dark:border-gray-800 md:hidden shadow-xl overflow-hidden max-h-[85vh] overflow-y-auto z-50"
                             transition={{ duration: 0.2 }}
                         >
                             <div className="p-4 flex flex-col space-y-4">
-                                {/* Mobile Search */}
-                                <div className="relative">
-                                    <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400 pointer-events-none" />
-                                    <input
-                                        type="text"
-                                        placeholder="Search templates..."
-                                        value={searchTerm}
-                                        onChange={(e) => setSearchTerm(e.target.value)}
-                                        onKeyDown={handleSearch}
-                                        className="w-full pl-9 pr-20 py-2.5 text-sm bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent text-gray-900 dark:text-gray-100"
-                                        autoFocus
-                                    />
-                                    <button
-                                        onClick={submitSearch}
-                                        type="button"
-                                        className="absolute right-1.5 top-1/2 -translate-y-1/2 px-3 py-1.5 text-xs font-semibold bg-indigo-600 text-white rounded-md hover:bg-indigo-700 transition-colors"
-                                    >
-                                        Search
-                                    </button>
-                                </div>
-
-                                {/* Mobile Filters */}
-                                <div className="space-y-3 pb-4 border-b border-gray-100 dark:border-gray-800">
-                                    <label className="text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase">Filters</label>
-
-                                    {/* LLM Dropdown - Mobile */}
-                                    <select
-                                        value={selectedLLM}
-                                        onChange={handleLLMChange}
-                                        className="w-full px-3 py-2 text-sm bg-gradient-to-r from-purple-50 to-indigo-50 border border-purple-200 rounded-lg text-purple-700 font-medium"
-                                    >
-                                        <option value="">All LLMs</option>
-                                        {llms.map(llm => (
-                                            <option key={llm._id} value={llm._id}>{llm.name}</option>
-                                        ))}
-                                    </select>
-
-                                    <select
-                                        value={selectedIndustry}
-                                        onChange={handleIndustryChange}
-                                        disabled={!selectedLLM}
-                                        className={`w-full px-3 py-2 text-sm border border-gray-200 rounded-lg text-gray-700 ${!selectedLLM ? 'bg-gray-100 text-gray-400' : 'bg-gray-50'}`}
-                                    >
-                                        <option value="">All Industries</option>
-                                        {industries.map(ind => (
-                                            <option key={ind._id} value={ind._id}>{ind.name}</option>
-                                        ))}
-                                    </select>
-                                    <select
-                                        value={selectedCategory}
-                                        onChange={handleCategoryChange}
-                                        disabled={!selectedIndustry}
-                                        className={`w-full px-3 py-2 text-sm border border-gray-200 rounded-lg text-gray-700 ${!selectedIndustry ? 'bg-gray-100 text-gray-400' : 'bg-gray-50'}`}
-                                    >
-                                        <option value="">All Categories</option>
-                                        {categories.map(cat => (
-                                            <option key={cat._id} value={cat._id}>{cat.name}</option>
-                                        ))}
-                                    </select>
-                                    {hasFilters && (
+                                {/* Mobile LLM Selection */}
+                                <div className="space-y-2">
+                                    <label className="text-xs font-semibold text-gray-400 dark:text-gray-500 uppercase tracking-wider">Select LLM</label>
+                                    <div className="grid grid-cols-2 gap-2">
                                         <button
-                                            onClick={handleReset}
-                                            className="w-full mt-2 px-3 py-2 text-sm text-red-600 bg-red-50 border border-red-100 rounded-lg font-medium hover:bg-red-100 transition-colors flex items-center justify-center gap-2"
+                                            onClick={() => handleLLMSelect('')}
+                                            className={`px-3 py-2.5 text-sm rounded-xl border font-medium transition-all flex items-center gap-2 ${
+                                                !selectedLLM
+                                                    ? 'bg-indigo-50 dark:bg-indigo-900/30 border-indigo-200 dark:border-indigo-800 text-indigo-700 dark:text-indigo-300'
+                                                    : 'bg-gray-50 dark:bg-gray-800 border-gray-200 dark:border-gray-700 text-gray-600 dark:text-gray-400'
+                                            }`}
                                         >
-                                            <X size={16} /> Reset Filters
+                                            <Bot size={14} />
+                                            All LLMs
                                         </button>
-                                    )}
+                                        {llms.map(llm => (
+                                            <button
+                                                key={llm._id}
+                                                onClick={() => handleLLMSelect(llm._id)}
+                                                className={`px-3 py-2.5 text-sm rounded-xl border font-medium transition-all flex items-center gap-2 truncate ${
+                                                    selectedLLM === llm._id
+                                                        ? 'bg-indigo-50 dark:bg-indigo-900/30 border-indigo-200 dark:border-indigo-800 text-indigo-700 dark:text-indigo-300'
+                                                        : 'bg-gray-50 dark:bg-gray-800 border-gray-200 dark:border-gray-700 text-gray-600 dark:text-gray-400'
+                                                }`}
+                                            >
+                                                {llm.icon ? (
+                                                    <img
+                                                        src={llm.icon.startsWith('http') ? llm.icon : `${import.meta.env.VITE_API_URL}/${llm.icon.replace(/\\/g, '/')}`}
+                                                        alt=""
+                                                        className="w-4 h-4 object-contain rounded flex-shrink-0"
+                                                        onError={(e) => { e.target.style.display = 'none'; }}
+                                                    />
+                                                ) : (
+                                                    <Bot size={14} className="flex-shrink-0" />
+                                                )}
+                                                <span className="truncate">{llm.name}</span>
+                                            </button>
+                                        ))}
+                                    </div>
                                 </div>
+
+                                <div className="border-t border-gray-100 dark:border-gray-800"></div>
 
                                 {userInfo ? (
                                     <>
-                                        <div className="flex items-center space-x-3 py-2">
-                                            <div className="w-10 h-10 rounded-full bg-indigo-100 flex items-center justify-center text-indigo-600 font-bold border border-indigo-200">
-                                                {userInfo.name ? userInfo.name.charAt(0).toUpperCase() : <User size={20} />}
+                                        <div className="flex items-center gap-3 py-2">
+                                            <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-indigo-500 to-purple-600 flex items-center justify-center text-white font-bold shadow-sm">
+                                                {userInfo.name ? userInfo.name.charAt(0).toUpperCase() : <User size={18} />}
                                             </div>
                                             <div>
-                                                <p className="font-semibold text-gray-900">{userInfo.name}</p>
-                                                <p className="text-xs text-gray-500">{userInfo.email}</p>
+                                                <p className="font-semibold text-gray-900 dark:text-white">{userInfo.name}</p>
+                                                <p className="text-xs text-gray-500 dark:text-gray-400">{userInfo.email}</p>
                                             </div>
                                         </div>
 
                                         {['Admin', 'Expert'].includes(userInfo.role) ? (
-                                            <Link to="/dashboard" className="text-gray-600 font-medium py-2 flex items-center hover:text-indigo-600">
-                                                <LayoutDashboard size={18} className="mr-2" />
+                                            <Link to="/dashboard" onClick={() => setIsMenuOpen(false)} className="text-gray-600 dark:text-gray-300 font-medium py-2.5 flex items-center gap-3 hover:text-indigo-600 dark:hover:text-indigo-400 transition-colors">
+                                                <LayoutDashboard size={18} />
                                                 Dashboard
                                             </Link>
                                         ) : (
                                             <button
-                                                onClick={() => setIsRequestModalOpen(true)}
-                                                className="text-gray-600 font-medium py-2 flex items-center hover:text-indigo-600 w-full text-left"
+                                                onClick={() => { setIsMenuOpen(false); setIsRequestModalOpen(true); }}
+                                                className="text-gray-600 dark:text-gray-300 font-medium py-2.5 flex items-center gap-3 hover:text-indigo-600 dark:hover:text-indigo-400 w-full text-left transition-colors"
                                             >
-                                                <CheckCircle size={18} className="mr-2" />
+                                                <CheckCircle size={18} />
                                                 Become an Expert
                                             </button>
                                         )}
 
-                                        <Link to="/my-library" className="text-gray-600 font-medium py-2 flex items-center hover:text-indigo-600">
-                                            <Bookmark size={18} className="mr-2" />
+                                        <Link to="/my-library" onClick={() => setIsMenuOpen(false)} className="text-gray-600 dark:text-gray-300 font-medium py-2.5 flex items-center gap-3 hover:text-indigo-600 dark:hover:text-indigo-400 transition-colors">
+                                            <Bookmark size={18} />
                                             My Library
                                         </Link>
-                                        <Link to="/profile" className="text-gray-600 font-medium py-2 flex items-center hover:text-indigo-600">
-                                            <User size={18} className="mr-2" />
+                                        <Link to="/profile" onClick={() => setIsMenuOpen(false)} className="text-gray-600 dark:text-gray-300 font-medium py-2.5 flex items-center gap-3 hover:text-indigo-600 dark:hover:text-indigo-400 transition-colors">
+                                            <User size={18} />
                                             Profile
                                         </Link>
                                         <button
                                             onClick={handleLogout}
-                                            className="text-red-600 font-medium py-2 text-left flex items-center hover:bg-red-50"
+                                            className="text-red-600 dark:text-red-400 font-medium py-2.5 text-left flex items-center gap-3 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-xl px-2 -mx-2 transition-colors"
                                         >
-                                            <LogOut size={18} className="mr-2" />
+                                            <LogOut size={18} />
                                             Sign out
                                         </button>
                                     </>
                                 ) : (
                                     <div className="flex flex-col gap-2 pt-2">
-                                        <Link to="/login" className="text-center text-gray-900 font-medium py-3 border border-gray-200 rounded-xl hover:bg-gray-50 bg-white">Log in</Link>
-                                        <Link to="/signup" className="text-center bg-indigo-600 text-white font-bold py-3 rounded-xl shadow-lg shadow-indigo-200">
+                                        <Link to="/login" onClick={() => setIsMenuOpen(false)} className="text-center text-gray-900 dark:text-white font-medium py-3 border border-gray-200 dark:border-gray-700 rounded-xl hover:bg-gray-50 dark:hover:bg-gray-800 bg-white dark:bg-gray-900 transition-colors">
+                                            Log in
+                                        </Link>
+                                        <Link to="/signup" onClick={() => setIsMenuOpen(false)} className="text-center bg-gradient-to-r from-indigo-600 to-purple-600 text-white font-bold py-3 rounded-xl shadow-lg shadow-indigo-200/50 dark:shadow-indigo-900/30">
                                             Sign up for free
                                         </Link>
                                     </div>
