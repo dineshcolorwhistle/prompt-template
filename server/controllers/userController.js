@@ -165,6 +165,55 @@ const getAdminDashboardOverview = async (req, res) => {
         const pendingExpertRequests = await ExpertRequest.countDocuments({ status: 'Pending' });
         const totalPromptCopiedCount = await CopyHistory.countDocuments();
 
+        // Template status distribution for donut chart
+        const templateStatusData = await Template.aggregate([
+            { $group: { _id: '$status', count: { $sum: 1 } } }
+        ]);
+        const statusDistribution = templateStatusData.map(item => ({
+            name: item._id,
+            value: item.count
+        }));
+
+        // Monthly template creation trends (last 6 months)
+        const sixMonthsAgo = new Date();
+        sixMonthsAgo.setMonth(sixMonthsAgo.getMonth() - 5);
+        sixMonthsAgo.setDate(1);
+        sixMonthsAgo.setHours(0, 0, 0, 0);
+
+        const monthlyTrends = await Template.aggregate([
+            { $match: { createdAt: { $gte: sixMonthsAgo } } },
+            {
+                $group: {
+                    _id: {
+                        year: { $year: '$createdAt' },
+                        month: { $month: '$createdAt' }
+                    },
+                    total: { $sum: 1 },
+                    approved: {
+                        $sum: { $cond: [{ $eq: ['$status', 'Approved'] }, 1, 0] }
+                    },
+                    pending: {
+                        $sum: { $cond: [{ $eq: ['$status', 'Pending'] }, 1, 0] }
+                    }
+                }
+            },
+            { $sort: { '_id.year': 1, '_id.month': 1 } }
+        ]);
+
+        const monthNames = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+        const formattedTrends = monthlyTrends.map(item => ({
+            month: monthNames[item._id.month - 1],
+            total: item.total,
+            approved: item.approved,
+            pending: item.pending
+        }));
+
+        // Recent user registrations (last 5)
+        const recentUsers = await User.find()
+            .sort({ createdAt: -1 })
+            .limit(5)
+            .select('name email role createdAt');
+
         // Recently updated template related details
         const recentTemplates = await Template.find()
             .sort({ updatedAt: -1 })
@@ -172,12 +221,23 @@ const getAdminDashboardOverview = async (req, res) => {
             .select('title status updatedAt user')
             .populate('user', 'name email');
 
+        // Approved templates count
+        const approvedCount = await Template.countDocuments({ status: 'Approved' });
+        const pendingCount = await Template.countDocuments({ status: 'Pending' });
+
         res.json({
             stats: {
                 activeUsers: activeUsersCount,
                 templates: templatesCount,
                 pendingExpertRequests: pendingExpertRequests,
-                promptCopied: totalPromptCopiedCount
+                promptCopied: totalPromptCopiedCount,
+                approvedTemplates: approvedCount,
+                pendingTemplates: pendingCount
+            },
+            chartData: {
+                statusDistribution,
+                monthlyTrends: formattedTrends,
+                recentUsers
             },
             recentActions: recentTemplates
         });

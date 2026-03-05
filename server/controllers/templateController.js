@@ -553,6 +553,27 @@ exports.getTemplateStats = async (req, res) => {
             formattedStats.total += stat.count;
         });
 
+        // Get copy prompt count for the expert's templates
+        let copyPromptCount = 0;
+        const userTemplateIds = await Template.find(match).distinct('_id');
+        if (userTemplateIds.length > 0) {
+            const CopyHistory = require('../models/CopyHistory');
+            copyPromptCount = await CopyHistory.countDocuments({
+                templateId: { $in: userTemplateIds }
+            });
+        }
+        formattedStats.copyPromptCount = copyPromptCount;
+
+        // Get recent templates for expert dashboard
+        const recentTemplates = await Template.find(match)
+            .sort({ createdAt: -1 })
+            .limit(5)
+            .select('title status createdAt category industry')
+            .populate('category', 'name')
+            .populate('industry', 'name');
+
+        formattedStats.recentTemplates = recentTemplates;
+
         res.json(formattedStats);
     } catch (error) {
         res.status(500).json({ message: error.message });
