@@ -83,9 +83,7 @@ export default function Layout({ children }) {
                                 &copy; {new Date().getFullYear()} PromptMarket Inc. All rights reserved.
                             </p>
                             <div className="flex items-center gap-1 text-sm text-gray-500">
-                                <span>Built with</span>
-                                <span className="text-red-500">♥</span>
-                                <span>for the AI community</span>
+
                             </div>
                         </div>
                     </div>
