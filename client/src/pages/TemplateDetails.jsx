@@ -5,7 +5,8 @@ import {
     ArrowLeft, Copy, Check, Lock, Edit3, Save, X, ChevronDown, ChevronUp,
     MessageSquare, Send, Reply, Shield, Award, Clock, User, Image as ImageIcon,
     ZoomIn, ChevronLeft, ChevronRight, Eye, Variable, FileText, Sparkles, Layers,
-    ThumbsUp, BarChart3, TrendingUp, Bookmark, Palette, Layout, Lightbulb, Info, Tag
+    ThumbsUp, BarChart3, TrendingUp, Bookmark, Palette, Layout, Lightbulb, Info, Tag,
+    AlertTriangle, Zap, Star, ClipboardCheck, Rocket
 } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 import toast from 'react-hot-toast';
@@ -517,20 +518,20 @@ function PromptSection({ template, userValues, isLoggedIn, userInfo, templateId 
         const handleKeyDown = (e) => {
             if ((e.ctrlKey || e.metaKey) && (e.key === 'c' || e.key === 'C')) {
                 e.preventDefault();
-                toast.error('Please login to copy prompts', { icon: '🔒' });
+                toast.error('Please login to copy prompts', { icon: <Lock className="w-4 h-4 text-gray-500" /> });
             }
         };
 
         // Block right-click context menu
         const handleContextMenu = (e) => {
             e.preventDefault();
-            toast.error('Please login to copy prompts', { icon: '🔒' });
+            toast.error('Please login to copy prompts', { icon: <Lock className="w-4 h-4 text-gray-500" /> });
         };
 
         // Intercept the native copy event
         const handleCopyEvent = (e) => {
             e.preventDefault();
-            toast.error('Please login to copy prompts', { icon: '🔒' });
+            toast.error('Please login to copy prompts', { icon: <Lock className="w-4 h-4 text-gray-500" /> });
         };
 
         // Clear any text selection made by dragging
@@ -538,7 +539,7 @@ function PromptSection({ template, userValues, isLoggedIn, userInfo, templateId 
             const selection = window.getSelection();
             if (selection && selection.toString().length > 0) {
                 selection.removeAllRanges();
-                toast.error('Please login to copy prompts', { icon: '🔒' });
+                toast.error('Please login to copy prompts', { icon: <Lock className="w-4 h-4 text-gray-500" /> });
             }
         };
 
@@ -557,7 +558,7 @@ function PromptSection({ template, userValues, isLoggedIn, userInfo, templateId 
 
     const handleCopy = async () => {
         if (!isLoggedIn) {
-            toast.error('Please login to copy prompts', { icon: '🔒' });
+            toast.error('Please login to copy prompts', { icon: <Lock className="w-4 h-4 text-gray-500" /> });
             return;
         }
 
@@ -579,7 +580,7 @@ function PromptSection({ template, userValues, isLoggedIn, userInfo, templateId 
         try {
             await navigator.clipboard.writeText(processedPrompt);
             setCopied(true);
-            toast.success('Prompt copied to clipboard!', { icon: '📋' });
+            toast.success('Prompt copied to clipboard!', { icon: <ClipboardCheck className="w-4 h-4 text-emerald-500" /> });
             setTimeout(() => setCopied(false), 2500);
 
             // Track copy event
@@ -1050,7 +1051,8 @@ const RATING_RANGES = [
         textColor: 'text-red-700 dark:text-red-400',
         borderColor: 'border-red-200 dark:border-red-800',
         ringColor: 'ring-red-100 dark:ring-red-950/50',
-        emoji: '😟'
+        icon: AlertTriangle,
+        iconColor: 'text-red-500 dark:text-red-400'
     },
     {
         key: '10-50',
@@ -1060,7 +1062,8 @@ const RATING_RANGES = [
         textColor: 'text-amber-700 dark:text-amber-400',
         borderColor: 'border-amber-200 dark:border-amber-800',
         ringColor: 'ring-amber-100 dark:ring-amber-950/50',
-        emoji: '🤔'
+        icon: Zap,
+        iconColor: 'text-amber-500 dark:text-amber-400'
     },
     {
         key: '50-80',
@@ -1070,7 +1073,8 @@ const RATING_RANGES = [
         textColor: 'text-blue-700 dark:text-blue-400',
         borderColor: 'border-blue-200 dark:border-blue-800',
         ringColor: 'ring-blue-100 dark:ring-blue-950/50',
-        emoji: '👍'
+        icon: ThumbsUp,
+        iconColor: 'text-blue-500 dark:text-blue-400'
     },
     {
         key: '80-100',
@@ -1080,7 +1084,8 @@ const RATING_RANGES = [
         textColor: 'text-emerald-700 dark:text-emerald-400',
         borderColor: 'border-emerald-200 dark:border-emerald-800',
         ringColor: 'ring-emerald-100 dark:ring-emerald-950/50',
-        emoji: '🚀'
+        icon: Rocket,
+        iconColor: 'text-emerald-500 dark:text-emerald-400'
     },
 ];
 
@@ -1111,7 +1116,7 @@ function EffectivenessRatingSection({ templateId, isLoggedIn, userInfo }) {
 
     const handleRatingSelect = async (rangeKey) => {
         if (!isLoggedIn) {
-            toast.error('Please login to rate this template', { icon: '🔒' });
+            toast.error('Please login to rate this template', { icon: <Lock className="w-4 h-4 text-gray-500" /> });
             return;
         }
         if (submitting) return;
@@ -1134,7 +1139,7 @@ function EffectivenessRatingSection({ templateId, isLoggedIn, userInfo }) {
                     previousRange && previousRange !== rangeKey
                         ? 'Rating updated!'
                         : 'Rating submitted!',
-                    { icon: '⭐' }
+                    { icon: <Star className="w-4 h-4 text-amber-500" /> }
                 );
                 fetchRatings(); // refresh aggregated data
             } else {
@@ -1254,10 +1259,10 @@ function EffectivenessRatingSection({ templateId, isLoggedIn, userInfo }) {
                                         </AnimatePresence>
                                     </div>
 
-                                    {/* Label + Emoji */}
+                                    {/* Label + Icon */}
                                     <div className="flex items-center gap-2 min-w-0">
-                                        <span className="text-base">{range.emoji}</span>
-                                        <span className={`text-sm font-semibold ${isSelected ? range.textColor : 'text-gray-700'
+                                        {(() => { const RangeIcon = range.icon; return <RangeIcon className={`w-4 h-4 ${isSelected ? range.iconColor : 'text-gray-400 dark:text-gray-500'}`} />; })()}
+                                        <span className={`text-sm font-semibold ${isSelected ? range.textColor : 'text-gray-700 dark:text-gray-300'
                                             }`}>
                                             {range.label}
                                         </span>
@@ -1339,7 +1344,7 @@ function UpvoteButton({ templateId, isLoggedIn, userInfo }) {
 
     const handleToggle = async () => {
         if (!isLoggedIn) {
-            toast.error('Please login to upvote', { icon: '🔒' });
+            toast.error('Please login to upvote', { icon: <Lock className="w-4 h-4 text-gray-500" /> });
             return;
         }
         if (toggling) return;
@@ -1671,7 +1676,7 @@ function TemplateInfoCard({ template, isLoggedIn }) {
                     whileTap={{ scale: 0.98 }}
                     onClick={() => {
                         if (!isLoggedIn) {
-                            toast.error('Please login to copy prompts', { icon: '🔒' });
+                            toast.error('Please login to copy prompts', { icon: <Lock className="w-4 h-4 text-gray-500" /> });
                             return;
                         }
                         document.getElementById('copy-prompt-btn')?.click();
