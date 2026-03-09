@@ -190,8 +190,8 @@ const MyTemplates = () => {
 
             <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
                 <div>
-                    <h1 className="text-2xl font-bold text-gray-900">My Templates</h1>
-                    <p className="text-sm text-gray-500 mt-1">Manage and organize your prompt templates.</p>
+                    <h1 className="text-2xl font-bold text-gray-900 dark:text-white">My Templates</h1>
+                    <p className="text-sm text-gray-500 dark:text-gray-400 mt-1">Manage and organize your prompt templates.</p>
                 </div>
                 <button
                     onClick={handleCreate}
@@ -203,23 +203,23 @@ const MyTemplates = () => {
             </div>
 
             {(!loading && templates.length > 0) && (
-                <div className="bg-white p-4 rounded-xl shadow-sm border border-gray-100">
+                <div className="bg-white dark:bg-gray-900 p-4 rounded-xl shadow-sm border border-gray-100 dark:border-gray-800">
                     <div className="flex flex-col lg:flex-row gap-4">
                         <div className="relative flex-1">
-                            <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" size={20} />
+                            <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 dark:text-gray-500" size={20} />
                             <input
                                 type="text"
                                 placeholder="Search your templates..."
                                 value={searchTerm}
                                 onChange={(e) => setSearchTerm(e.target.value)}
-                                className="w-full pl-9 pr-4 py-2 text-sm border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition-colors"
+                                className="w-full pl-9 pr-4 py-2 text-sm border border-gray-300 dark:border-gray-700 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition-colors bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 placeholder-gray-400 dark:placeholder-gray-500"
                             />
                         </div>
                         <div className="flex flex-wrap items-center gap-2">
                             <select
                                 value={llmFilter}
                                 onChange={(e) => setLlmFilter(e.target.value)}
-                                className="border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition-colors"
+                                className="border border-gray-300 dark:border-gray-700 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition-colors bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100"
                             >
                                 <option value="all">All LLMs</option>
                                 {llms.map(llm => (
@@ -231,7 +231,7 @@ const MyTemplates = () => {
                                 value={industryFilter}
                                 onChange={(e) => setIndustryFilter(e.target.value)}
                                 disabled={llmFilter === 'all'}
-                                className="border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition-colors disabled:bg-gray-100 disabled:text-gray-500"
+                                className="border border-gray-300 dark:border-gray-700 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition-colors disabled:bg-gray-100 dark:disabled:bg-gray-800 disabled:text-gray-500 dark:disabled:text-gray-500 bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100"
                             >
                                 <option value="all">All Industries</option>
                                 {industries.map(ind => (
@@ -243,7 +243,7 @@ const MyTemplates = () => {
                                 value={categoryFilter}
                                 onChange={(e) => setCategoryFilter(e.target.value)}
                                 disabled={industryFilter === 'all'}
-                                className="border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition-colors disabled:bg-gray-100 disabled:text-gray-500"
+                                className="border border-gray-300 dark:border-gray-700 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition-colors disabled:bg-gray-100 dark:disabled:bg-gray-800 disabled:text-gray-500 dark:disabled:text-gray-500 bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100"
                             >
                                 <option value="all">All Categories</option>
                                 {categories.map(cat => (
@@ -256,20 +256,20 @@ const MyTemplates = () => {
             )}
 
             {loading ? (
-                <div className="text-center py-12 text-gray-500">Loading templates...</div>
+                <div className="text-center py-12 text-gray-500 dark:text-gray-400">Loading templates...</div>
             ) : filteredTemplates.length === 0 ? (
                 <motion.div
                     initial={{ opacity: 0, y: 20 }}
                     animate={{ opacity: 1, y: 0 }}
-                    className="text-center py-12 bg-white rounded-xl border border-gray-100 border-dashed"
+                    className="text-center py-12 bg-white dark:bg-gray-900 rounded-xl border border-gray-100 dark:border-gray-800 border-dashed"
                 >
-                    <div className="w-12 h-12 bg-indigo-50 text-indigo-500 rounded-full flex items-center justify-center mx-auto mb-4">
+                    <div className="w-12 h-12 bg-indigo-50 dark:bg-indigo-500/15 text-indigo-500 dark:text-indigo-400 rounded-full flex items-center justify-center mx-auto mb-4">
                         <FileText size={24} />
                     </div>
-                    <h3 className="text-lg font-medium text-gray-900">
+                    <h3 className="text-lg font-medium text-gray-900 dark:text-white">
                         {templates.length === 0 ? 'No templates found' : 'No matching templates'}
                     </h3>
-                    <p className="text-gray-500 mt-1 mb-4">
+                    <p className="text-gray-500 dark:text-gray-400 mt-1 mb-4">
                         {templates.length === 0
                             ? 'Get started by creating your first prompt template.'
                             : 'Try adjusting your search terms.'}
@@ -277,7 +277,7 @@ const MyTemplates = () => {
                     {templates.length === 0 && (
                         <button
                             onClick={handleCreate}
-                            className="text-indigo-600 font-medium hover:text-indigo-700"
+                            className="text-indigo-600 dark:text-indigo-400 font-medium hover:text-indigo-700 dark:hover:text-indigo-300"
                         >
                             Create New Template
                         </button>
@@ -285,18 +285,18 @@ const MyTemplates = () => {
                     {templates.length > 0 && (
                         <button
                             onClick={() => setSearchTerm('')}
-                            className="text-indigo-600 font-medium hover:text-indigo-700"
+                            className="text-indigo-600 dark:text-indigo-400 font-medium hover:text-indigo-700 dark:hover:text-indigo-300"
                         >
                             Clear Search
                         </button>
                     )}
                 </motion.div>
             ) : (
-                <div className="bg-white border border-gray-100 rounded-xl shadow-sm overflow-hidden">
+                <div className="bg-white dark:bg-gray-900 border border-gray-100 dark:border-gray-800 rounded-xl shadow-sm overflow-hidden">
                     <div className="overflow-x-auto">
                         <table className="w-full text-left border-collapse">
                             <thead>
-                                <tr className="bg-gray-50/50 border-b border-gray-100 text-xs uppercase text-gray-500 font-semibold tracking-wider">
+                                <tr className="bg-gray-50/50 dark:bg-gray-800/50 border-b border-gray-100 dark:border-gray-800 text-xs uppercase text-gray-500 dark:text-gray-400 font-semibold tracking-wider">
                                     <th className="px-6 py-4">Title</th>
                                     <th className="px-6 py-4">Industry / Category</th>
                                     <th className="px-6 py-4">Status</th>
@@ -306,7 +306,7 @@ const MyTemplates = () => {
                             </thead>
                             <motion.tbody
                                 key={`tbody-${filteredTemplates.length}`}
-                                className="divide-y divide-gray-100"
+                                className="divide-y divide-gray-100 dark:divide-gray-800"
                                 variants={listVariants}
                                 initial="hidden"
                                 animate="show"
@@ -315,38 +315,38 @@ const MyTemplates = () => {
                                     <motion.tr
                                         key={template._id}
                                         variants={itemVariants}
-                                        className="hover:bg-gray-50 transition-colors"
+                                        className="hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors"
                                     >
                                         <td className="px-6 py-4">
-                                            <div className="font-medium text-gray-900">{template.title}</div>
-                                            <div className="text-xs text-gray-500 truncate max-w-xs">{template.description}</div>
+                                            <div className="font-medium text-gray-900 dark:text-white">{template.title}</div>
+                                            <div className="text-xs text-gray-500 dark:text-gray-400 truncate max-w-xs">{template.description}</div>
                                         </td>
                                         <td className="px-6 py-4">
-                                            <div className="text-sm text-gray-900">{template.industry?.name || '-'}</div>
-                                            <div className="text-xs text-gray-500">{template.category?.name || '-'}</div>
+                                            <div className="text-sm text-gray-900 dark:text-gray-200">{template.industry?.name || '-'}</div>
+                                            <div className="text-xs text-gray-500 dark:text-gray-400">{template.category?.name || '-'}</div>
                                         </td>
                                         <td className="px-6 py-4">
-                                            <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium border ${template.status === 'Approved' ? 'bg-green-50 text-green-700 border-green-200' :
-                                                template.status === 'Draft' ? 'bg-gray-100 text-gray-600 border-gray-200' :
-                                                    'bg-yellow-50 text-yellow-700 border-yellow-200'
+                                            <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium border ${template.status === 'Approved' ? 'bg-green-50 dark:bg-green-500/15 text-green-700 dark:text-green-400 border-green-200 dark:border-green-500/30' :
+                                                template.status === 'Draft' ? 'bg-gray-100 dark:bg-gray-700 text-gray-600 dark:text-gray-300 border-gray-200 dark:border-gray-600' :
+                                                    'bg-yellow-50 dark:bg-yellow-500/15 text-yellow-700 dark:text-yellow-400 border-yellow-200 dark:border-yellow-500/30'
                                                 }`}>
                                                 {template.status}
                                             </span>
                                         </td>
-                                        <td className="px-6 py-4 text-sm text-gray-500">
+                                        <td className="px-6 py-4 text-sm text-gray-500 dark:text-gray-400">
                                             {new Date(template.updatedAt).toLocaleDateString()}
                                         </td>
                                         <td className="px-6 py-4 text-right space-x-2">
                                             <button
                                                 onClick={() => handleEdit(template)}
-                                                className="p-1.5 text-blue-600 hover:bg-blue-50 rounded-lg transition-colors"
+                                                className="p-1.5 text-blue-600 dark:text-blue-400 hover:bg-blue-50 dark:hover:bg-blue-500/10 rounded-lg transition-colors"
                                                 title="Edit"
                                             >
                                                 <Edit2 size={16} />
                                             </button>
                                             <button
                                                 onClick={() => initiateDelete(template._id, template.title)}
-                                                className="p-1.5 text-red-600 hover:bg-red-50 rounded-lg transition-colors"
+                                                className="p-1.5 text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-500/10 rounded-lg transition-colors"
                                                 title="Delete"
                                             >
                                                 <Trash2 size={16} />

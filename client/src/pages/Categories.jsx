@@ -13,9 +13,9 @@ import ConfirmationModal from '../components/ConfirmationModal';
 const Categories = () => {
     const { userInfo } = useAuth();
     const [categories, setCategories] = useState([]);
-    const [llms, setLlms] = useState([]); // For LLM dropdowns
-    const [industries, setIndustries] = useState([]); // For filter dropdown (filtered by LLM filter)
-    const [allIndustries, setAllIndustries] = useState([]); // All industries (unfiltered)
+    const [llms, setLlms] = useState([]);
+    const [industries, setIndustries] = useState([]);
+    const [allIndustries, setAllIndustries] = useState([]);
     const [loading, setLoading] = useState(true);
 
     // Filters
@@ -35,38 +35,35 @@ const Categories = () => {
     const [currentCategory, setCurrentCategory] = useState(null);
     const [formData, setFormData] = useState({
         name: '',
-        llm: '', // LLM selection (for filtering industries)
+        llm: '',
         industry: '',
         slug: '',
         description: '',
         isActive: true
     });
-    const [formIndustries, setFormIndustries] = useState([]); // Industries in the form (filtered by form LLM)
+    const [formIndustries, setFormIndustries] = useState([]);
     const [formLoading, setFormLoading] = useState(false);
 
     // Debounce search term
     const debouncedSearchTerm = useDebounce(searchTerm, 500);
     const abortControllerRef = useRef(null);
 
-    // Fetch LLMs and all industries on mount
     useEffect(() => {
         fetchLlms();
         fetchAllIndustries();
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, []);
 
-    // When LLM filter changes, update filtered industries for the filter bar
     useEffect(() => {
         if (llmFilter === 'all') {
             setIndustries(allIndustries);
         } else {
             setIndustries(allIndustries.filter(ind => ind.llm?._id === llmFilter || ind.llm === llmFilter));
         }
-        setIndustryFilter('all'); // Reset industry filter when LLM changes
+        setIndustryFilter('all');
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [llmFilter, allIndustries]);
 
-    // When form LLM changes, fetch industries for the form
     useEffect(() => {
         if (isModalOpen) {
             fetchFormIndustries(formData.llm);
@@ -74,7 +71,6 @@ const Categories = () => {
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [formData.llm, isModalOpen]);
 
-    // Unified fetch effect: reset page on filter change, then fetch categories
     const prevFiltersRef = useRef({ debouncedSearchTerm, statusFilter, industryFilter, llmFilter });
     useEffect(() => {
         const filtersChanged =
@@ -170,7 +166,6 @@ const Categories = () => {
 
             const data = await response.json();
 
-            // Handle pagination response structure
             if (data.result) {
                 setCategories(data.result);
                 setTotalPages(data.pages);
@@ -194,7 +189,6 @@ const Categories = () => {
     const handleOpenModal = (category = null) => {
         if (category) {
             setCurrentCategory(category);
-            // Detect LLM from the populated industry
             const industryLlmId = category.industry?.llm?._id || category.industry?.llm || '';
             setFormData({
                 name: category.name,
@@ -230,12 +224,10 @@ const Categories = () => {
         setFormData(prev => {
             const newData = { ...prev, [name]: type === 'checkbox' ? checked : value };
 
-            // When LLM changes, reset industry selection
             if (name === 'llm') {
                 newData.industry = '';
             }
 
-            // Auto-generate slug logic
             if (name === 'name' && !currentCategory) {
                 newData.slug = value.toLowerCase()
                     .replace(/[^a-z0-9]+/g, '-')
@@ -260,7 +252,6 @@ const Categories = () => {
 
             const method = currentCategory ? 'PUT' : 'POST';
 
-            // Don't send llm field to backend — it's only for frontend filtering
             const { llm, ...submitData } = formData;
 
             const response = await fetch(url, {
@@ -351,8 +342,6 @@ const Categories = () => {
 
     return (
         <div className="space-y-6 relative">
-
-
             <ConfirmationModal
                 isOpen={confirmModal.isOpen}
                 title={confirmModal.title}
@@ -365,8 +354,8 @@ const Categories = () => {
 
             <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
                 <div>
-                    <h1 className="text-2xl font-bold text-gray-900">Categories</h1>
-                    <p className="text-sm text-gray-500 mt-1">Manage categories within industries.</p>
+                    <h1 className="text-2xl font-bold text-gray-900 dark:text-white">Categories</h1>
+                    <p className="text-sm text-gray-500 dark:text-gray-400 mt-1">Manage categories within industries.</p>
                 </div>
                 <button
                     onClick={() => handleOpenModal()}
@@ -378,25 +367,25 @@ const Categories = () => {
             </div>
 
             {/* Filters */}
-            <div className="flex flex-col sm:flex-row gap-4 bg-white p-4 rounded-xl shadow-sm border border-gray-100 items-center">
+            <div className="flex flex-col sm:flex-row gap-4 bg-white dark:bg-gray-900 p-4 rounded-xl shadow-sm border border-gray-100 dark:border-gray-800 items-center">
                 <div className="relative flex-1 w-full">
-                    <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" size={20} />
+                    <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 dark:text-gray-500" size={20} />
                     <input
                         type="text"
                         placeholder="Search categories..."
                         value={searchTerm}
                         onChange={(e) => setSearchTerm(e.target.value)}
-                        className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition-all"
+                        className="w-full pl-10 pr-4 py-2 border border-gray-300 dark:border-gray-700 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition-all bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 placeholder-gray-400 dark:placeholder-gray-500"
                     />
                 </div>
                 <div className="flex gap-2 w-full sm:w-auto flex-wrap">
                     {/* LLM Filter */}
                     <div className="relative flex-1 sm:w-44">
-                        <Cpu className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" size={16} />
+                        <Cpu className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 dark:text-gray-500" size={16} />
                         <select
                             value={llmFilter}
                             onChange={(e) => setLlmFilter(e.target.value)}
-                            className="w-full pl-9 pr-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent bg-white transition-colors"
+                            className="w-full pl-9 pr-4 py-2 border border-gray-300 dark:border-gray-700 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 transition-colors"
                         >
                             <option value="all">All LLMs</option>
                             {llms.map(llm => (
@@ -406,11 +395,11 @@ const Categories = () => {
                     </div>
                     {/* Industry Filter */}
                     <div className="relative flex-1 sm:w-48">
-                        <Briefcase className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" size={16} />
+                        <Briefcase className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 dark:text-gray-500" size={16} />
                         <select
                             value={industryFilter}
                             onChange={(e) => setIndustryFilter(e.target.value)}
-                            className="w-full pl-9 pr-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent bg-white transition-colors"
+                            className="w-full pl-9 pr-4 py-2 border border-gray-300 dark:border-gray-700 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 transition-colors"
                         >
                             <option value="all">All Industries</option>
                             {industries.map(ind => (
@@ -420,11 +409,11 @@ const Categories = () => {
                     </div>
                     {/* Status Filter */}
                     <div className="relative flex-1 sm:w-40">
-                        <Filter className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" size={16} />
+                        <Filter className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 dark:text-gray-500" size={16} />
                         <select
                             value={statusFilter}
                             onChange={(e) => setStatusFilter(e.target.value)}
-                            className="w-full pl-9 pr-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent bg-white transition-colors"
+                            className="w-full pl-9 pr-4 py-2 border border-gray-300 dark:border-gray-700 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 transition-colors"
                         >
                             <option value="all">All Status</option>
                             <option value="active">Active</option>
@@ -435,11 +424,11 @@ const Categories = () => {
             </div>
 
             {/* Table */}
-            <div className="bg-white border border-gray-100 rounded-xl shadow-sm overflow-hidden">
+            <div className="bg-white dark:bg-gray-900 border border-gray-100 dark:border-gray-800 rounded-xl shadow-sm overflow-hidden">
                 <div className="overflow-x-auto">
                     <table className="w-full text-left border-collapse">
                         <thead>
-                            <tr className="bg-gray-50/50 border-b border-gray-100 text-xs uppercase text-gray-500 font-semibold tracking-wider">
+                            <tr className="bg-gray-50/50 dark:bg-gray-800/50 border-b border-gray-100 dark:border-gray-800 text-xs uppercase text-gray-500 dark:text-gray-400 font-semibold tracking-wider">
                                 <th className="px-6 py-4">Name</th>
                                 <th className="px-6 py-4">LLM</th>
                                 <th className="px-6 py-4">Industry</th>
@@ -448,63 +437,63 @@ const Categories = () => {
                                 <th className="px-6 py-4 text-right">Actions</th>
                             </tr>
                         </thead>
-                        <tbody className="divide-y divide-gray-100">
+                        <tbody className="divide-y divide-gray-100 dark:divide-gray-800">
                             {loading ? (
                                 <tr>
-                                    <td colSpan="6" className="px-6 py-12 text-center text-gray-500">
+                                    <td colSpan="6" className="px-6 py-12 text-center text-gray-500 dark:text-gray-400">
                                         <div className="flex justify-center items-center flex-col">
-                                            <div className="w-8 h-8 border-4 border-indigo-200 border-t-indigo-600 rounded-full animate-spin mb-3"></div>
+                                            <div className="w-8 h-8 border-4 border-indigo-200 dark:border-indigo-800 border-t-indigo-600 rounded-full animate-spin mb-3"></div>
                                             <p>Loading categories...</p>
                                         </div>
                                     </td>
                                 </tr>
                             ) : categories.length === 0 ? (
                                 <tr>
-                                    <td colSpan="6" className="px-6 py-12 text-center text-gray-500">
+                                    <td colSpan="6" className="px-6 py-12 text-center text-gray-500 dark:text-gray-400">
                                         <div className="flex flex-col items-center justify-center">
-                                            <div className="w-12 h-12 bg-gray-100 rounded-full flex items-center justify-center mb-3">
-                                                <Search className="text-gray-400" size={24} />
+                                            <div className="w-12 h-12 bg-gray-100 dark:bg-gray-800 rounded-full flex items-center justify-center mb-3">
+                                                <Search className="text-gray-400 dark:text-gray-500" size={24} />
                                             </div>
-                                            <p className="font-medium text-gray-900">No categories found</p>
+                                            <p className="font-medium text-gray-900 dark:text-white">No categories found</p>
                                         </div>
                                     </td>
                                 </tr>
                             ) : categories.map((item) => (
                                 <tr
                                     key={item._id}
-                                    className="hover:bg-gray-50 transition-colors group"
+                                    className="hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors group"
                                 >
                                     <td className="px-6 py-4">
-                                        <span className="font-medium text-gray-900 block">{item.name}</span>
-                                        <span className="text-xs text-gray-400 font-mono">{item.slug}</span>
+                                        <span className="font-medium text-gray-900 dark:text-white block">{item.name}</span>
+                                        <span className="text-xs text-gray-400 dark:text-gray-500 font-mono">{item.slug}</span>
                                     </td>
                                     <td className="px-6 py-4">
-                                        <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-purple-50 text-purple-700">
+                                        <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-purple-50 dark:bg-purple-500/15 text-purple-700 dark:text-purple-400">
                                             {item.industry?.llm?.name || '—'}
                                         </span>
                                     </td>
                                     <td className="px-6 py-4">
-                                        <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-blue-50 text-blue-700">
+                                        <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-blue-50 dark:bg-blue-500/15 text-blue-700 dark:text-blue-400">
                                             {item.industry?.name || 'Unknown'}
                                         </span>
                                     </td>
                                     <td className="px-6 py-4">
                                         <span className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-medium border ${item.isActive
-                                            ? 'bg-green-50 text-green-700 border-green-200'
-                                            : 'bg-gray-100 text-gray-600 border-gray-200'
+                                            ? 'bg-green-50 dark:bg-green-500/15 text-green-700 dark:text-green-400 border-green-200 dark:border-green-500/30'
+                                            : 'bg-gray-100 dark:bg-gray-700 text-gray-600 dark:text-gray-300 border-gray-200 dark:border-gray-600'
                                             }`}>
                                             <div className={`w-1.5 h-1.5 rounded-full ${item.isActive ? 'bg-green-500' : 'bg-gray-400'}`}></div>
                                             {item.isActive ? 'Active' : 'Inactive'}
                                         </span>
                                     </td>
-                                    <td className="px-6 py-4 text-sm text-gray-500">
+                                    <td className="px-6 py-4 text-sm text-gray-500 dark:text-gray-400">
                                         {new Date(item.createdAt).toLocaleDateString(undefined, { year: 'numeric', month: 'short', day: 'numeric' })}
                                     </td>
                                     <td className="px-6 py-4 text-right">
                                         <div className="flex items-center justify-end gap-2 transition-opacity">
                                             <button
                                                 onClick={() => handleOpenModal(item)}
-                                                className="p-2 text-indigo-600 hover:bg-indigo-50 rounded-lg transition-colors"
+                                                className="p-2 text-indigo-600 dark:text-indigo-400 hover:bg-indigo-50 dark:hover:bg-indigo-500/10 rounded-lg transition-colors"
                                                 title="Edit"
                                             >
                                                 <Edit2 size={18} />
@@ -513,7 +502,7 @@ const Categories = () => {
                                             {item.isActive ? (
                                                 <button
                                                     onClick={() => initiateAction(item._id, item.name, item.isActive, 'deactivate')}
-                                                    className="p-2 text-orange-500 hover:bg-orange-50 rounded-lg transition-colors"
+                                                    className="p-2 text-orange-500 dark:text-orange-400 hover:bg-orange-50 dark:hover:bg-orange-500/10 rounded-lg transition-colors"
                                                     title="Deactivate"
                                                 >
                                                     <Power size={18} />
@@ -521,7 +510,7 @@ const Categories = () => {
                                             ) : (
                                                 <button
                                                     onClick={() => initiateAction(item._id, item.name, item.isActive, 'delete')}
-                                                    className="p-2 text-red-500 hover:bg-red-50 rounded-lg transition-colors"
+                                                    className="p-2 text-red-500 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-500/10 rounded-lg transition-colors"
                                                     title="Delete Permanently"
                                                 >
                                                     <Trash2 size={18} />
@@ -561,42 +550,42 @@ const Categories = () => {
                             animate={{ opacity: 1, scale: 1 }}
                             exit={{ opacity: 0, scale: 0.95 }}
                             transition={{ duration: 0.2 }}
-                            className="bg-white rounded-2xl shadow-xl w-full max-w-md overflow-hidden max-h-[90vh] overflow-y-auto"
+                            className="bg-white dark:bg-gray-900 rounded-2xl shadow-xl w-full max-w-md overflow-hidden max-h-[90vh] overflow-y-auto border border-transparent dark:border-gray-800"
                         >
-                            <div className="px-6 py-4 border-b border-gray-100 flex justify-between items-center bg-gray-50/50 sticky top-0 z-10">
-                                <h3 className="font-bold text-gray-900 text-lg">
+                            <div className="px-6 py-4 border-b border-gray-100 dark:border-gray-800 flex justify-between items-center bg-gray-50/50 dark:bg-gray-800/50 sticky top-0 z-10">
+                                <h3 className="font-bold text-gray-900 dark:text-white text-lg">
                                     {currentCategory ? 'Edit Category' : 'Add New Category'}
                                 </h3>
-                                <button onClick={handleCloseModal} className="text-gray-400 hover:text-gray-600 rounded-full p-1 hover:bg-gray-100 transition">
+                                <button onClick={handleCloseModal} className="text-gray-400 dark:text-gray-500 hover:text-gray-600 dark:hover:text-gray-300 rounded-full p-1 hover:bg-gray-100 dark:hover:bg-gray-800 transition">
                                     <X size={20} />
                                 </button>
                             </div>
 
                             <form onSubmit={handleSubmit} className="p-6 space-y-5">
-                                {/* LLM Selection (optional filter) */}
+                                {/* LLM Selection */}
                                 <div>
-                                    <label className="block text-sm font-semibold text-gray-700 mb-1.5">
-                                        LLM <span className="text-xs font-normal text-gray-400">(Filter industries)</span>
+                                    <label className="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-1.5">
+                                        LLM <span className="text-xs font-normal text-gray-400 dark:text-gray-500">(Filter industries)</span>
                                     </label>
                                     <select
                                         name="llm"
                                         value={formData.llm}
                                         onChange={handleInputChange}
-                                        className="w-full px-3 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent outline-none transition-colors"
+                                        className="w-full px-3 py-2.5 border border-gray-300 dark:border-gray-700 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent outline-none transition-colors bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100"
                                     >
                                         <option value="">All LLMs</option>
                                         {llms.map(llm => (
                                             <option key={llm._id} value={llm._id}>{llm.name}</option>
                                         ))}
                                     </select>
-                                    <p className="text-xs text-gray-500 mt-1 flex items-center gap-1">
+                                    <p className="text-xs text-gray-500 dark:text-gray-400 mt-1 flex items-center gap-1">
                                         <Info size={12} /> Select an LLM to filter the industry list below
                                     </p>
                                 </div>
 
                                 {/* Industry Selection */}
                                 <div>
-                                    <label className="block text-sm font-semibold text-gray-700 mb-1.5">
+                                    <label className="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-1.5">
                                         Industry <span className="text-red-500">*</span>
                                     </label>
                                     <select
@@ -604,7 +593,7 @@ const Categories = () => {
                                         required
                                         value={formData.industry}
                                         onChange={handleInputChange}
-                                        className="w-full px-3 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent outline-none transition-colors disabled:bg-gray-100 disabled:text-gray-500"
+                                        className="w-full px-3 py-2.5 border border-gray-300 dark:border-gray-700 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent outline-none transition-colors disabled:bg-gray-100 dark:disabled:bg-gray-800 disabled:text-gray-500 dark:disabled:text-gray-500 bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100"
                                     >
                                         <option value="">Select Industry</option>
                                         {formIndustries.map(ind => (
@@ -612,14 +601,14 @@ const Categories = () => {
                                         ))}
                                     </select>
                                     {formData.llm && formIndustries.length === 0 && (
-                                        <p className="text-xs text-amber-600 mt-1 flex items-center gap-1">
+                                        <p className="text-xs text-amber-600 dark:text-amber-400 mt-1 flex items-center gap-1">
                                             <Info size={12} /> No active industries found for the selected LLM
                                         </p>
                                     )}
                                 </div>
 
                                 <div>
-                                    <label className="block text-sm font-semibold text-gray-700 mb-1.5">
+                                    <label className="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-1.5">
                                         Category Name <span className="text-red-500">*</span>
                                     </label>
                                     <input
@@ -628,13 +617,13 @@ const Categories = () => {
                                         required
                                         value={formData.name}
                                         onChange={handleInputChange}
-                                        className="w-full px-3 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent outline-none transition-colors"
+                                        className="w-full px-3 py-2.5 border border-gray-300 dark:border-gray-700 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent outline-none transition-colors bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 placeholder-gray-400 dark:placeholder-gray-500"
                                         placeholder="e.g. AI & Robotics"
                                     />
                                 </div>
 
                                 <div>
-                                    <label className="block text-sm font-semibold text-gray-700 mb-1.5">
+                                    <label className="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-1.5">
                                         Slug <span className="text-red-500">*</span>
                                     </label>
                                     <input
@@ -643,52 +632,52 @@ const Categories = () => {
                                         required
                                         value={formData.slug}
                                         onChange={handleInputChange}
-                                        className="w-full px-3 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent outline-none transition-colors bg-gray-50 font-mono text-sm text-gray-600"
+                                        className="w-full px-3 py-2.5 border border-gray-300 dark:border-gray-700 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent outline-none transition-colors bg-gray-50 dark:bg-gray-800 font-mono text-sm text-gray-600 dark:text-gray-400"
                                         placeholder="e.g. ai-and-robotics"
                                     />
-                                    <p className="text-xs text-gray-500 mt-1.5 flex items-center gap-1">
+                                    <p className="text-xs text-gray-500 dark:text-gray-400 mt-1.5 flex items-center gap-1">
                                         <Info size={12} /> Unique identifier.
                                     </p>
                                 </div>
 
                                 <div>
-                                    <label className="block text-sm font-semibold text-gray-700 mb-1.5">
-                                        Description <span className="text-xs font-normal text-gray-400">(Optional)</span>
+                                    <label className="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-1.5">
+                                        Description <span className="text-xs font-normal text-gray-400 dark:text-gray-500">(Optional)</span>
                                     </label>
                                     <textarea
                                         name="description"
                                         value={formData.description}
                                         onChange={handleInputChange}
                                         rows="3"
-                                        className="w-full px-3 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent outline-none transition-colors resize-none"
+                                        className="w-full px-3 py-2.5 border border-gray-300 dark:border-gray-700 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent outline-none transition-colors resize-none bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 placeholder-gray-400 dark:placeholder-gray-500"
                                         placeholder="Brief description..."
                                     />
                                 </div>
 
                                 {/* Modern Toggle Switch */}
                                 <div>
-                                    <label className="block text-sm font-semibold text-gray-700 mb-3">Status</label>
+                                    <label className="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-3">Status</label>
                                     <div
                                         className="flex items-center cursor-pointer group w-fit"
                                         onClick={() => handleToggleStatus(!formData.isActive)}
                                     >
-                                        <div className={`relative w-12 h-6 transition-colors duration-200 ease-in-out rounded-full border-2 border-transparent ${formData.isActive ? 'bg-indigo-600' : 'bg-gray-200'}`}>
+                                        <div className={`relative w-12 h-6 transition-colors duration-200 ease-in-out rounded-full border-2 border-transparent ${formData.isActive ? 'bg-indigo-600' : 'bg-gray-200 dark:bg-gray-700'}`}>
                                             <span
                                                 aria-hidden="true"
                                                 className={`inline-block w-5 h-5 transform bg-white rounded-full shadow ring-0 transition duration-200 ease-in-out ${formData.isActive ? 'translate-x-6' : 'translate-x-0'}`}
                                             />
                                         </div>
-                                        <span className={`ml-3 text-sm font-medium ${formData.isActive ? 'text-gray-900' : 'text-gray-500'}`}>
+                                        <span className={`ml-3 text-sm font-medium ${formData.isActive ? 'text-gray-900 dark:text-white' : 'text-gray-500 dark:text-gray-400'}`}>
                                             {formData.isActive ? 'Active' : 'Inactive'}
                                         </span>
                                     </div>
                                 </div>
 
-                                <div className="pt-2 flex justify-end gap-3 border-t border-gray-100 mt-2">
+                                <div className="pt-2 flex justify-end gap-3 border-t border-gray-100 dark:border-gray-800 mt-2">
                                     <button
                                         type="button"
                                         onClick={handleCloseModal}
-                                        className="px-4 py-2.5 text-gray-700 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 transition font-medium text-sm"
+                                        className="px-4 py-2.5 text-gray-700 dark:text-gray-300 bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-700 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-700 transition font-medium text-sm"
                                     >
                                         Cancel
                                     </button>

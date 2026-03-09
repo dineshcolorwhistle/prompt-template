@@ -203,8 +203,8 @@ const Users = () => {
 
             <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
                 <div>
-                    <h1 className="text-2xl font-bold text-gray-900">Manage Users</h1>
-                    <p className="text-sm text-gray-500 mt-1">View users and manage administrators.</p>
+                    <h1 className="text-2xl font-bold text-gray-900 dark:text-white">Manage Users</h1>
+                    <p className="text-sm text-gray-500 dark:text-gray-400 mt-1">View users and manage administrators.</p>
                 </div>
                 <button
                     onClick={handleOpenModal}
@@ -216,23 +216,23 @@ const Users = () => {
             </div>
 
             {/* Filters */}
-            <div className="flex flex-col sm:flex-row gap-4 bg-white p-4 rounded-xl shadow-sm border border-gray-100 items-center">
+            <div className="flex flex-col sm:flex-row gap-4 bg-white dark:bg-gray-900 p-4 rounded-xl shadow-sm border border-gray-100 dark:border-gray-800 items-center">
                 <div className="relative flex-1 w-full">
-                    <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" size={20} />
+                    <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 dark:text-gray-500" size={20} />
                     <input
                         type="text"
                         placeholder="Search by user name..."
                         value={searchTerm}
                         onChange={(e) => setSearchTerm(e.target.value)}
-                        className="w-full pl-10 pr-4 py-2 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 transition-all"
+                        className="w-full pl-10 pr-4 py-2 border border-gray-200 dark:border-gray-700 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 transition-all bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 placeholder-gray-400 dark:placeholder-gray-500"
                     />
                 </div>
                 <div className="relative w-full sm:w-48">
-                    <Shield className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" size={16} />
+                    <Shield className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 dark:text-gray-500" size={16} />
                     <select
                         value={roleFilter}
                         onChange={(e) => setRoleFilter(e.target.value)}
-                        className="w-full pl-9 pr-4 py-2 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 bg-white"
+                        className="w-full pl-9 pr-4 py-2 border border-gray-200 dark:border-gray-700 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100"
                     >
                         <option value="all">All Roles</option>
                         <option value="User">User</option>
@@ -243,11 +243,11 @@ const Users = () => {
             </div>
 
             {/* Table */}
-            <div className="bg-white border border-gray-100 rounded-xl shadow-sm overflow-hidden">
+            <div className="bg-white dark:bg-gray-900 border border-gray-100 dark:border-gray-800 rounded-xl shadow-sm overflow-hidden">
                 <div className="overflow-x-auto">
                     <table className="w-full text-left border-collapse min-w-[600px]">
                         <thead>
-                            <tr className="bg-gray-50/50 border-b border-gray-100 text-xs uppercase text-gray-500 font-semibold tracking-wider">
+                            <tr className="bg-gray-50/50 dark:bg-gray-800/50 border-b border-gray-100 dark:border-gray-800 text-xs uppercase text-gray-500 dark:text-gray-400 font-semibold tracking-wider">
                                 <th className="px-6 py-4">Name</th>
                                 <th className="px-6 py-4">Email</th>
                                 <th className="px-6 py-4">Role</th>
@@ -255,62 +255,62 @@ const Users = () => {
                                 <th className="px-6 py-4 text-right">Actions</th>
                             </tr>
                         </thead>
-                        <tbody className="divide-y divide-gray-100">
+                        <tbody className="divide-y divide-gray-100 dark:divide-gray-800">
                             {loading ? (
                                 <tr>
-                                    <td colSpan="5" className="px-6 py-12 text-center text-gray-500">
+                                    <td colSpan="5" className="px-6 py-12 text-center text-gray-500 dark:text-gray-400">
                                         <div className="flex justify-center items-center flex-col">
-                                            <div className="w-8 h-8 border-4 border-indigo-200 border-t-indigo-600 rounded-full animate-spin mb-3"></div>
+                                            <div className="w-8 h-8 border-4 border-indigo-200 dark:border-indigo-800 border-t-indigo-600 rounded-full animate-spin mb-3"></div>
                                             <p>Loading users...</p>
                                         </div>
                                     </td>
                                 </tr>
                             ) : users.length === 0 ? (
                                 <tr>
-                                    <td colSpan="5" className="px-6 py-12 text-center text-gray-500">
+                                    <td colSpan="5" className="px-6 py-12 text-center text-gray-500 dark:text-gray-400">
                                         <div className="flex flex-col items-center justify-center">
-                                            <div className="w-12 h-12 bg-gray-100 rounded-full flex items-center justify-center mb-3">
-                                                <Search className="text-gray-400" size={24} />
+                                            <div className="w-12 h-12 bg-gray-100 dark:bg-gray-800 rounded-full flex items-center justify-center mb-3">
+                                                <Search className="text-gray-400 dark:text-gray-500" size={24} />
                                             </div>
-                                            <p className="font-medium text-gray-900">No users found</p>
+                                            <p className="font-medium text-gray-900 dark:text-white">No users found</p>
                                         </div>
                                     </td>
                                 </tr>
                             ) : users.map((user) => (
                                 <tr
                                     key={user._id}
-                                    className="hover:bg-gray-50 transition-colors group"
+                                    className="hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors group"
                                 >
                                     <td className="px-6 py-4">
                                         <div className="flex items-center gap-3">
-                                            <div className="w-8 h-8 rounded-full bg-indigo-100 flex items-center justify-center text-indigo-700 font-bold text-xs">
+                                            <div className="w-8 h-8 rounded-full bg-indigo-100 dark:bg-indigo-500/20 flex items-center justify-center text-indigo-700 dark:text-indigo-400 font-bold text-xs">
                                                 {(user.name || user.username || user.email || "?").charAt(0).toUpperCase()}
                                             </div>
-                                            <span className="font-medium text-gray-900">{user.name || user.username || "Unnamed User"}</span>
+                                            <span className="font-medium text-gray-900 dark:text-white">{user.name || user.username || "Unnamed User"}</span>
                                         </div>
                                     </td>
-                                    <td className="px-6 py-4 text-gray-600 flex items-center gap-2">
-                                        <Mail size={14} className="text-gray-400" />
+                                    <td className="px-6 py-4 text-gray-600 dark:text-gray-400 flex items-center gap-2">
+                                        <Mail size={14} className="text-gray-400 dark:text-gray-500" />
                                         {user.email || "No Email"}
                                     </td>
                                     <td className="px-6 py-4">
-                                        <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium border ${user.role === 'Admin' ? 'bg-purple-50 text-purple-700 border-purple-200' :
-                                            user.role === 'Expert' ? 'bg-blue-50 text-blue-700 border-blue-200' :
-                                                'bg-gray-50 text-gray-600 border-gray-200'
+                                        <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium border ${user.role === 'Admin' ? 'bg-purple-50 dark:bg-purple-500/15 text-purple-700 dark:text-purple-400 border-purple-200 dark:border-purple-500/30' :
+                                            user.role === 'Expert' ? 'bg-blue-50 dark:bg-blue-500/15 text-blue-700 dark:text-blue-400 border-blue-200 dark:border-blue-500/30' :
+                                                'bg-gray-50 dark:bg-gray-700 text-gray-600 dark:text-gray-300 border-gray-200 dark:border-gray-600'
                                             }`}>
                                             {user.role}
                                         </span>
                                     </td>
-                                    <td className="px-6 py-4 text-sm text-gray-500">
+                                    <td className="px-6 py-4 text-sm text-gray-500 dark:text-gray-400">
                                         <div className="flex items-center gap-2">
-                                            <Calendar size={14} className="text-gray-400" />
+                                            <Calendar size={14} className="text-gray-400 dark:text-gray-500" />
                                             {new Date(user.createdAt).toLocaleDateString(undefined, { year: 'numeric', month: 'short', day: 'numeric' })}
                                         </div>
                                     </td>
                                     <td className="px-6 py-4 text-right">
                                         <button
                                             onClick={() => initiateDelete(user._id, user.name)}
-                                            className="p-2 text-red-500 hover:bg-red-50 rounded-lg transition-colors"
+                                            className="p-2 text-red-500 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-500/10 rounded-lg transition-colors"
                                             title="Delete User"
                                         >
                                             <Trash2 size={18} />
@@ -348,57 +348,57 @@ const Users = () => {
                             animate={{ opacity: 1, scale: 1 }}
                             exit={{ opacity: 0, scale: 0.95 }}
                             transition={{ duration: 0.2 }}
-                            className="bg-white rounded-2xl shadow-xl w-full max-w-md overflow-hidden"
+                            className="bg-white dark:bg-gray-900 rounded-2xl shadow-xl w-full max-w-md overflow-hidden border border-transparent dark:border-gray-800"
                         >
-                            <div className="px-6 py-4 border-b border-gray-100 flex justify-between items-center bg-gray-50/50">
-                                <h3 className="font-bold text-gray-900 text-lg">Add New Admin</h3>
-                                <button onClick={handleCloseModal} className="text-gray-400 hover:text-gray-600 rounded-full p-1 hover:bg-gray-100 transition">
+                            <div className="px-6 py-4 border-b border-gray-100 dark:border-gray-800 flex justify-between items-center bg-gray-50/50 dark:bg-gray-800/50">
+                                <h3 className="font-bold text-gray-900 dark:text-white text-lg">Add New Admin</h3>
+                                <button onClick={handleCloseModal} className="text-gray-400 dark:text-gray-500 hover:text-gray-600 dark:hover:text-gray-300 rounded-full p-1 hover:bg-gray-100 dark:hover:bg-gray-800 transition">
                                     <X size={20} />
                                 </button>
                             </div>
 
                             <form onSubmit={handleSubmit} className="p-6 space-y-5">
                                 <div>
-                                    <label className="block text-sm font-semibold text-gray-700 mb-1.5">
+                                    <label className="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-1.5">
                                         Name <span className="text-red-500">*</span>
                                     </label>
                                     <div className="relative">
-                                        <User className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" size={16} />
+                                        <User className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 dark:text-gray-500" size={16} />
                                         <input
                                             type="text"
                                             name="name"
                                             required
                                             value={formData.name}
                                             onChange={handleInputChange}
-                                            className="w-full pl-10 pr-3 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 outline-none transition"
+                                            className="w-full pl-10 pr-3 py-2.5 border border-gray-300 dark:border-gray-700 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 outline-none transition bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 placeholder-gray-400 dark:placeholder-gray-500"
                                             placeholder="Full Name"
                                         />
                                     </div>
                                 </div>
 
                                 <div>
-                                    <label className="block text-sm font-semibold text-gray-700 mb-1.5">
+                                    <label className="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-1.5">
                                         Email <span className="text-red-500">*</span>
                                     </label>
                                     <div className="relative">
-                                        <Mail className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" size={16} />
+                                        <Mail className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 dark:text-gray-500" size={16} />
                                         <input
                                             type="email"
                                             name="email"
                                             required
                                             value={formData.email}
                                             onChange={handleInputChange}
-                                            className="w-full pl-10 pr-3 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 outline-none transition"
+                                            className="w-full pl-10 pr-3 py-2.5 border border-gray-300 dark:border-gray-700 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 outline-none transition bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 placeholder-gray-400 dark:placeholder-gray-500"
                                             placeholder="admin@example.com"
                                         />
                                     </div>
                                 </div>
 
-                                <div className="pt-2 flex justify-end gap-3 border-t border-gray-100 mt-2">
+                                <div className="pt-2 flex justify-end gap-3 border-t border-gray-100 dark:border-gray-800 mt-2">
                                     <button
                                         type="button"
                                         onClick={handleCloseModal}
-                                        className="px-4 py-2.5 text-gray-700 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 transition font-medium text-sm"
+                                        className="px-4 py-2.5 text-gray-700 dark:text-gray-300 bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-700 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-700 transition font-medium text-sm"
                                     >
                                         Cancel
                                     </button>

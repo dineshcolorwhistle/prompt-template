@@ -32,21 +32,21 @@ const ConfirmationModal = ({
                         initial="initial"
                         animate="animate"
                         exit="exit"
-                        className="bg-white rounded-2xl shadow-xl w-full max-w-md overflow-hidden flex flex-col"
+                        className="bg-white dark:bg-gray-900 rounded-2xl shadow-xl w-full max-w-md overflow-hidden flex flex-col border border-transparent dark:border-gray-800"
                     >
                         <div className="p-6 flex flex-col items-center text-center">
-                            <div className={`w-12 h-12 rounded-full flex items-center justify-center mb-4 ${destructive ? 'bg-red-100 text-red-600' : 'bg-blue-100 text-blue-600'}`}>
+                            <div className={`w-12 h-12 rounded-full flex items-center justify-center mb-4 ${destructive ? 'bg-red-100 dark:bg-red-500/15 text-red-600 dark:text-red-400' : 'bg-blue-100 dark:bg-blue-500/15 text-blue-600 dark:text-blue-400'}`}>
                                 <AlertTriangle size={24} />
                             </div>
 
-                            <h3 className="font-bold text-gray-900 text-lg mb-2">{title}</h3>
-                            <p className="text-gray-500 text-sm mb-6">{message}</p>
+                            <h3 className="font-bold text-gray-900 dark:text-white text-lg mb-2">{title}</h3>
+                            <p className="text-gray-500 dark:text-gray-400 text-sm mb-6">{message}</p>
 
                             <div className="flex gap-3 w-full">
                                 <button
                                     onClick={handleClose}
                                     disabled={isLoading}
-                                    className="flex-1 px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 transition disabled:opacity-50"
+                                    className="flex-1 px-4 py-2 text-sm font-medium text-gray-700 dark:text-gray-300 bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-700 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-700 transition disabled:opacity-50"
                                 >
                                     {cancelText}
                                 </button>

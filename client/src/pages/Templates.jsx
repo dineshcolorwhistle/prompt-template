@@ -164,10 +164,10 @@ const Templates = () => {
 
     const getStatusColor = (status) => {
         switch (status) {
-            case 'Approved': return 'bg-green-100 text-green-700';
-            case 'Pending': return 'bg-yellow-100 text-yellow-700';
-            case 'Rejected': return 'bg-red-100 text-red-700';
-            default: return 'bg-gray-100 text-gray-700';
+            case 'Approved': return 'bg-green-100 dark:bg-green-500/15 text-green-700 dark:text-green-400';
+            case 'Pending': return 'bg-yellow-100 dark:bg-yellow-500/15 text-yellow-700 dark:text-yellow-400';
+            case 'Rejected': return 'bg-red-100 dark:bg-red-500/15 text-red-700 dark:text-red-400';
+            default: return 'bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300';
         }
     };
 
@@ -175,8 +175,8 @@ const Templates = () => {
         <div className="space-y-6">
             <div className="flex justify-between items-center">
                 <div>
-                    <h1 className="text-2xl font-bold text-gray-900">Manage Templates</h1>
-                    <p className="text-gray-500">Create, edit, and approve templates.</p>
+                    <h1 className="text-2xl font-bold text-gray-900 dark:text-white">Manage Templates</h1>
+                    <p className="text-gray-500 dark:text-gray-400">Create, edit, and approve templates.</p>
                 </div>
                 <button
                     onClick={() => handleOpenModal()}
@@ -187,23 +187,23 @@ const Templates = () => {
                 </button>
             </div>
 
-            <div className="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden">
-                <div className="p-4 border-b border-gray-100 flex flex-col sm:flex-row sm:items-center gap-4 justify-between">
+            <div className="bg-white dark:bg-gray-900 rounded-xl shadow-sm border border-gray-100 dark:border-gray-800 overflow-hidden">
+                <div className="p-4 border-b border-gray-100 dark:border-gray-800 flex flex-col sm:flex-row sm:items-center gap-4 justify-between">
                     <div className="relative flex-1 max-w-md">
-                        <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 w-4 h-4" />
+                        <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 dark:text-gray-500 w-4 h-4" />
                         <input
                             type="text"
                             placeholder="Search templates..."
                             value={searchTerm}
                             onChange={(e) => setSearchTerm(e.target.value)}
-                            className="w-full pl-9 pr-4 py-2 text-sm border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition-colors"
+                            className="w-full pl-9 pr-4 py-2 text-sm border border-gray-300 dark:border-gray-700 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition-colors bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 placeholder-gray-400 dark:placeholder-gray-500"
                         />
                     </div>
                     <div className="flex flex-wrap items-center gap-2">
                         <select
                             value={llmFilter}
                             onChange={(e) => setLlmFilter(e.target.value)}
-                            className="border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition-colors"
+                            className="border border-gray-300 dark:border-gray-700 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition-colors bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100"
                         >
                             <option value="all">All LLMs</option>
                             {llms.map(llm => (
@@ -215,7 +215,7 @@ const Templates = () => {
                             value={industryFilter}
                             onChange={(e) => setIndustryFilter(e.target.value)}
                             disabled={llmFilter === 'all'}
-                            className="border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition-colors disabled:bg-gray-100 disabled:text-gray-500"
+                            className="border border-gray-300 dark:border-gray-700 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition-colors disabled:bg-gray-100 dark:disabled:bg-gray-800 disabled:text-gray-500 dark:disabled:text-gray-500 bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100"
                         >
                             <option value="all">All Industries</option>
                             {industries.map(ind => (
@@ -227,7 +227,7 @@ const Templates = () => {
                             value={categoryFilter}
                             onChange={(e) => setCategoryFilter(e.target.value)}
                             disabled={industryFilter === 'all'}
-                            className="border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition-colors disabled:bg-gray-100 disabled:text-gray-500"
+                            className="border border-gray-300 dark:border-gray-700 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition-colors disabled:bg-gray-100 dark:disabled:bg-gray-800 disabled:text-gray-500 dark:disabled:text-gray-500 bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100"
                         >
                             <option value="all">All Categories</option>
                             {categories.map(cat => (
@@ -235,12 +235,12 @@ const Templates = () => {
                             ))}
                         </select>
 
-                        <div className="flex items-center gap-2 border-l pl-2 border-gray-200">
-                            <Filter size={16} className="text-gray-400" />
+                        <div className="flex items-center gap-2 border-l pl-2 border-gray-200 dark:border-gray-700">
+                            <Filter size={16} className="text-gray-400 dark:text-gray-500" />
                             <select
                                 value={statusFilter}
                                 onChange={(e) => setStatusFilter(e.target.value)}
-                                className="border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition-colors"
+                                className="border border-gray-300 dark:border-gray-700 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition-colors bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100"
                             >
                                 <option value="All">All Status</option>
                                 <option value="Draft">Draft</option>
@@ -255,7 +255,7 @@ const Templates = () => {
 
                 <div className="overflow-x-auto">
                     <table className="w-full text-left text-sm">
-                        <thead className="bg-gray-50 text-gray-600 font-medium border-b border-gray-100">
+                        <thead className="bg-gray-50 dark:bg-gray-800/50 text-gray-600 dark:text-gray-400 font-medium border-b border-gray-100 dark:border-gray-800">
                             <tr>
                                 <th className="px-6 py-3">Title</th>
                                 <th className="px-6 py-3">Industry</th>
@@ -267,16 +267,16 @@ const Templates = () => {
                         </thead>
                         {loading ? (
                             <tbody>
-                                <tr><td colSpan="6" className="p-6 text-center text-gray-500">Loading templates...</td></tr>
+                                <tr><td colSpan="6" className="p-6 text-center text-gray-500 dark:text-gray-400">Loading templates...</td></tr>
                             </tbody>
                         ) : filteredTemplates.length === 0 ? (
                             <tbody>
-                                <tr><td colSpan="6" className="p-6 text-center text-gray-500">No templates found.</td></tr>
+                                <tr><td colSpan="6" className="p-6 text-center text-gray-500 dark:text-gray-400">No templates found.</td></tr>
                             </tbody>
                         ) : (
                             <motion.tbody
                                 key={`tbody-${filteredTemplates.length}`}
-                                className="divide-y divide-gray-100"
+                                className="divide-y divide-gray-100 dark:divide-gray-800"
                                 variants={listVariants}
                                 initial="hidden"
                                 animate="show"
@@ -285,12 +285,12 @@ const Templates = () => {
                                     <motion.tr
                                         key={template._id}
                                         variants={itemVariants}
-                                        className="hover:bg-gray-50 group"
+                                        className="hover:bg-gray-50 dark:hover:bg-gray-800 group"
                                     >
-                                        <td className="px-6 py-3 font-medium text-gray-900">{template.title}</td>
-                                        <td className="px-6 py-3 text-gray-600">{template.industry?.name || '-'}</td>
-                                        <td className="px-6 py-3 text-gray-600">{template.category?.name || '-'}</td>
-                                        <td className="px-6 py-3 text-gray-600">{template.user?.name || 'Unknown'}</td>
+                                        <td className="px-6 py-3 font-medium text-gray-900 dark:text-white">{template.title}</td>
+                                        <td className="px-6 py-3 text-gray-600 dark:text-gray-400">{template.industry?.name || '-'}</td>
+                                        <td className="px-6 py-3 text-gray-600 dark:text-gray-400">{template.category?.name || '-'}</td>
+                                        <td className="px-6 py-3 text-gray-600 dark:text-gray-400">{template.user?.name || 'Unknown'}</td>
                                         <td className="px-6 py-3">
                                             <span className={`px-2 py-1 rounded-full text-xs font-medium ${getStatusColor(template.status)}`}>
                                                 {template.status}
@@ -300,14 +300,14 @@ const Templates = () => {
                                             <div className="flex items-center justify-end gap-2 transition-opacity">
                                                 <button
                                                     onClick={() => handleOpenModal(template)}
-                                                    className="p-2 text-indigo-600 hover:bg-indigo-50 rounded-lg transition-colors"
+                                                    className="p-2 text-indigo-600 dark:text-indigo-400 hover:bg-indigo-50 dark:hover:bg-indigo-500/10 rounded-lg transition-colors"
                                                     title="Edit"
                                                 >
                                                     <Edit2 size={18} />
                                                 </button>
                                                 <button
                                                     onClick={() => confirmDelete(template)}
-                                                    className="p-2 text-red-500 hover:bg-red-50 rounded-lg transition-colors"
+                                                    className="p-2 text-red-500 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-500/10 rounded-lg transition-colors"
                                                     title="Delete"
                                                 >
                                                     <Trash2 size={18} />

@@ -109,25 +109,25 @@ const ExpertRequests = () => {
         setExpandedId(expandedId === id ? null : id);
     };
 
-    if (loading) return <div className="p-8 text-center text-gray-500">Loading requests...</div>;
+    if (loading) return <div className="p-8 text-center text-gray-500 dark:text-gray-400">Loading requests...</div>;
 
     return (
         <div className="space-y-6">
             <div className="flex items-center justify-between">
-                <h1 className="text-2xl font-bold text-gray-900">Expert Requests</h1>
-                <div className="flex items-center gap-3 text-sm text-gray-500">
-                    <span className="inline-flex items-center gap-1 px-2 py-1 bg-yellow-50 text-yellow-700 rounded-full text-xs font-medium">
+                <h1 className="text-2xl font-bold text-gray-900 dark:text-white">Expert Requests</h1>
+                <div className="flex items-center gap-3 text-sm text-gray-500 dark:text-gray-400">
+                    <span className="inline-flex items-center gap-1 px-2 py-1 bg-yellow-50 dark:bg-yellow-500/15 text-yellow-700 dark:text-yellow-400 rounded-full text-xs font-medium">
                         <Clock size={12} />
                         {requests.filter(r => r.status === 'Pending').length} Pending
                     </span>
                 </div>
             </div>
 
-            <div className="bg-white border border-gray-100 rounded-2xl shadow-sm overflow-hidden">
+            <div className="bg-white dark:bg-gray-900 border border-gray-100 dark:border-gray-800 rounded-2xl shadow-sm overflow-hidden">
                 <div className="overflow-x-auto">
                     <table className="w-full text-left border-collapse">
                         <thead>
-                            <tr className="bg-gray-50 border-b border-gray-100 text-xs uppercase text-gray-500 font-semibold tracking-wider">
+                            <tr className="bg-gray-50 dark:bg-gray-800/50 border-b border-gray-100 dark:border-gray-800 text-xs uppercase text-gray-500 dark:text-gray-400 font-semibold tracking-wider">
                                 <th className="px-6 py-4">User</th>
                                 <th className="px-6 py-4">Industry</th>
                                 <th className="px-6 py-4">Experience</th>
@@ -136,56 +136,56 @@ const ExpertRequests = () => {
                                 <th className="px-6 py-4 text-right">Actions</th>
                             </tr>
                         </thead>
-                        <tbody className="divide-y divide-gray-100">
+                        <tbody className="divide-y divide-gray-100 dark:divide-gray-800">
                             {requests.length === 0 ? (
                                 <tr>
-                                    <td colSpan="6" className="px-6 py-8 text-center text-gray-500">
+                                    <td colSpan="6" className="px-6 py-8 text-center text-gray-500 dark:text-gray-400">
                                         No pending requests found.
                                     </td>
                                 </tr>
                             ) : requests.map((request) => (
                                 <React.Fragment key={request._id}>
                                     <tr
-                                        className={`hover:bg-gray-50 transition-colors cursor-pointer ${expandedId === request._id ? 'bg-indigo-50/30' : ''}`}
+                                        className={`hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors cursor-pointer ${expandedId === request._id ? 'bg-indigo-50/30 dark:bg-indigo-500/5' : ''}`}
                                         onClick={() => toggleExpand(request._id)}
                                     >
                                         <td className="px-6 py-4">
                                             <div className="flex items-center">
-                                                <div className="w-8 h-8 rounded-full bg-indigo-100 flex items-center justify-center text-indigo-700 font-bold text-xs mr-3">
+                                                <div className="w-8 h-8 rounded-full bg-indigo-100 dark:bg-indigo-500/20 flex items-center justify-center text-indigo-700 dark:text-indigo-400 font-bold text-xs mr-3">
                                                     {request.user?.name?.charAt(0) || 'U'}
                                                 </div>
                                                 <div>
-                                                    <div className="font-medium text-gray-900">{request.user?.name}</div>
-                                                    <div className="text-xs text-gray-500">{request.user?.email}</div>
+                                                    <div className="font-medium text-gray-900 dark:text-white">{request.user?.name}</div>
+                                                    <div className="text-xs text-gray-500 dark:text-gray-400">{request.user?.email}</div>
                                                 </div>
                                             </div>
                                         </td>
                                         <td className="px-6 py-4">
-                                            <span className="text-sm text-gray-700 font-medium">
+                                            <span className="text-sm text-gray-700 dark:text-gray-300 font-medium">
                                                 {request.primaryIndustry || '—'}
                                             </span>
                                         </td>
                                         <td className="px-6 py-4">
-                                            <span className="text-sm text-gray-600">
+                                            <span className="text-sm text-gray-600 dark:text-gray-400">
                                                 {request.yearsOfExperience !== undefined ? `${request.yearsOfExperience} yrs` : '—'}
                                             </span>
                                         </td>
                                         <td className="px-6 py-4">
                                             <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium capitalize
-                                                ${request.status === 'Approved' ? 'bg-green-100 text-green-800' :
-                                                    request.status === 'Rejected' ? 'bg-red-100 text-red-800' :
-                                                        'bg-yellow-100 text-yellow-800'}`}>
+                                                ${request.status === 'Approved' ? 'bg-green-100 dark:bg-green-500/15 text-green-800 dark:text-green-400' :
+                                                    request.status === 'Rejected' ? 'bg-red-100 dark:bg-red-500/15 text-red-800 dark:text-red-400' :
+                                                        'bg-yellow-100 dark:bg-yellow-500/15 text-yellow-800 dark:text-yellow-400'}`}>
                                                 {request.status}
                                             </span>
                                         </td>
-                                        <td className="px-6 py-4 text-sm text-gray-500">
+                                        <td className="px-6 py-4 text-sm text-gray-500 dark:text-gray-400">
                                             {new Date(request.createdAt).toLocaleDateString()}
                                         </td>
                                         <td className="px-6 py-4 text-right" onClick={(e) => e.stopPropagation()}>
                                             <div className="flex items-center justify-end gap-1">
                                                 <button
                                                     onClick={() => toggleExpand(request._id)}
-                                                    className="p-1.5 text-gray-400 hover:text-indigo-600 hover:bg-indigo-50 rounded-lg transition-colors"
+                                                    className="p-1.5 text-gray-400 dark:text-gray-500 hover:text-indigo-600 dark:hover:text-indigo-400 hover:bg-indigo-50 dark:hover:bg-indigo-500/10 rounded-lg transition-colors"
                                                     title="View Details"
                                                 >
                                                     {expandedId === request._id ? <ChevronUp size={18} /> : <ChevronDown size={18} />}
@@ -194,14 +194,14 @@ const ExpertRequests = () => {
                                                     <>
                                                         <button
                                                             onClick={() => handleUpdateStatus(request._id, 'Approved')}
-                                                            className="p-1.5 text-green-600 hover:bg-green-50 rounded-lg transition-colors"
+                                                            className="p-1.5 text-green-600 dark:text-green-400 hover:bg-green-50 dark:hover:bg-green-500/10 rounded-lg transition-colors"
                                                             title="Approve"
                                                         >
                                                             <Check size={18} />
                                                         </button>
                                                         <button
                                                             onClick={() => handleUpdateStatus(request._id, 'Rejected')}
-                                                            className="p-1.5 text-red-600 hover:bg-red-50 rounded-lg transition-colors"
+                                                            className="p-1.5 text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-500/10 rounded-lg transition-colors"
                                                             title="Reject"
                                                         >
                                                             <X size={18} />
@@ -210,7 +210,7 @@ const ExpertRequests = () => {
                                                 )}
                                                 <button
                                                     onClick={() => confirmDelete(request._id)}
-                                                    className="p-1.5 text-gray-400 hover:text-red-500 hover:bg-red-50 rounded-lg transition-colors ml-1"
+                                                    className="p-1.5 text-gray-400 dark:text-gray-500 hover:text-red-500 dark:hover:text-red-400 hover:bg-red-50 dark:hover:bg-red-500/10 rounded-lg transition-colors ml-1"
                                                     title="Delete Request"
                                                 >
                                                     <Trash2 size={18} />
@@ -223,25 +223,25 @@ const ExpertRequests = () => {
                                     {expandedId === request._id && (
                                         <tr>
                                             <td colSpan="6" className="px-6 py-0">
-                                                <div className="py-4 border-t border-indigo-100 bg-gradient-to-r from-indigo-50/30 to-purple-50/30 -mx-6 px-6">
+                                                <div className="py-4 border-t border-indigo-100 dark:border-indigo-500/20 bg-gradient-to-r from-indigo-50/30 to-purple-50/30 dark:from-indigo-500/5 dark:to-purple-500/5 -mx-6 px-6">
                                                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4 max-w-4xl">
                                                         {/* Portfolio Link */}
                                                         <div className="flex items-start gap-2">
                                                             <Link2 size={16} className="text-indigo-400 mt-0.5 flex-shrink-0" />
                                                             <div>
-                                                                <p className="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-1">Portfolio</p>
+                                                                <p className="text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wide mb-1">Portfolio</p>
                                                                 {request.portfolioLink ? (
                                                                     <a
                                                                         href={request.portfolioLink}
                                                                         target="_blank"
                                                                         rel="noopener noreferrer"
-                                                                        className="text-sm text-indigo-600 hover:text-indigo-800 hover:underline flex items-center gap-1 break-all"
+                                                                        className="text-sm text-indigo-600 dark:text-indigo-400 hover:text-indigo-800 dark:hover:text-indigo-300 hover:underline flex items-center gap-1 break-all"
                                                                     >
                                                                         {request.portfolioLink}
                                                                         <ExternalLink size={12} />
                                                                     </a>
                                                                 ) : (
-                                                                    <span className="text-sm text-gray-400 italic">Not provided</span>
+                                                                    <span className="text-sm text-gray-400 dark:text-gray-500 italic">Not provided</span>
                                                                 )}
                                                             </div>
                                                         </div>
@@ -250,8 +250,8 @@ const ExpertRequests = () => {
                                                         <div className="flex items-start gap-2">
                                                             <Briefcase size={16} className="text-indigo-400 mt-0.5 flex-shrink-0" />
                                                             <div>
-                                                                <p className="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-1">Background</p>
-                                                                <p className="text-sm text-gray-700">
+                                                                <p className="text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wide mb-1">Background</p>
+                                                                <p className="text-sm text-gray-700 dark:text-gray-300">
                                                                     <strong>{request.primaryIndustry || 'N/A'}</strong> · {request.yearsOfExperience !== undefined ? `${request.yearsOfExperience} years experience` : 'Experience not listed'}
                                                                 </p>
                                                             </div>
@@ -261,9 +261,9 @@ const ExpertRequests = () => {
                                                         <div className="md:col-span-2 flex items-start gap-2">
                                                             <FileText size={16} className="text-indigo-400 mt-0.5 flex-shrink-0" />
                                                             <div className="flex-1">
-                                                                <p className="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-1">Sample Prompt</p>
-                                                                <div className="bg-white rounded-lg border border-gray-200 p-3 text-sm text-gray-700 whitespace-pre-wrap max-h-40 overflow-y-auto">
-                                                                    {request.samplePrompt || <span className="italic text-gray-400">Not provided</span>}
+                                                                <p className="text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wide mb-1">Sample Prompt</p>
+                                                                <div className="bg-white dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700 p-3 text-sm text-gray-700 dark:text-gray-300 whitespace-pre-wrap max-h-40 overflow-y-auto">
+                                                                    {request.samplePrompt || <span className="italic text-gray-400 dark:text-gray-500">Not provided</span>}
                                                                 </div>
                                                             </div>
                                                         </div>
@@ -272,9 +272,9 @@ const ExpertRequests = () => {
                                                         <div className="md:col-span-2 flex items-start gap-2">
                                                             <Lightbulb size={16} className="text-indigo-400 mt-0.5 flex-shrink-0" />
                                                             <div className="flex-1">
-                                                                <p className="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-1">Methodology</p>
-                                                                <div className="bg-white rounded-lg border border-gray-200 p-3 text-sm text-gray-700 whitespace-pre-wrap max-h-40 overflow-y-auto">
-                                                                    {request.methodologyExplanation || <span className="italic text-gray-400">Not provided</span>}
+                                                                <p className="text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wide mb-1">Methodology</p>
+                                                                <div className="bg-white dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700 p-3 text-sm text-gray-700 dark:text-gray-300 whitespace-pre-wrap max-h-40 overflow-y-auto">
+                                                                    {request.methodologyExplanation || <span className="italic text-gray-400 dark:text-gray-500">Not provided</span>}
                                                                 </div>
                                                             </div>
                                                         </div>
@@ -284,8 +284,8 @@ const ExpertRequests = () => {
                                                             <div className="md:col-span-2 flex items-start gap-2">
                                                                 <FileText size={16} className="text-gray-400 mt-0.5 flex-shrink-0" />
                                                                 <div className="flex-1">
-                                                                    <p className="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-1">Additional Details</p>
-                                                                    <p className="text-sm text-gray-600 whitespace-pre-wrap">{request.details}</p>
+                                                                    <p className="text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wide mb-1">Additional Details</p>
+                                                                    <p className="text-sm text-gray-600 dark:text-gray-400 whitespace-pre-wrap">{request.details}</p>
                                                                 </div>
                                                             </div>
                                                         )}

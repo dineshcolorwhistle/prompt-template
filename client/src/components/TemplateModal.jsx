@@ -371,13 +371,13 @@ const TemplateModal = ({ isOpen, onClose, template, onSave }) => {
                 animate={{ opacity: 1, scale: 1 }}
                 exit={{ opacity: 0, scale: 0.95 }}
                 transition={{ duration: 0.2 }}
-                className="bg-white rounded-2xl shadow-xl w-full max-w-4xl max-h-[90vh] overflow-y-auto flex flex-col"
+                className="bg-white dark:bg-gray-900 rounded-2xl shadow-xl w-full max-w-4xl max-h-[90vh] overflow-y-auto flex flex-col border border-transparent dark:border-gray-800"
             >
-                <div className="px-6 py-4 border-b border-gray-100 flex justify-between items-center bg-gray-50/50 flex-shrink-0">
-                    <h3 className="font-bold text-gray-900 text-lg">
+                <div className="px-6 py-4 border-b border-gray-100 dark:border-gray-800 flex justify-between items-center bg-gray-50/50 dark:bg-gray-800/50 flex-shrink-0">
+                    <h3 className="font-bold text-gray-900 dark:text-white text-lg">
                         {template ? 'Edit Template' : 'Create New Template'}
                     </h3>
-                    <button onClick={onClose} className="text-gray-400 hover:text-gray-600 rounded-full p-1 hover:bg-gray-100 transition">
+                    <button onClick={onClose} className="text-gray-400 dark:text-gray-500 hover:text-gray-600 dark:hover:text-gray-300 rounded-full p-1 hover:bg-gray-100 dark:hover:bg-gray-800 transition">
                         <X size={20} />
                     </button>
                 </div>
@@ -388,24 +388,24 @@ const TemplateModal = ({ isOpen, onClose, template, onSave }) => {
                     <form id="templateForm" onSubmit={handleSubmit} className="space-y-6">
                         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                             <div>
-                                <label className="block text-sm font-medium text-gray-700 mb-1">Title<span className="text-red-500 ml-1">*</span></label>
+                                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Title<span className="text-red-500 ml-1">*</span></label>
                                 <input
                                     type="text"
                                     name="title"
                                     required
                                     value={formData.title}
                                     onChange={handleChange}
-                                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition-colors"
+                                    className="w-full px-3 py-2 border border-gray-300 dark:border-gray-700 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition-colors bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 placeholder-gray-400 dark:placeholder-gray-500"
                                     placeholder="e.g. SEO Blog Post Generator"
                                 />
                             </div>
                             <div>
-                                <label className="block text-sm font-medium text-gray-700 mb-1">Status</label>
+                                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Status</label>
                                 <select
                                     name="status"
                                     value={formData.status}
                                     onChange={handleChange}
-                                    className="w-full px-3 py-2 border border-gray-300 rounded-lg bg-white focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition-colors"
+                                    className="w-full px-3 py-2 border border-gray-300 dark:border-gray-700 rounded-lg bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition-colors"
                                 >
                                     <option value="Draft">Draft</option>
                                     <option value="Pending">Publish (Pending Review)</option>
@@ -416,14 +416,14 @@ const TemplateModal = ({ isOpen, onClose, template, onSave }) => {
                         {/* LLM → Industry → Category cascading */}
                         <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                             <div>
-                                <label className="block text-sm font-medium text-gray-700 mb-1">
-                                    LLM <span className="text-xs font-normal text-gray-400">(Filter)</span>
+                                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+                                    LLM <span className="text-xs font-normal text-gray-400 dark:text-gray-500">(Filter)</span>
                                 </label>
                                 <select
                                     name="llm"
                                     value={formData.llm}
                                     onChange={handleChange}
-                                    className="w-full px-3 py-2 border border-gray-300 rounded-lg bg-white focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition-colors"
+                                    className="w-full px-3 py-2 border border-gray-300 dark:border-gray-700 rounded-lg bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition-colors"
                                 >
                                     <option value="">All LLMs</option>
                                     {llms.map(llm => (
@@ -432,13 +432,13 @@ const TemplateModal = ({ isOpen, onClose, template, onSave }) => {
                                 </select>
                             </div>
                             <div>
-                                <label className="block text-sm font-medium text-gray-700 mb-1">Industry<span className="text-red-500 ml-1">*</span></label>
+                                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Industry<span className="text-red-500 ml-1">*</span></label>
                                 <select
                                     name="industry"
                                     required
                                     value={formData.industry}
                                     onChange={handleChange}
-                                    className="w-full px-3 py-2 border border-gray-300 rounded-lg bg-white focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition-colors"
+                                    className="w-full px-3 py-2 border border-gray-300 dark:border-gray-700 rounded-lg bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition-colors"
                                 >
                                     <option value="">Select Industry</option>
                                     {industries.map(ind => (
@@ -447,14 +447,14 @@ const TemplateModal = ({ isOpen, onClose, template, onSave }) => {
                                 </select>
                             </div>
                             <div>
-                                <label className="block text-sm font-medium text-gray-700 mb-1">Category<span className="text-red-500 ml-1">*</span></label>
+                                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Category<span className="text-red-500 ml-1">*</span></label>
                                 <select
                                     name="category"
                                     required
                                     value={formData.category}
                                     onChange={handleChange}
                                     disabled={!formData.industry}
-                                    className="w-full px-3 py-2 border border-gray-300 rounded-lg bg-white disabled:bg-gray-50 disabled:text-gray-400 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition-colors"
+                                    className="w-full px-3 py-2 border border-gray-300 dark:border-gray-700 rounded-lg bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 disabled:bg-gray-50 dark:disabled:bg-gray-800 disabled:text-gray-400 dark:disabled:text-gray-500 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition-colors"
                                 >
                                     <option value="">Select Category</option>
                                     {categories.map(cat => (
@@ -464,73 +464,73 @@ const TemplateModal = ({ isOpen, onClose, template, onSave }) => {
                             </div>
                         </div>
                         {formData.llm && industries.length === 0 && (
-                            <p className="text-xs text-amber-600 flex items-center gap-1 -mt-2">
+                            <p className="text-xs text-amber-600 dark:text-amber-400 flex items-center gap-1 -mt-2">
                                 <Info size={12} /> No active industries found for the selected LLM
                             </p>
                         )}
 
                         <div>
-                            <label className="block text-sm font-medium text-gray-700 mb-1">Description<span className="text-red-500 ml-1">*</span></label>
+                            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Description<span className="text-red-500 ml-1">*</span></label>
                             <textarea
                                 name="description"
                                 required
                                 rows={2}
                                 value={formData.description}
                                 onChange={handleChange}
-                                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent resize-none transition-colors"
+                                className="w-full px-3 py-2 border border-gray-300 dark:border-gray-700 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent resize-none transition-colors bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 placeholder-gray-400 dark:placeholder-gray-500"
                                 placeholder="Briefly describe what this template does..."
                             />
                         </div>
 
                         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                             <div>
-                                <label className="block text-sm font-medium text-gray-700 mb-1">Use Case</label>
-                                <textarea name="useCase" value={formData.useCase} onChange={handleChange} rows={3} className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition-colors" />
+                                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Use Case</label>
+                                <textarea name="useCase" value={formData.useCase} onChange={handleChange} rows={3} className="w-full px-3 py-2 border border-gray-300 dark:border-gray-700 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition-colors bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100" />
                             </div>
                             <div>
-                                <label className="block text-sm font-medium text-gray-700 mb-1">Locked Tone</label>
-                                <textarea name="tone" value={formData.tone} onChange={handleChange} rows={3} className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition-colors" />
+                                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Locked Tone</label>
+                                <textarea name="tone" value={formData.tone} onChange={handleChange} rows={3} className="w-full px-3 py-2 border border-gray-300 dark:border-gray-700 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition-colors bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100" />
                             </div>
                         </div>
 
                         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                             <div>
-                                <label className="block text-sm font-medium text-gray-700 mb-1">Locked Output Format</label>
-                                <textarea name="outputFormat" value={formData.outputFormat} onChange={handleChange} rows={3} className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition-colors" />
+                                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Locked Output Format</label>
+                                <textarea name="outputFormat" value={formData.outputFormat} onChange={handleChange} rows={3} className="w-full px-3 py-2 border border-gray-300 dark:border-gray-700 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition-colors bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100" />
                             </div>
                             <div>
-                                <label className="block text-sm font-medium text-gray-700 mb-1">Locked Structural Instruction</label>
-                                <textarea name="structuralInstruction" value={formData.structuralInstruction} onChange={handleChange} rows={3} className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition-colors" />
+                                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Locked Structural Instruction</label>
+                                <textarea name="structuralInstruction" value={formData.structuralInstruction} onChange={handleChange} rows={3} className="w-full px-3 py-2 border border-gray-300 dark:border-gray-700 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition-colors bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100" />
                             </div>
                         </div>
 
                         {/* Variables Section */}
-                        <div className="border border-gray-200 rounded-lg p-4 bg-gray-50">
-                            <h4 className="font-medium text-gray-800 mb-4">Template Variables</h4>
+                        <div className="border border-gray-200 dark:border-gray-700 rounded-lg p-4 bg-gray-50 dark:bg-gray-800/50">
+                            <h4 className="font-medium text-gray-800 dark:text-gray-200 mb-4">Template Variables</h4>
 
                             {/* List of Added Variables */}
                             {formData.variables.length > 0 && (
                                 <div className="space-y-2 mb-4">
                                     {formData.variables.map((v, index) => (
-                                        <div key={index} className="flex items-center justify-between bg-white p-3 rounded border border-gray-200 shadow-sm">
+                                        <div key={index} className="flex items-center justify-between bg-white dark:bg-gray-800 p-3 rounded border border-gray-200 dark:border-gray-700 shadow-sm">
                                             <div className="flex-1 grid grid-cols-1 md:grid-cols-4 gap-2 text-sm">
-                                                <div><span className="font-semibold text-gray-600">Name:</span> {v.name}</div>
-                                                <div><span className="font-semibold text-gray-600">Desc:</span> {v.description}</div>
-                                                <div><span className="font-semibold text-gray-600">Default:</span> {v.defaultValue || '-'}</div>
-                                                <div><span className="font-semibold text-gray-600">Req:</span> {v.required ? 'Yes' : 'No'}</div>
+                                                <div><span className="font-semibold text-gray-600 dark:text-gray-400">Name:</span> {v.name}</div>
+                                                <div><span className="font-semibold text-gray-600 dark:text-gray-400">Desc:</span> {v.description}</div>
+                                                <div><span className="font-semibold text-gray-600 dark:text-gray-400">Default:</span> {v.defaultValue || '-'}</div>
+                                                <div><span className="font-semibold text-gray-600 dark:text-gray-400">Req:</span> {v.required ? 'Yes' : 'No'}</div>
                                             </div>
                                             <div className="flex items-center">
                                                 <button
                                                     type="button"
                                                     onClick={() => handleEditVariable(index)}
-                                                    className="text-indigo-500 hover:bg-indigo-50 p-1 rounded transition ml-2"
+                                                    className="text-indigo-500 dark:text-indigo-400 hover:bg-indigo-50 dark:hover:bg-indigo-500/10 p-1 rounded transition ml-2"
                                                 >
                                                     <Edit size={16} />
                                                 </button>
                                                 <button
                                                     type="button"
                                                     onClick={() => handleRemoveVariable(index)}
-                                                    className="text-red-500 hover:bg-red-50 p-1 rounded transition ml-2"
+                                                    className="text-red-500 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-500/10 p-1 rounded transition ml-2"
                                                 >
                                                     <Trash2 size={16} />
                                                 </button>
@@ -541,8 +541,8 @@ const TemplateModal = ({ isOpen, onClose, template, onSave }) => {
                             )}
 
                             {/* Add New Variable Form */}
-                            <div className="bg-white p-4 rounded border border-gray-200">
-                                <h5 className="text-sm font-medium text-gray-700 mb-3">
+                            <div className="bg-white dark:bg-gray-800 p-4 rounded border border-gray-200 dark:border-gray-700">
+                                <h5 className="text-sm font-medium text-gray-700 dark:text-gray-300 mb-3">
                                     {editingVariableIndex !== null ? 'Edit Variable' : 'Add New Variable'}
                                 </h5>
                                 <div className="grid grid-cols-1 md:grid-cols-2 gap-3 mb-3">
@@ -552,7 +552,7 @@ const TemplateModal = ({ isOpen, onClose, template, onSave }) => {
                                         placeholder="Variable Name (e.g. Industry)"
                                         value={newVariable.name}
                                         onChange={handleNewVariableChange}
-                                        className="w-full px-3 py-2 border border-gray-300 rounded text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                                        className="w-full px-3 py-2 border border-gray-300 dark:border-gray-700 rounded text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 bg-white dark:bg-gray-900 text-gray-900 dark:text-gray-100 placeholder-gray-400 dark:placeholder-gray-500"
                                     />
                                     <input
                                         type="text"
@@ -560,7 +560,7 @@ const TemplateModal = ({ isOpen, onClose, template, onSave }) => {
                                         placeholder="Description"
                                         value={newVariable.description}
                                         onChange={handleNewVariableChange}
-                                        className="w-full px-3 py-2 border border-gray-300 rounded text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                                        className="w-full px-3 py-2 border border-gray-300 dark:border-gray-700 rounded text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 bg-white dark:bg-gray-900 text-gray-900 dark:text-gray-100 placeholder-gray-400 dark:placeholder-gray-500"
                                     />
                                 </div>
                                 <div className="grid grid-cols-1 md:grid-cols-2 gap-3 mb-3">
@@ -570,9 +570,9 @@ const TemplateModal = ({ isOpen, onClose, template, onSave }) => {
                                         placeholder="Default Value (Optional)"
                                         value={newVariable.defaultValue}
                                         onChange={handleNewVariableChange}
-                                        className="w-full px-3 py-2 border border-gray-300 rounded text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                                        className="w-full px-3 py-2 border border-gray-300 dark:border-gray-700 rounded text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 bg-white dark:bg-gray-900 text-gray-900 dark:text-gray-100 placeholder-gray-400 dark:placeholder-gray-500"
                                     />
-                                    <label className="flex items-center gap-2 text-sm text-gray-700 px-1">
+                                    <label className="flex items-center gap-2 text-sm text-gray-700 dark:text-gray-300 px-1">
                                         <input
                                             type="checkbox"
                                             name="required"
@@ -596,7 +596,7 @@ const TemplateModal = ({ isOpen, onClose, template, onSave }) => {
                                         <button
                                             type="button"
                                             onClick={handleCancelEdit}
-                                            className="px-4 py-2 border border-gray-300 text-gray-700 rounded text-sm hover:bg-gray-50 transition flex items-center justify-center"
+                                            className="px-4 py-2 border border-gray-300 dark:border-gray-700 text-gray-700 dark:text-gray-300 rounded text-sm hover:bg-gray-50 dark:hover:bg-gray-700 transition flex items-center justify-center"
                                         >
                                             Cancel
                                         </button>
@@ -606,35 +606,35 @@ const TemplateModal = ({ isOpen, onClose, template, onSave }) => {
                         </div>
 
                         <div>
-                            <label className="block text-sm font-medium text-gray-700 mb-1">Base Prompt Text<span className="text-red-500 ml-1">*</span></label>
+                            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Base Prompt Text<span className="text-red-500 ml-1">*</span></label>
                             <textarea
                                 name="basePromptText"
                                 required
                                 rows={8}
                                 value={formData.basePromptText}
                                 onChange={handleChange}
-                                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent font-mono text-sm transition-colors"
+                                className="w-full px-3 py-2 border border-gray-300 dark:border-gray-700 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent font-mono text-sm transition-colors bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 placeholder-gray-400 dark:placeholder-gray-500"
                                 placeholder="Write the prompt here using {{variables}}..."
                             />
-                            <p className="text-xs text-gray-500 mt-1">Use the variable names defined above in double curly braces, e.g. {`{{VariableName}}`}</p>
+                            <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">Use the variable names defined above in double curly braces, e.g. {`{{VariableName}}`}</p>
                         </div>
 
                         <div>
-                            <label className="block text-sm font-medium text-gray-700 mb-1">Repurposing Ideas</label>
+                            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Repurposing Ideas</label>
                             <textarea
                                 name="repurposingIdeas"
                                 rows={3}
                                 value={formData.repurposingIdeas}
                                 onChange={handleChange}
-                                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition-colors"
+                                className="w-full px-3 py-2 border border-gray-300 dark:border-gray-700 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition-colors bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100"
                             />
                         </div>
 
                         {/* File Upload Section (New) */}
                         <div>
-                            <label className="block text-sm font-medium text-gray-700 mb-1">Sample Output (Images - Max 5)</label>
+                            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Sample Output (Images - Max 5)</label>
                             <div className="space-y-4">
-                                <label className="cursor-pointer bg-white border border-gray-300 hover:bg-gray-50 px-4 py-2 rounded-lg text-sm font-medium text-gray-700 flex items-center gap-2 transition w-fit">
+                                <label className="cursor-pointer bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-700 px-4 py-2 rounded-lg text-sm font-medium text-gray-700 dark:text-gray-300 flex items-center gap-2 transition w-fit">
                                     <Upload size={16} />
                                     Choose Images
                                     <input type="file" accept="image/*" multiple onChange={handleFileChange} className="hidden" />
@@ -643,7 +643,7 @@ const TemplateModal = ({ isOpen, onClose, template, onSave }) => {
                                 <div className="flex flex-wrap gap-4">
                                     {/* Existing Images */}
                                     {existingImages.map((img, index) => (
-                                        <div key={`existing-${index}`} className="relative group w-20 h-20 rounded-lg overflow-hidden border border-gray-200">
+                                        <div key={`existing-${index}`} className="relative group w-20 h-20 rounded-lg overflow-hidden border border-gray-200 dark:border-gray-700">
                                             <img
                                                 src={`${import.meta.env.VITE_API_URL}/${img.replace(/\\/g, '/')}`}
                                                 alt={`Existing ${index}`}
@@ -661,7 +661,7 @@ const TemplateModal = ({ isOpen, onClose, template, onSave }) => {
 
                                     {/* New Images */}
                                     {sampleOutputPreviews.map((preview, index) => (
-                                        <div key={`new-${index}`} className="relative group w-20 h-20 rounded-lg overflow-hidden border border-gray-200">
+                                        <div key={`new-${index}`} className="relative group w-20 h-20 rounded-lg overflow-hidden border border-gray-200 dark:border-gray-700">
                                             <img src={preview} alt={`Preview ${index}`} className="w-full h-full object-cover" />
                                             <button
                                                 type="button"
@@ -679,11 +679,11 @@ const TemplateModal = ({ isOpen, onClose, template, onSave }) => {
                     </form>
                 </div>
 
-                <div className="px-6 py-4 border-t border-gray-100 bg-gray-50/50 flex justify-end gap-3 flex-shrink-0 rounded-b-2xl">
+                <div className="px-6 py-4 border-t border-gray-100 dark:border-gray-800 bg-gray-50/50 dark:bg-gray-800/50 flex justify-end gap-3 flex-shrink-0 rounded-b-2xl">
                     <button
                         type="button"
                         onClick={onClose}
-                        className="px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 transition"
+                        className="px-4 py-2 text-sm font-medium text-gray-700 dark:text-gray-300 bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-700 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-700 transition"
                     >
                         Cancel
                     </button>
