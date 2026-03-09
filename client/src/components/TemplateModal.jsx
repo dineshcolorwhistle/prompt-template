@@ -9,7 +9,7 @@ const TemplateModal = ({ isOpen, onClose, template, onSave }) => {
     const [formData, setFormData] = useState({
         title: '',
         description: '',
-        llm: '', // For filtering industries (not saved to DB)
+        llm: '',
         industry: '',
         category: '',
         basePromptText: '',
@@ -43,12 +43,10 @@ const TemplateModal = ({ isOpen, onClose, template, onSave }) => {
 
     useEffect(() => {
         if (template) {
-            // Detect LLM from populated industry
-            const industryLlmId = template.industry?.llm?._id || template.industry?.llm || '';
             setFormData({
                 title: template.title || '',
                 description: template.description || '',
-                llm: industryLlmId,
+                llm: template.llm?._id || template.llm || '',
                 industry: template.industry?._id || template.industry || '',
                 category: template.category?._id || template.category || '',
                 basePromptText: template.basePromptText || template.content || '',
@@ -91,26 +89,10 @@ const TemplateModal = ({ isOpen, onClose, template, onSave }) => {
     useEffect(() => {
         if (isOpen) {
             fetchLlms();
+            fetchIndustries();
+            fetchCategories();
         }
     }, [isOpen]);
-
-    // When LLM changes, fetch filtered industries
-    useEffect(() => {
-        if (isOpen) {
-            fetchIndustries(formData.llm);
-        }
-        // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [formData.llm, isOpen]);
-
-    // When industry changes, fetch filtered categories
-    useEffect(() => {
-        if (isOpen && formData.industry) {
-            fetchCategories(formData.industry);
-        } else {
-            setCategories([]);
-        }
-        // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [formData.industry, isOpen]);
 
     const fetchLlms = async () => {
         try {
@@ -124,13 +106,9 @@ const TemplateModal = ({ isOpen, onClose, template, onSave }) => {
         }
     };
 
-    const fetchIndustries = async (llmId) => {
+    const fetchIndustries = async () => {
         try {
-            let url = `${import.meta.env.VITE_API_URL}/api/industries?status=active&limit=1000`;
-            if (llmId) {
-                url += `&llm=${llmId}`;
-            }
-            const response = await fetch(url, {
+            const response = await fetch(`${import.meta.env.VITE_API_URL}/api/industries?status=active&limit=1000`, {
                 headers: { Authorization: `Bearer ${userInfo.token}` }
             });
             const data = await response.json();
@@ -140,13 +118,9 @@ const TemplateModal = ({ isOpen, onClose, template, onSave }) => {
         }
     };
 
-    const fetchCategories = async (industryId) => {
+    const fetchCategories = async () => {
         try {
-            let url = `${import.meta.env.VITE_API_URL}/api/categories?status=active&limit=1000`;
-            if (industryId) {
-                url += `&industry=${industryId}`;
-            }
-            const response = await fetch(url, {
+            const response = await fetch(`${import.meta.env.VITE_API_URL}/api/categories?status=active&limit=1000`, {
                 headers: { Authorization: `Bearer ${userInfo.token}` }
             });
             const data = await response.json();
@@ -158,20 +132,7 @@ const TemplateModal = ({ isOpen, onClose, template, onSave }) => {
 
     const handleChange = (e) => {
         const { name, value } = e.target;
-        setFormData(prev => {
-            const newData = { ...prev, [name]: value };
-
-            // Cascade resets
-            if (name === 'llm') {
-                newData.industry = '';
-                newData.category = '';
-            }
-            if (name === 'industry') {
-                newData.category = '';
-            }
-
-            return newData;
-        });
+        setFormData(prev => ({ ...prev, [name]: value }));
     };
 
     // Variable Management Handlers
@@ -314,7 +275,6 @@ const TemplateModal = ({ isOpen, onClose, template, onSave }) => {
             // Use FormData for file upload support
             const data = new FormData();
             for (const key in formData) {
-                if (key === 'llm') continue; // Don't send LLM to backend
                 if (key === 'variables') {
                     data.append('variables', JSON.stringify(formData.variables));
                 } else {
@@ -413,19 +373,20 @@ const TemplateModal = ({ isOpen, onClose, template, onSave }) => {
                             </div>
                         </div>
 
-                        {/* LLM → Industry → Category cascading */}
+                        {/* LLM, Industry, Category — independent selections */}
                         <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                             <div>
                                 <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-                                    LLM <span className="text-xs font-normal text-gray-400 dark:text-gray-500">(Filter)</span>
+                                    LLM<span className="text-red-500 ml-1">*</span>
                                 </label>
                                 <select
                                     name="llm"
+                                    required
                                     value={formData.llm}
                                     onChange={handleChange}
                                     className="w-full px-3 py-2 border border-gray-300 dark:border-gray-700 rounded-lg bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition-colors"
                                 >
-                                    <option value="">All LLMs</option>
+                                    <option value="">Select LLM</option>
                                     {llms.map(llm => (
                                         <option key={llm._id} value={llm._id}>{llm.name}</option>
                                     ))}
@@ -453,8 +414,7 @@ const TemplateModal = ({ isOpen, onClose, template, onSave }) => {
                                     required
                                     value={formData.category}
                                     onChange={handleChange}
-                                    disabled={!formData.industry}
-                                    className="w-full px-3 py-2 border border-gray-300 dark:border-gray-700 rounded-lg bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 disabled:bg-gray-50 dark:disabled:bg-gray-800 disabled:text-gray-400 dark:disabled:text-gray-500 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition-colors"
+                                    className="w-full px-3 py-2 border border-gray-300 dark:border-gray-700 rounded-lg bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition-colors"
                                 >
                                     <option value="">Select Category</option>
                                     {categories.map(cat => (
@@ -463,11 +423,6 @@ const TemplateModal = ({ isOpen, onClose, template, onSave }) => {
                                 </select>
                             </div>
                         </div>
-                        {formData.llm && industries.length === 0 && (
-                            <p className="text-xs text-amber-600 dark:text-amber-400 flex items-center gap-1 -mt-2">
-                                <Info size={12} /> No active industries found for the selected LLM
-                            </p>
-                        )}
 
                         <div>
                             <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Description<span className="text-red-500 ml-1">*</span></label>

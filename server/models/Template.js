@@ -6,6 +6,11 @@ const templateSchema = new mongoose.Schema({
         ref: 'User',
         required: true,
     },
+    llm: {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: 'LLM',
+        required: [true, 'Please select an LLM'],
+    },
     title: {
         type: String,
         required: [true, 'Please add a title'],

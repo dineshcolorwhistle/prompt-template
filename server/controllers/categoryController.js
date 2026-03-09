@@ -1,5 +1,4 @@
 const Category = require('../models/Category');
-const Industry = require('../models/Industry');
 
 // Helper to slugify text
 const generateSlug = (text) => {
@@ -16,7 +15,7 @@ const generateSlug = (text) => {
 // @access  Public (or Protected)
 const getCategories = async (req, res) => {
     try {
-        const { search, status, industry, llm, page = 1, limit = 10 } = req.query;
+        const { search, status, page = 1, limit = 10 } = req.query;
         let query = {};
 
         if (search) {
@@ -31,30 +30,12 @@ const getCategories = async (req, res) => {
             if (status === 'inactive') query.isActive = false;
         }
 
-        if (industry && industry !== 'all') {
-            query.industry = industry;
-        }
-
-        if (llm && llm !== 'all') {
-            const industriesForLlm = await Industry.find({ llm }).select('_id');
-            const industryIds = industriesForLlm.map(ind => ind._id);
-            if (query.industry) {
-                // If an industry is already selected, make sure it belongs to the selected LLM
-                if (!industryIds.some(id => id.toString() === query.industry.toString())) {
-                    query.industry = null; // Will result in empty findings
-                }
-            } else {
-                query.industry = { $in: industryIds };
-            }
-        }
-
         const pageNum = parseInt(page);
         const limitNum = parseInt(limit);
         const skip = (pageNum - 1) * limitNum;
 
         const totalItems = await Category.countDocuments(query);
         const categories = await Category.find(query)
-            .populate({ path: 'industry', select: 'name isActive llm', populate: { path: 'llm', select: 'name' } })
             .sort({ createdAt: -1 })
             .skip(skip)
             .limit(limitNum);
@@ -75,7 +56,7 @@ const getCategories = async (req, res) => {
 // @access  Public
 const getCategoryById = async (req, res) => {
     try {
-        const category = await Category.findById(req.params.id).populate({ path: 'industry', select: 'name llm', populate: { path: 'llm', select: 'name' } });
+        const category = await Category.findById(req.params.id);
         if (!category) {
             return res.status(404).json({ message: 'Category not found' });
         }
@@ -90,19 +71,10 @@ const getCategoryById = async (req, res) => {
 // @access  Private/Admin
 const createCategory = async (req, res) => {
     try {
-        const { name, industry, description, slug, isActive } = req.body;
+        const { name, description, slug, isActive } = req.body;
 
-        if (!name || !industry) {
-            return res.status(400).json({ message: 'Please provide name and industry' });
-        }
-
-        // Validate Industry exists and is active
-        const industryDoc = await Industry.findById(industry);
-        if (!industryDoc) {
-            return res.status(404).json({ message: 'Selected industry not found' });
-        }
-        if (!industryDoc.isActive) {
-            return res.status(400).json({ message: 'Cannot create category in a deactivated industry' });
+        if (!name) {
+            return res.status(400).json({ message: 'Please provide a name' });
         }
 
         // Generate slug
@@ -115,17 +87,13 @@ const createCategory = async (req, res) => {
         }
 
         const category = await Category.create({
-            industry,
             name,
             slug: categorySlug,
             description,
             isActive: isActive !== undefined ? isActive : true,
         });
 
-        // Return populated category for immediate UI update
-        const populatedCategory = await Category.findById(category._id).populate({ path: 'industry', select: 'name llm', populate: { path: 'llm', select: 'name' } });
-
-        res.status(201).json(populatedCategory);
+        res.status(201).json(category);
     } catch (error) {
         res.status(500).json({ message: error.message });
     }
@@ -136,23 +104,11 @@ const createCategory = async (req, res) => {
 // @access  Private/Admin
 const updateCategory = async (req, res) => {
     try {
-        const { name, industry, slug, description, isActive } = req.body;
+        const { name, slug, description, isActive } = req.body;
         const category = await Category.findById(req.params.id);
 
         if (!category) {
             return res.status(404).json({ message: 'Category not found' });
-        }
-
-        // If industry is being updated, validate it
-        if (industry && industry !== category.industry.toString()) {
-            const industryDoc = await Industry.findById(industry);
-            if (!industryDoc) {
-                return res.status(404).json({ message: 'Selected industry not found' });
-            }
-            if (!industryDoc.isActive) {
-                return res.status(400).json({ message: 'Cannot assign to a deactivated industry' });
-            }
-            category.industry = industry;
         }
 
         if (name) category.name = name;
@@ -171,16 +127,13 @@ const updateCategory = async (req, res) => {
         }
 
         await category.save();
-
-        const updatedCategory = await Category.findById(category._id).populate({ path: 'industry', select: 'name llm', populate: { path: 'llm', select: 'name' } });
-
-        res.status(200).json(updatedCategory);
+        res.status(200).json(category);
     } catch (error) {
         res.status(500).json({ message: error.message });
     }
 };
 
-// @desc    Delete category (Soft deactive if active, Hard delete if inactive)
+// @desc    Delete category (Hard delete if inactive)
 // @route   DELETE /api/categories/:id
 // @access  Private/Admin
 const deleteCategory = async (req, res) => {

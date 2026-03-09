@@ -78,7 +78,8 @@ exports.getSavedTemplates = async (req, res) => {
             .populate({
                 path: 'templateId',
                 populate: [
-                    { path: 'industry', populate: { path: 'llm', select: 'name' } },
+                    { path: 'llm', select: 'name icon' },
+                    { path: 'industry', select: 'name' },
                     { path: 'category', select: 'name' },
                     { path: 'user', select: 'name' },
                 ],
@@ -142,7 +143,8 @@ exports.getRatedTemplates = async (req, res) => {
             .populate({
                 path: 'templateId',
                 populate: [
-                    { path: 'industry', populate: { path: 'llm', select: 'name' } },
+                    { path: 'llm', select: 'name icon' },
+                    { path: 'industry', select: 'name' },
                     { path: 'category', select: 'name' },
                     { path: 'user', select: 'name' },
                 ],
@@ -245,7 +247,8 @@ exports.getCopyHistory = async (req, res) => {
         const templates = await Promise.all(
             paginatedIds.map(async (entry) => {
                 const template = await Template.findById(entry._id)
-                    .populate({ path: 'industry', populate: { path: 'llm', select: 'name' } })
+                    .populate('llm', 'name icon')
+                    .populate('industry', 'name')
                     .populate('category', 'name')
                     .populate('user', 'name');
 

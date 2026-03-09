@@ -85,10 +85,10 @@ function LibraryCard({ template, extraInfo, onUnsave }) {
             <div className="p-5 flex-1 flex flex-col">
                 {/* Tags */}
                 <div className="flex flex-wrap gap-2 mb-3">
-                    {template.industry?.llm?.name && (
+                    {template.llm?.name && (
                         <span className="px-2.5 py-1 text-xs font-semibold bg-gradient-to-r from-purple-50 to-indigo-50 text-purple-700 rounded-full border border-purple-200 inline-flex items-center gap-1">
                             <Bot size={11} />
-                            {template.industry.llm.name}
+                            {template.llm.name}
                         </span>
                     )}
                     <span className="px-3 py-1 text-xs font-semibold bg-indigo-50 text-indigo-700 rounded-full border border-indigo-100">

@@ -1,5 +1,4 @@
 const Template = require('../models/Template');
-const Industry = require('../models/Industry');
 const Comment = require('../models/Comment');
 const Rating = require('../models/Rating');
 const fs = require('fs');
@@ -60,11 +59,9 @@ exports.getTemplates = async (req, res) => {
             ];
         }
 
-        // LLM filter: find all industries under this LLM, then filter templates
+        // LLM filter: directly filter templates by llm field
         if (llm) {
-            const llmIndustries = await Industry.find({ llm, isActive: true }).select('_id');
-            const industryIds = llmIndustries.map(ind => ind._id);
-            query.industry = { $in: industryIds };
+            query.llm = llm;
         }
 
         if (industry) query.industry = industry;
@@ -79,11 +76,8 @@ exports.getTemplates = async (req, res) => {
         const pages = Math.ceil(total / limitNum);
 
         const templates = await Template.find(query)
-            .populate({
-                path: 'industry',
-                select: 'name llm',
-                populate: { path: 'llm', select: 'name' }
-            })
+            .populate('llm', 'name icon')
+            .populate('industry', 'name')
             .populate('category', 'name')
             .populate('user', 'name')
             .sort({ createdAt: -1 })
@@ -150,11 +144,8 @@ exports.getTemplates = async (req, res) => {
 exports.getMyTemplates = async (req, res) => {
     try {
         const templates = await Template.find({ user: req.user._id })
-            .populate({
-                path: 'industry',
-                select: 'name llm',
-                populate: { path: 'llm', select: 'name' }
-            })
+            .populate('llm', 'name icon')
+            .populate('industry', 'name')
             .populate('category', 'name')
             .sort({ createdAt: -1 });
         res.json(templates);
@@ -169,7 +160,7 @@ exports.getMyTemplates = async (req, res) => {
 exports.createTemplate = async (req, res, next) => {
     try {
         const {
-            title, description, industry, category, status,
+            title, description, llm, industry, category, status,
             useCase, tone, outputFormat, structuralInstruction, basePromptText,
             repurposingIdeas
         } = req.body;
@@ -218,6 +209,7 @@ exports.createTemplate = async (req, res, next) => {
         // Create template first (with temp paths temporarily)
         const template = await Template.create({
             user: req.user._id,
+            llm,
             title,
             description,
             industry,
@@ -239,11 +231,8 @@ exports.createTemplate = async (req, res, next) => {
         await template.save();
 
         const populatedTemplate = await Template.findById(template._id)
-            .populate({
-                path: 'industry',
-                select: 'name llm',
-                populate: { path: 'llm', select: 'name' }
-            })
+            .populate('llm', 'name icon')
+            .populate('industry', 'name')
             .populate('category', 'name');
 
         res.status(201).json(populatedTemplate);
@@ -259,7 +248,7 @@ exports.createTemplate = async (req, res, next) => {
 exports.updateTemplate = async (req, res, next) => {
     try {
         const {
-            title, description, industry, category, status,
+            title, description, llm, industry, category, status,
             useCase, tone, outputFormat, structuralInstruction, basePromptText,
             repurposingIdeas
         } = req.body;
@@ -277,6 +266,7 @@ exports.updateTemplate = async (req, res, next) => {
 
         if (title) template.title = title;
         if (description) template.description = description;
+        if (llm) template.llm = llm;
         if (industry) template.industry = industry;
         if (category) template.category = category;
         if (status) template.status = status;
@@ -403,11 +393,8 @@ exports.updateTemplate = async (req, res, next) => {
         }
 
         const updatedTemplate = await Template.findById(template._id)
-            .populate({
-                path: 'industry',
-                select: 'name llm',
-                populate: { path: 'llm', select: 'name' }
-            })
+            .populate('llm', 'name icon')
+            .populate('industry', 'name')
             .populate('category', 'name');
 
         res.json(updatedTemplate);
@@ -496,11 +483,8 @@ exports.deleteTemplate = async (req, res) => {
 exports.getTemplateById = async (req, res) => {
     try {
         const template = await Template.findById(req.params.id)
-            .populate({
-                path: 'industry',
-                select: 'name llm',
-                populate: { path: 'llm', select: 'name' }
-            })
+            .populate('llm', 'name icon')
+            .populate('industry', 'name')
             .populate('category', 'name')
             .populate('user', 'name');
 

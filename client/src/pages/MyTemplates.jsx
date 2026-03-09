@@ -56,6 +56,8 @@ const MyTemplates = () => {
         };
         loadTemplates();
         fetchLlms();
+        fetchIndustries();
+        fetchCategories();
         return () => controller.abort();
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [userInfo?.token]);
@@ -68,36 +70,17 @@ const MyTemplates = () => {
         } catch (e) { }
     };
 
-    // Dependent fetching
-    useEffect(() => {
-        setIndustryFilter('all');
-        setCategoryFilter('all');
-        setIndustries([]);
-        setCategories([]);
-        if (llmFilter && llmFilter !== 'all') {
-            fetchIndustries(llmFilter);
-        }
-    }, [llmFilter]);
-
-    useEffect(() => {
-        setCategoryFilter('all');
-        setCategories([]);
-        if (industryFilter && industryFilter !== 'all') {
-            fetchCategories(industryFilter);
-        }
-    }, [industryFilter]);
-
-    const fetchIndustries = async (llmId) => {
+    const fetchIndustries = async () => {
         try {
-            const res = await fetch(`${import.meta.env.VITE_API_URL}/api/industries?status=active&limit=1000&llm=${llmId}`, { headers: { Authorization: `Bearer ${userInfo.token}` } });
+            const res = await fetch(`${import.meta.env.VITE_API_URL}/api/industries?status=active&limit=1000`, { headers: { Authorization: `Bearer ${userInfo.token}` } });
             const data = await res.json();
             if (res.ok) setIndustries(data.result || data);
         } catch (e) { }
     };
 
-    const fetchCategories = async (indId) => {
+    const fetchCategories = async () => {
         try {
-            const res = await fetch(`${import.meta.env.VITE_API_URL}/api/categories?status=active&limit=1000&industry=${indId}`, { headers: { Authorization: `Bearer ${userInfo.token}` } });
+            const res = await fetch(`${import.meta.env.VITE_API_URL}/api/categories?status=active&limit=1000`, { headers: { Authorization: `Bearer ${userInfo.token}` } });
             const data = await res.json();
             if (res.ok) setCategories(data.result || data);
         } catch (e) { }
@@ -158,7 +141,7 @@ const MyTemplates = () => {
         const matchesSearch = (t.title || '').toLowerCase().includes(searchTerm.toLowerCase()) ||
             (t.description || '').toLowerCase().includes(searchTerm.toLowerCase());
 
-        const matchesLlm = llmFilter === 'all' || (t.industry?.llm?._id || t.industry?.llm) === llmFilter;
+        const matchesLlm = llmFilter === 'all' || (t.llm?._id || t.llm) === llmFilter;
         const matchesIndustry = industryFilter === 'all' || (t.industry?._id || t.industry) === industryFilter;
         const matchesCategory = categoryFilter === 'all' || (t.category?._id || t.category) === categoryFilter;
 
@@ -230,8 +213,7 @@ const MyTemplates = () => {
                             <select
                                 value={industryFilter}
                                 onChange={(e) => setIndustryFilter(e.target.value)}
-                                disabled={llmFilter === 'all'}
-                                className="border border-gray-300 dark:border-gray-700 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition-colors disabled:bg-gray-100 dark:disabled:bg-gray-800 disabled:text-gray-500 dark:disabled:text-gray-500 bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100"
+                                className="border border-gray-300 dark:border-gray-700 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition-colors bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100"
                             >
                                 <option value="all">All Industries</option>
                                 {industries.map(ind => (
@@ -242,8 +224,7 @@ const MyTemplates = () => {
                             <select
                                 value={categoryFilter}
                                 onChange={(e) => setCategoryFilter(e.target.value)}
-                                disabled={industryFilter === 'all'}
-                                className="border border-gray-300 dark:border-gray-700 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition-colors disabled:bg-gray-100 dark:disabled:bg-gray-800 disabled:text-gray-500 dark:disabled:text-gray-500 bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100"
+                                className="border border-gray-300 dark:border-gray-700 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition-colors bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100"
                             >
                                 <option value="all">All Categories</option>
                                 {categories.map(cat => (

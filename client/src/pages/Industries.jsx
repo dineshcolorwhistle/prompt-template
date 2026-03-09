@@ -3,7 +3,7 @@ import useDebounce from '../hooks/useDebounce';
 import { useAuth } from '../context/AuthContext';
 import {
     Plus, Search, Edit2, Trash2, X, AlertCircle,
-    Filter, MoreHorizontal, Power, CheckCircle, Info, Bot
+    Filter, MoreHorizontal, Power, CheckCircle, Info
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { toast } from 'react-hot-toast';
@@ -18,7 +18,6 @@ const Industries = () => {
     // Filters
     const [searchTerm, setSearchTerm] = useState('');
     const [statusFilter, setStatusFilter] = useState('all');
-    const [llmFilter, setLlmFilter] = useState('all');
     const [page, setPage] = useState(1);
     const [totalPages, setTotalPages] = useState(1);
     const [totalItems, setTotalItems] = useState(0);
@@ -33,25 +32,20 @@ const Industries = () => {
         name: '',
         slug: '',
         description: '',
-        llm: '',
         isActive: true
     });
     const [formLoading, setFormLoading] = useState(false);
-
-    // LLMs list for dropdown
-    const [llmsList, setLLMsList] = useState([]);
 
     // Debounce search term
     const debouncedSearchTerm = useDebounce(searchTerm, 500);
     const abortControllerRef = useRef(null);
 
-    const prevFiltersRef = useRef({ debouncedSearchTerm, statusFilter, llmFilter });
+    const prevFiltersRef = useRef({ debouncedSearchTerm, statusFilter });
     useEffect(() => {
         const filtersChanged =
             prevFiltersRef.current.debouncedSearchTerm !== debouncedSearchTerm ||
-            prevFiltersRef.current.statusFilter !== statusFilter ||
-            prevFiltersRef.current.llmFilter !== llmFilter;
-        prevFiltersRef.current = { debouncedSearchTerm, statusFilter, llmFilter };
+            prevFiltersRef.current.statusFilter !== statusFilter;
+        prevFiltersRef.current = { debouncedSearchTerm, statusFilter };
 
         if (filtersChanged && page !== 1) {
             setPage(1);
@@ -66,23 +60,7 @@ const Industries = () => {
             }
         };
         // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [page, debouncedSearchTerm, statusFilter, llmFilter]);
-
-    // Fetch LLMs for dropdown
-    useEffect(() => {
-        const fetchLLMsList = async () => {
-            try {
-                const response = await fetch(`${import.meta.env.VITE_API_URL}/api/llms?limit=100&status=active`);
-                const data = await response.json();
-                if (response.ok && data.result) {
-                    setLLMsList(data.result);
-                }
-            } catch (error) {
-                console.error('Failed to fetch LLMs:', error);
-            }
-        };
-        fetchLLMsList();
-    }, []);
+    }, [page, debouncedSearchTerm, statusFilter]);
 
     const fetchIndustries = async () => {
         if (abortControllerRef.current) {
@@ -95,7 +73,6 @@ const Industries = () => {
             let url = `${import.meta.env.VITE_API_URL}/api/industries?page=${page}&limit=10&`;
             if (debouncedSearchTerm) url += `search=${debouncedSearchTerm}&`;
             if (statusFilter !== 'all') url += `status=${statusFilter}&`;
-            if (llmFilter !== 'all') url += `llm=${llmFilter}&`;
 
             const response = await fetch(url, {
                 headers: { Authorization: `Bearer ${userInfo.token}` },
@@ -132,12 +109,11 @@ const Industries = () => {
                 name: industry.name,
                 slug: industry.slug,
                 description: industry.description || '',
-                llm: industry.llm?._id || industry.llm || '',
                 isActive: industry.isActive
             });
         } else {
             setCurrentIndustry(null);
-            setFormData({ name: '', slug: '', description: '', llm: '', isActive: true });
+            setFormData({ name: '', slug: '', description: '', isActive: true });
         }
         setIsModalOpen(true);
     };
@@ -145,7 +121,7 @@ const Industries = () => {
     const handleCloseModal = () => {
         setIsModalOpen(false);
         setCurrentIndustry(null);
-        setFormData({ name: '', slug: '', description: '', llm: '', isActive: true });
+        setFormData({ name: '', slug: '', description: '', isActive: true });
     };
 
     const handleInputChange = (e) => {
@@ -303,19 +279,6 @@ const Industries = () => {
                 </div>
                 <div className="flex flex-wrap items-center gap-2">
                     <div className="flex items-center gap-2">
-                        <Bot className="text-gray-400 dark:text-gray-500" size={20} />
-                        <select
-                            value={llmFilter}
-                            onChange={(e) => setLlmFilter(e.target.value)}
-                            className="border border-gray-300 dark:border-gray-700 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 min-w-[150px] transition-colors"
-                        >
-                            <option value="all">All LLMs</option>
-                            {llmsList.map(llm => (
-                                <option key={llm._id} value={llm._id}>{llm.name}</option>
-                            ))}
-                        </select>
-                    </div>
-                    <div className="flex items-center gap-2">
                         <Filter className="text-gray-400 dark:text-gray-500" size={20} />
                         <select
                             value={statusFilter}
@@ -337,7 +300,6 @@ const Industries = () => {
                         <thead>
                             <tr className="bg-gray-50/50 dark:bg-gray-800/50 border-b border-gray-100 dark:border-gray-800 text-xs uppercase text-gray-500 dark:text-gray-400 font-semibold tracking-wider">
                                 <th className="px-6 py-4">Name</th>
-                                <th className="px-6 py-4">LLM</th>
                                 <th className="px-6 py-4">Slug</th>
                                 <th className="px-6 py-4">Status</th>
                                 <th className="px-6 py-4">Created</th>
@@ -347,7 +309,7 @@ const Industries = () => {
                         <tbody className="divide-y divide-gray-100 dark:divide-gray-800">
                             {loading ? (
                                 <tr>
-                                    <td colSpan="6" className="px-6 py-12 text-center text-gray-500 dark:text-gray-400">
+                                    <td colSpan="5" className="px-6 py-12 text-center text-gray-500 dark:text-gray-400">
                                         <div className="flex justify-center items-center flex-col">
                                             <div className="w-8 h-8 border-4 border-indigo-200 dark:border-indigo-800 border-t-indigo-600 rounded-full animate-spin mb-3"></div>
                                             <p>Loading industries...</p>
@@ -356,7 +318,7 @@ const Industries = () => {
                                 </tr>
                             ) : industries.length === 0 ? (
                                 <tr>
-                                    <td colSpan="6" className="px-6 py-12 text-center text-gray-500 dark:text-gray-400">
+                                    <td colSpan="5" className="px-6 py-12 text-center text-gray-500 dark:text-gray-400">
                                         <div className="flex flex-col items-center justify-center">
                                             <div className="w-12 h-12 bg-gray-100 dark:bg-gray-800 rounded-full flex items-center justify-center mb-3">
                                                 <Search className="text-gray-400 dark:text-gray-500" size={24} />
@@ -372,19 +334,9 @@ const Industries = () => {
                                     className="hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors group"
                                 >
                                     <td className="px-6 py-4">
-                                        <span className="font-medium text-gray-900 dark:text-white block">{item.name || item.title || "Unnamed Category"}</span>
+                                        <span className="font-medium text-gray-900 dark:text-white block">{item.name || item.title || "Unnamed Industry"}</span>
                                         {(item.description || item.desc) && (
                                             <span className="text-xs text-gray-500 dark:text-gray-400 truncate max-w-[200px] block">{item.description || item.desc}</span>
-                                        )}
-                                    </td>
-                                    <td className="px-6 py-4">
-                                        {item.llm ? (
-                                            <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-medium bg-purple-50 dark:bg-purple-500/15 text-purple-700 dark:text-purple-400 border border-purple-200 dark:border-purple-500/30">
-                                                <Bot size={12} />
-                                                {item.llm.name || 'Unknown'}
-                                            </span>
-                                        ) : (
-                                            <span className="text-xs text-gray-400 dark:text-gray-500">—</span>
                                         )}
                                     </td>
                                     <td className="px-6 py-4">
@@ -475,24 +427,6 @@ const Industries = () => {
                             </div>
 
                             <form onSubmit={handleSubmit} className="p-6 space-y-5">
-                                <div>
-                                    <label className="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-1.5">
-                                        LLM <span className="text-red-500">*</span>
-                                    </label>
-                                    <select
-                                        name="llm"
-                                        required
-                                        value={formData.llm}
-                                        onChange={handleInputChange}
-                                        className="w-full px-3 py-2.5 border border-gray-300 dark:border-gray-700 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 outline-none transition bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100"
-                                    >
-                                        <option value="">Select an LLM</option>
-                                        {llmsList.map(llm => (
-                                            <option key={llm._id} value={llm._id}>{llm.name}</option>
-                                        ))}
-                                    </select>
-                                </div>
-
                                 <div>
                                     <label className="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-1.5">
                                         Industry Name <span className="text-red-500">*</span>

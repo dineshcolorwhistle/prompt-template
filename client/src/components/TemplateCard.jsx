@@ -24,10 +24,10 @@ export default function TemplateCard({ template }) {
                 {/* LLM Badge + Industry + Category */}
                 <div className="flex justify-between items-start mb-4">
                     <div className="flex flex-wrap gap-2">
-                        {template.industry?.llm?.name && (
+                        {template.llm?.name && (
                             <span className="px-2.5 py-1 text-xs font-semibold bg-gradient-to-r from-purple-50 to-indigo-50 dark:from-purple-900/30 dark:to-indigo-900/30 text-purple-700 dark:text-purple-400 rounded-full border border-purple-200 dark:border-purple-800 inline-flex items-center gap-1">
                                 <Bot size={11} />
-                                {template.industry.llm.name}
+                                {template.llm.name}
                             </span>
                         )}
                         <span className="px-3 py-1 text-xs font-semibold bg-indigo-50 dark:bg-indigo-900/30 text-indigo-700 dark:text-indigo-400 rounded-full border border-indigo-100 dark:border-indigo-800">

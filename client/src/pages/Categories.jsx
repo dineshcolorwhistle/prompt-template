@@ -3,7 +3,7 @@ import useDebounce from '../hooks/useDebounce';
 import { useAuth } from '../context/AuthContext';
 import {
     Plus, Search, Edit2, Trash2, X, Info,
-    Filter, Power, CheckCircle, Briefcase, Cpu
+    Filter, Power, CheckCircle
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { toast } from 'react-hot-toast';
@@ -13,16 +13,11 @@ import ConfirmationModal from '../components/ConfirmationModal';
 const Categories = () => {
     const { userInfo } = useAuth();
     const [categories, setCategories] = useState([]);
-    const [llms, setLlms] = useState([]);
-    const [industries, setIndustries] = useState([]);
-    const [allIndustries, setAllIndustries] = useState([]);
     const [loading, setLoading] = useState(true);
 
     // Filters
     const [searchTerm, setSearchTerm] = useState('');
     const [statusFilter, setStatusFilter] = useState('all');
-    const [llmFilter, setLlmFilter] = useState('all');
-    const [industryFilter, setIndustryFilter] = useState('all');
     const [page, setPage] = useState(1);
     const [totalPages, setTotalPages] = useState(1);
     const [totalItems, setTotalItems] = useState(0);
@@ -35,50 +30,22 @@ const Categories = () => {
     const [currentCategory, setCurrentCategory] = useState(null);
     const [formData, setFormData] = useState({
         name: '',
-        llm: '',
-        industry: '',
         slug: '',
         description: '',
         isActive: true
     });
-    const [formIndustries, setFormIndustries] = useState([]);
     const [formLoading, setFormLoading] = useState(false);
 
     // Debounce search term
     const debouncedSearchTerm = useDebounce(searchTerm, 500);
     const abortControllerRef = useRef(null);
 
-    useEffect(() => {
-        fetchLlms();
-        fetchAllIndustries();
-        // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, []);
-
-    useEffect(() => {
-        if (llmFilter === 'all') {
-            setIndustries(allIndustries);
-        } else {
-            setIndustries(allIndustries.filter(ind => ind.llm?._id === llmFilter || ind.llm === llmFilter));
-        }
-        setIndustryFilter('all');
-        // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [llmFilter, allIndustries]);
-
-    useEffect(() => {
-        if (isModalOpen) {
-            fetchFormIndustries(formData.llm);
-        }
-        // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [formData.llm, isModalOpen]);
-
-    const prevFiltersRef = useRef({ debouncedSearchTerm, statusFilter, industryFilter, llmFilter });
+    const prevFiltersRef = useRef({ debouncedSearchTerm, statusFilter });
     useEffect(() => {
         const filtersChanged =
             prevFiltersRef.current.debouncedSearchTerm !== debouncedSearchTerm ||
-            prevFiltersRef.current.statusFilter !== statusFilter ||
-            prevFiltersRef.current.industryFilter !== industryFilter ||
-            prevFiltersRef.current.llmFilter !== llmFilter;
-        prevFiltersRef.current = { debouncedSearchTerm, statusFilter, industryFilter, llmFilter };
+            prevFiltersRef.current.statusFilter !== statusFilter;
+        prevFiltersRef.current = { debouncedSearchTerm, statusFilter };
 
         if (filtersChanged && page !== 1) {
             setPage(1);
@@ -93,55 +60,7 @@ const Categories = () => {
             }
         };
         // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [page, debouncedSearchTerm, statusFilter, industryFilter, llmFilter]);
-
-    const fetchLlms = async () => {
-        try {
-            const response = await fetch(`${import.meta.env.VITE_API_URL}/api/llms?status=active&limit=1000`, {
-                headers: { Authorization: `Bearer ${userInfo.token}` }
-            });
-            if (response.ok) {
-                const data = await response.json();
-                setLlms(data.result || (Array.isArray(data) ? data : []));
-            }
-        } catch (err) {
-            console.error("Failed to fetch LLMs", err);
-        }
-    };
-
-    const fetchAllIndustries = async () => {
-        try {
-            const response = await fetch(`${import.meta.env.VITE_API_URL}/api/industries?status=active&limit=1000`, {
-                headers: { Authorization: `Bearer ${userInfo.token}` }
-            });
-            if (response.ok) {
-                const data = await response.json();
-                const result = data.result || (Array.isArray(data) ? data : []);
-                setAllIndustries(result);
-                setIndustries(result);
-            }
-        } catch (err) {
-            console.error("Failed to fetch industries", err);
-        }
-    };
-
-    const fetchFormIndustries = async (llmId) => {
-        try {
-            let url = `${import.meta.env.VITE_API_URL}/api/industries?status=active&limit=1000`;
-            if (llmId) {
-                url += `&llm=${llmId}`;
-            }
-            const response = await fetch(url, {
-                headers: { Authorization: `Bearer ${userInfo.token}` }
-            });
-            if (response.ok) {
-                const data = await response.json();
-                setFormIndustries(data.result || (Array.isArray(data) ? data : []));
-            }
-        } catch (err) {
-            console.error("Failed to fetch form industries", err);
-        }
-    };
+    }, [page, debouncedSearchTerm, statusFilter]);
 
     const fetchCategories = async () => {
         if (abortControllerRef.current) {
@@ -154,8 +73,6 @@ const Categories = () => {
             let url = `${import.meta.env.VITE_API_URL}/api/categories?page=${page}&limit=10&`;
             if (debouncedSearchTerm) url += `search=${debouncedSearchTerm}&`;
             if (statusFilter !== 'all') url += `status=${statusFilter}&`;
-            if (industryFilter !== 'all') url += `industry=${industryFilter}&`;
-            if (llmFilter !== 'all') url += `llm=${llmFilter}&`;
 
             const response = await fetch(url, {
                 headers: { Authorization: `Bearer ${userInfo.token}` },
@@ -189,11 +106,8 @@ const Categories = () => {
     const handleOpenModal = (category = null) => {
         if (category) {
             setCurrentCategory(category);
-            const industryLlmId = category.industry?.llm?._id || category.industry?.llm || '';
             setFormData({
                 name: category.name,
-                llm: industryLlmId,
-                industry: category.industry?._id || '',
                 slug: category.slug,
                 description: category.description || '',
                 isActive: category.isActive
@@ -202,8 +116,6 @@ const Categories = () => {
             setCurrentCategory(null);
             setFormData({
                 name: '',
-                llm: '',
-                industry: '',
                 slug: '',
                 description: '',
                 isActive: true
@@ -215,18 +127,13 @@ const Categories = () => {
     const handleCloseModal = () => {
         setIsModalOpen(false);
         setCurrentCategory(null);
-        setFormData({ name: '', llm: '', industry: '', slug: '', description: '', isActive: true });
-        setFormIndustries([]);
+        setFormData({ name: '', slug: '', description: '', isActive: true });
     };
 
     const handleInputChange = (e) => {
         const { name, value, type, checked } = e.target;
         setFormData(prev => {
             const newData = { ...prev, [name]: type === 'checkbox' ? checked : value };
-
-            if (name === 'llm') {
-                newData.industry = '';
-            }
 
             if (name === 'name' && !currentCategory) {
                 newData.slug = value.toLowerCase()
@@ -252,15 +159,13 @@ const Categories = () => {
 
             const method = currentCategory ? 'PUT' : 'POST';
 
-            const { llm, ...submitData } = formData;
-
             const response = await fetch(url, {
                 method,
                 headers: {
                     'Content-Type': 'application/json',
                     Authorization: `Bearer ${userInfo.token}`
                 },
-                body: JSON.stringify(submitData)
+                body: JSON.stringify(formData)
             });
 
             const data = await response.json();
@@ -355,7 +260,7 @@ const Categories = () => {
             <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
                 <div>
                     <h1 className="text-2xl font-bold text-gray-900 dark:text-white">Categories</h1>
-                    <p className="text-sm text-gray-500 dark:text-gray-400 mt-1">Manage categories within industries.</p>
+                    <p className="text-sm text-gray-500 dark:text-gray-400 mt-1">Manage categories for the platform.</p>
                 </div>
                 <button
                     onClick={() => handleOpenModal()}
@@ -379,34 +284,6 @@ const Categories = () => {
                     />
                 </div>
                 <div className="flex gap-2 w-full sm:w-auto flex-wrap">
-                    {/* LLM Filter */}
-                    <div className="relative flex-1 sm:w-44">
-                        <Cpu className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 dark:text-gray-500" size={16} />
-                        <select
-                            value={llmFilter}
-                            onChange={(e) => setLlmFilter(e.target.value)}
-                            className="w-full pl-9 pr-4 py-2 border border-gray-300 dark:border-gray-700 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 transition-colors"
-                        >
-                            <option value="all">All LLMs</option>
-                            {llms.map(llm => (
-                                <option key={llm._id} value={llm._id}>{llm.name}</option>
-                            ))}
-                        </select>
-                    </div>
-                    {/* Industry Filter */}
-                    <div className="relative flex-1 sm:w-48">
-                        <Briefcase className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 dark:text-gray-500" size={16} />
-                        <select
-                            value={industryFilter}
-                            onChange={(e) => setIndustryFilter(e.target.value)}
-                            className="w-full pl-9 pr-4 py-2 border border-gray-300 dark:border-gray-700 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 transition-colors"
-                        >
-                            <option value="all">All Industries</option>
-                            {industries.map(ind => (
-                                <option key={ind._id} value={ind._id}>{ind.name}</option>
-                            ))}
-                        </select>
-                    </div>
                     {/* Status Filter */}
                     <div className="relative flex-1 sm:w-40">
                         <Filter className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 dark:text-gray-500" size={16} />
@@ -430,8 +307,7 @@ const Categories = () => {
                         <thead>
                             <tr className="bg-gray-50/50 dark:bg-gray-800/50 border-b border-gray-100 dark:border-gray-800 text-xs uppercase text-gray-500 dark:text-gray-400 font-semibold tracking-wider">
                                 <th className="px-6 py-4">Name</th>
-                                <th className="px-6 py-4">LLM</th>
-                                <th className="px-6 py-4">Industry</th>
+                                <th className="px-6 py-4">Slug</th>
                                 <th className="px-6 py-4">Status</th>
                                 <th className="px-6 py-4">Created</th>
                                 <th className="px-6 py-4 text-right">Actions</th>
@@ -440,7 +316,7 @@ const Categories = () => {
                         <tbody className="divide-y divide-gray-100 dark:divide-gray-800">
                             {loading ? (
                                 <tr>
-                                    <td colSpan="6" className="px-6 py-12 text-center text-gray-500 dark:text-gray-400">
+                                    <td colSpan="5" className="px-6 py-12 text-center text-gray-500 dark:text-gray-400">
                                         <div className="flex justify-center items-center flex-col">
                                             <div className="w-8 h-8 border-4 border-indigo-200 dark:border-indigo-800 border-t-indigo-600 rounded-full animate-spin mb-3"></div>
                                             <p>Loading categories...</p>
@@ -449,7 +325,7 @@ const Categories = () => {
                                 </tr>
                             ) : categories.length === 0 ? (
                                 <tr>
-                                    <td colSpan="6" className="px-6 py-12 text-center text-gray-500 dark:text-gray-400">
+                                    <td colSpan="5" className="px-6 py-12 text-center text-gray-500 dark:text-gray-400">
                                         <div className="flex flex-col items-center justify-center">
                                             <div className="w-12 h-12 bg-gray-100 dark:bg-gray-800 rounded-full flex items-center justify-center mb-3">
                                                 <Search className="text-gray-400 dark:text-gray-500" size={24} />
@@ -465,17 +341,12 @@ const Categories = () => {
                                 >
                                     <td className="px-6 py-4">
                                         <span className="font-medium text-gray-900 dark:text-white block">{item.name}</span>
-                                        <span className="text-xs text-gray-400 dark:text-gray-500 font-mono">{item.slug}</span>
+                                        {item.description && (
+                                            <span className="text-xs text-gray-500 dark:text-gray-400 truncate max-w-[200px] block">{item.description}</span>
+                                        )}
                                     </td>
                                     <td className="px-6 py-4">
-                                        <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-purple-50 dark:bg-purple-500/15 text-purple-700 dark:text-purple-400">
-                                            {item.industry?.llm?.name || '—'}
-                                        </span>
-                                    </td>
-                                    <td className="px-6 py-4">
-                                        <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-blue-50 dark:bg-blue-500/15 text-blue-700 dark:text-blue-400">
-                                            {item.industry?.name || 'Unknown'}
-                                        </span>
+                                        <code className="text-xs font-mono bg-gray-100 dark:bg-gray-800 px-2 py-1 rounded text-gray-600 dark:text-gray-400">{item.slug}</code>
                                     </td>
                                     <td className="px-6 py-4">
                                         <span className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-medium border ${item.isActive
@@ -562,51 +433,6 @@ const Categories = () => {
                             </div>
 
                             <form onSubmit={handleSubmit} className="p-6 space-y-5">
-                                {/* LLM Selection */}
-                                <div>
-                                    <label className="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-1.5">
-                                        LLM <span className="text-xs font-normal text-gray-400 dark:text-gray-500">(Filter industries)</span>
-                                    </label>
-                                    <select
-                                        name="llm"
-                                        value={formData.llm}
-                                        onChange={handleInputChange}
-                                        className="w-full px-3 py-2.5 border border-gray-300 dark:border-gray-700 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent outline-none transition-colors bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100"
-                                    >
-                                        <option value="">All LLMs</option>
-                                        {llms.map(llm => (
-                                            <option key={llm._id} value={llm._id}>{llm.name}</option>
-                                        ))}
-                                    </select>
-                                    <p className="text-xs text-gray-500 dark:text-gray-400 mt-1 flex items-center gap-1">
-                                        <Info size={12} /> Select an LLM to filter the industry list below
-                                    </p>
-                                </div>
-
-                                {/* Industry Selection */}
-                                <div>
-                                    <label className="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-1.5">
-                                        Industry <span className="text-red-500">*</span>
-                                    </label>
-                                    <select
-                                        name="industry"
-                                        required
-                                        value={formData.industry}
-                                        onChange={handleInputChange}
-                                        className="w-full px-3 py-2.5 border border-gray-300 dark:border-gray-700 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent outline-none transition-colors disabled:bg-gray-100 dark:disabled:bg-gray-800 disabled:text-gray-500 dark:disabled:text-gray-500 bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100"
-                                    >
-                                        <option value="">Select Industry</option>
-                                        {formIndustries.map(ind => (
-                                            <option key={ind._id} value={ind._id}>{ind.name}</option>
-                                        ))}
-                                    </select>
-                                    {formData.llm && formIndustries.length === 0 && (
-                                        <p className="text-xs text-amber-600 dark:text-amber-400 mt-1 flex items-center gap-1">
-                                            <Info size={12} /> No active industries found for the selected LLM
-                                        </p>
-                                    )}
-                                </div>
-
                                 <div>
                                     <label className="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-1.5">
                                         Category Name <span className="text-red-500">*</span>

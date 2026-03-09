@@ -1,5 +1,4 @@
 const Industry = require('../models/Industry');
-const LLM = require('../models/LLM');
 
 // Helper to slugify text
 const generateSlug = (text) => {
@@ -16,7 +15,7 @@ const generateSlug = (text) => {
 // @access  Public (or Protected)
 const getIndustries = async (req, res) => {
     try {
-        const { search, status, llm, page = 1, limit = 10 } = req.query;
+        const { search, status, page = 1, limit = 10 } = req.query;
         let query = {};
 
         if (search) {
@@ -31,18 +30,12 @@ const getIndustries = async (req, res) => {
             if (status === 'inactive') query.isActive = false;
         }
 
-        // Filter by LLM
-        if (llm && llm !== 'all') {
-            query.llm = llm;
-        }
-
         const pageNum = parseInt(page);
         const limitNum = parseInt(limit);
         const skip = (pageNum - 1) * limitNum;
 
         const totalItems = await Industry.countDocuments(query);
         const industries = await Industry.find(query)
-            .populate('llm', 'name')
             .sort({ createdAt: -1 })
             .skip(skip)
             .limit(limitNum);
@@ -63,7 +56,7 @@ const getIndustries = async (req, res) => {
 // @access  Public
 const getIndustryById = async (req, res) => {
     try {
-        const industry = await Industry.findById(req.params.id).populate('llm', 'name');
+        const industry = await Industry.findById(req.params.id);
         if (!industry) {
             return res.status(404).json({ message: 'Industry not found' });
         }
@@ -78,23 +71,10 @@ const getIndustryById = async (req, res) => {
 // @access  Private/Admin
 const createIndustry = async (req, res) => {
     try {
-        const { name, description, slug, llm, isActive } = req.body;
+        const { name, description, slug, isActive } = req.body;
 
         if (!name) {
             return res.status(400).json({ message: 'Please provide a name' });
-        }
-
-        if (!llm) {
-            return res.status(400).json({ message: 'Please select an LLM' });
-        }
-
-        // Validate LLM exists and is active
-        const llmDoc = await LLM.findById(llm);
-        if (!llmDoc) {
-            return res.status(404).json({ message: 'Selected LLM not found' });
-        }
-        if (!llmDoc.isActive) {
-            return res.status(400).json({ message: 'Cannot create industry under a deactivated LLM' });
         }
 
         let industrySlug = slug ? generateSlug(slug) : generateSlug(name);
@@ -110,15 +90,13 @@ const createIndustry = async (req, res) => {
         }
 
         const industry = await Industry.create({
-            llm,
             name,
             slug: industrySlug,
             description,
             isActive: isActive !== undefined ? isActive : true,
         });
 
-        const populatedIndustry = await Industry.findById(industry._id).populate('llm', 'name');
-        res.status(201).json(populatedIndustry);
+        res.status(201).json(industry);
     } catch (error) {
         res.status(500).json({ message: error.message });
     }
@@ -129,23 +107,11 @@ const createIndustry = async (req, res) => {
 // @access  Private/Admin
 const updateIndustry = async (req, res) => {
     try {
-        const { name, slug, description, llm, isActive } = req.body;
+        const { name, slug, description, isActive } = req.body;
         const industry = await Industry.findById(req.params.id);
 
         if (!industry) {
             return res.status(404).json({ message: 'Industry not found' });
-        }
-
-        // If LLM is being updated, validate it
-        if (llm && llm !== industry.llm.toString()) {
-            const llmDoc = await LLM.findById(llm);
-            if (!llmDoc) {
-                return res.status(404).json({ message: 'Selected LLM not found' });
-            }
-            if (!llmDoc.isActive) {
-                return res.status(400).json({ message: 'Cannot assign to a deactivated LLM' });
-            }
-            industry.llm = llm;
         }
 
         if (name) industry.name = name;
@@ -164,8 +130,7 @@ const updateIndustry = async (req, res) => {
         }
 
         await industry.save();
-        const updatedIndustry = await Industry.findById(industry._id).populate('llm', 'name');
-        res.status(200).json(updatedIndustry);
+        res.status(200).json(industry);
     } catch (error) {
         res.status(500).json({ message: error.message });
     }

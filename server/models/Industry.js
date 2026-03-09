@@ -1,11 +1,6 @@
 const mongoose = require('mongoose');
 
 const industrySchema = new mongoose.Schema({
-    llm: {
-        type: mongoose.Schema.Types.ObjectId,
-        ref: 'LLM',
-        required: [true, 'Please select an LLM'],
-    },
     name: {
         type: String,
         required: [true, 'Please add a name for the industry'],
@@ -28,10 +23,5 @@ const industrySchema = new mongoose.Schema({
 }, {
     timestamps: true,
 });
-
-// Pre-save middleware to generate slug if not provided, though validation requires it.
-// We'll handle slug generation in the controller or a pre-validate hook if needed, 
-// but the requirement says "auto-generated from name, editable".
-// So the controller will likely receive a slug or generate one.
 
 module.exports = mongoose.model('Industry', industrySchema);
