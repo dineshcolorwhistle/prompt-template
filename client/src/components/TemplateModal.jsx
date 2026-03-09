@@ -3,22 +3,20 @@ import { X, Save, AlertCircle, Plus, Trash2, Upload, Edit, Info } from 'lucide-r
 import { useAuth } from '../context/AuthContext';
 import { toast } from 'react-hot-toast';
 import { motion } from 'framer-motion';
+import Select from 'react-select';
 
 const TemplateModal = ({ isOpen, onClose, template, onSave }) => {
     const { userInfo } = useAuth();
     const [formData, setFormData] = useState({
         title: '',
         description: '',
-        llm: '',
-        industry: '',
-        category: '',
+        llm: null,
+        industry: null,
+        category: null,
         basePromptText: '',
         status: 'Draft',
-        useCase: '',
-        tone: '',
-        outputFormat: '',
-        structuralInstruction: '',
-        repurposingIdeas: '',
+        tone: [],
+        outputFormat: [],
         variables: [] // Array of { name, description, defaultValue, required }
     });
 
@@ -39,6 +37,8 @@ const TemplateModal = ({ isOpen, onClose, template, onSave }) => {
     const [llms, setLlms] = useState([]);
     const [industries, setIndustries] = useState([]);
     const [categories, setCategories] = useState([]);
+    const [tones, setTones] = useState([]);
+    const [outputFormats, setOutputFormats] = useState([]);
     const [loading, setLoading] = useState(false);
 
     useEffect(() => {
@@ -46,16 +46,13 @@ const TemplateModal = ({ isOpen, onClose, template, onSave }) => {
             setFormData({
                 title: template.title || '',
                 description: template.description || '',
-                llm: template.llm?._id || template.llm || '',
-                industry: template.industry?._id || template.industry || '',
-                category: template.category?._id || template.category || '',
+                llm: template.llm ? { value: template.llm._id || template.llm, label: template.llm.name || 'Selected LLM' } : null,
+                industry: template.industry ? { value: template.industry._id || template.industry, label: template.industry.name || 'Selected Industry' } : null,
+                category: template.category ? { value: template.category._id || template.category, label: template.category.name || 'Selected Category' } : null,
                 basePromptText: template.basePromptText || template.content || '',
                 status: template.status || 'Draft',
-                useCase: template.useCase || '',
-                tone: template.tone || '',
-                outputFormat: template.outputFormat || '',
-                structuralInstruction: template.structuralInstruction || '',
-                repurposingIdeas: template.repurposingIdeas || '',
+                tone: Array.isArray(template.tone) ? template.tone.map(t => ({ value: t._id || t, label: t.name || 'Selected Tone' })) : [],
+                outputFormat: Array.isArray(template.outputFormat) ? template.outputFormat.map(o => ({ value: o._id || o, label: o.name || 'Selected Format' })) : [],
                 variables: Array.isArray(template.variables) ? template.variables : []
             });
             // Handle multiple images
@@ -66,16 +63,13 @@ const TemplateModal = ({ isOpen, onClose, template, onSave }) => {
             setFormData({
                 title: '',
                 description: '',
-                llm: '',
-                industry: '',
-                category: '',
+                llm: null,
+                industry: null,
+                category: null,
                 basePromptText: '',
                 status: 'Draft',
-                useCase: '',
-                tone: '',
-                outputFormat: '',
-                structuralInstruction: '',
-                repurposingIdeas: '',
+                tone: [],
+                outputFormat: [],
                 variables: []
             });
             setExistingImages([]);
@@ -91,6 +85,8 @@ const TemplateModal = ({ isOpen, onClose, template, onSave }) => {
             fetchLlms();
             fetchIndustries();
             fetchCategories();
+            fetchTones();
+            fetchOutputFormats();
         }
     }, [isOpen]);
 
@@ -128,6 +124,34 @@ const TemplateModal = ({ isOpen, onClose, template, onSave }) => {
         } catch (err) {
             console.error(err);
         }
+    };
+
+    const fetchTones = async () => {
+        try {
+            const res = await fetch(`${import.meta.env.VITE_API_URL}/api/tones?status=active&limit=1000`, {
+                headers: { Authorization: `Bearer ${userInfo.token}` }
+            });
+            const data = await res.json();
+            setTones(data.result || data || []);
+        } catch (err) {
+            console.error("Error fetching tones:", err);
+        }
+    };
+
+    const fetchOutputFormats = async () => {
+        try {
+            const res = await fetch(`${import.meta.env.VITE_API_URL}/api/output-formats?status=active&limit=1000`, {
+                headers: { Authorization: `Bearer ${userInfo.token}` }
+            });
+            const data = await res.json();
+            setOutputFormats(data.result || data || []);
+        } catch (err) {
+            console.error("Error fetching output formats:", err);
+        }
+    };
+
+    const handleSelectChange = (selectedOption, { name }) => {
+        setFormData(prev => ({ ...prev, [name]: selectedOption }));
     };
 
     const handleChange = (e) => {
@@ -277,6 +301,10 @@ const TemplateModal = ({ isOpen, onClose, template, onSave }) => {
             for (const key in formData) {
                 if (key === 'variables') {
                     data.append('variables', JSON.stringify(formData.variables));
+                } else if (key === 'tone' || key === 'outputFormat') {
+                    data.append(key, JSON.stringify(formData[key].map(opt => opt.value)));
+                } else if (key === 'llm' || key === 'industry' || key === 'category') {
+                    data.append(key, formData[key] ? formData[key].value : '');
                 } else {
                     data.append(key, formData[key]);
                 }
@@ -379,48 +407,39 @@ const TemplateModal = ({ isOpen, onClose, template, onSave }) => {
                                 <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
                                     LLM<span className="text-red-500 ml-1">*</span>
                                 </label>
-                                <select
+                                <Select
                                     name="llm"
-                                    required
                                     value={formData.llm}
-                                    onChange={handleChange}
-                                    className="w-full px-3 py-2 border border-gray-300 dark:border-gray-700 rounded-lg bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition-colors"
-                                >
-                                    <option value="">Select LLM</option>
-                                    {llms.map(llm => (
-                                        <option key={llm._id} value={llm._id}>{llm.name}</option>
-                                    ))}
-                                </select>
+                                    onChange={handleSelectChange}
+                                    options={llms.map(llm => ({ value: llm._id, label: llm.name }))}
+                                    placeholder="Select LLM"
+                                    className="react-select-container"
+                                    classNamePrefix="react-select"
+                                />
                             </div>
                             <div>
                                 <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Industry<span className="text-red-500 ml-1">*</span></label>
-                                <select
+                                <Select
                                     name="industry"
-                                    required
                                     value={formData.industry}
-                                    onChange={handleChange}
-                                    className="w-full px-3 py-2 border border-gray-300 dark:border-gray-700 rounded-lg bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition-colors"
-                                >
-                                    <option value="">Select Industry</option>
-                                    {industries.map(ind => (
-                                        <option key={ind._id} value={ind._id}>{ind.name}</option>
-                                    ))}
-                                </select>
+                                    onChange={handleSelectChange}
+                                    options={industries.map(ind => ({ value: ind._id, label: ind.name }))}
+                                    placeholder="Select Industry"
+                                    className="react-select-container"
+                                    classNamePrefix="react-select"
+                                />
                             </div>
                             <div>
                                 <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Category<span className="text-red-500 ml-1">*</span></label>
-                                <select
+                                <Select
                                     name="category"
-                                    required
                                     value={formData.category}
-                                    onChange={handleChange}
-                                    className="w-full px-3 py-2 border border-gray-300 dark:border-gray-700 rounded-lg bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition-colors"
-                                >
-                                    <option value="">Select Category</option>
-                                    {categories.map(cat => (
-                                        <option key={cat._id} value={cat._id}>{cat.name}</option>
-                                    ))}
-                                </select>
+                                    onChange={handleSelectChange}
+                                    options={categories.map(cat => ({ value: cat._id, label: cat.name }))}
+                                    placeholder="Select Category"
+                                    className="react-select-container"
+                                    classNamePrefix="react-select"
+                                />
                             </div>
                         </div>
 
@@ -439,23 +458,30 @@ const TemplateModal = ({ isOpen, onClose, template, onSave }) => {
 
                         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                             <div>
-                                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Use Case</label>
-                                <textarea name="useCase" value={formData.useCase} onChange={handleChange} rows={3} className="w-full px-3 py-2 border border-gray-300 dark:border-gray-700 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition-colors bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100" />
-                            </div>
-                            <div>
                                 <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Locked Tone</label>
-                                <textarea name="tone" value={formData.tone} onChange={handleChange} rows={3} className="w-full px-3 py-2 border border-gray-300 dark:border-gray-700 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition-colors bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100" />
+                                <Select
+                                    name="tone"
+                                    isMulti
+                                    value={formData.tone}
+                                    onChange={handleSelectChange}
+                                    options={tones.map(t => ({ value: t._id, label: t.name }))}
+                                    placeholder="Select Tone(s)"
+                                    className="react-select-container"
+                                    classNamePrefix="react-select"
+                                />
                             </div>
-                        </div>
-
-                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                             <div>
                                 <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Locked Output Format</label>
-                                <textarea name="outputFormat" value={formData.outputFormat} onChange={handleChange} rows={3} className="w-full px-3 py-2 border border-gray-300 dark:border-gray-700 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition-colors bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100" />
-                            </div>
-                            <div>
-                                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Locked Structural Instruction</label>
-                                <textarea name="structuralInstruction" value={formData.structuralInstruction} onChange={handleChange} rows={3} className="w-full px-3 py-2 border border-gray-300 dark:border-gray-700 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition-colors bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100" />
+                                <Select
+                                    name="outputFormat"
+                                    isMulti
+                                    value={formData.outputFormat}
+                                    onChange={handleSelectChange}
+                                    options={outputFormats.map(o => ({ value: o._id, label: o.name }))}
+                                    placeholder="Select Output Format(s)"
+                                    className="react-select-container"
+                                    classNamePrefix="react-select"
+                                />
                             </div>
                         </div>
 
@@ -572,17 +598,6 @@ const TemplateModal = ({ isOpen, onClose, template, onSave }) => {
                                 placeholder="Write the prompt here using {{variables}}..."
                             />
                             <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">Use the variable names defined above in double curly braces, e.g. {`{{VariableName}}`}</p>
-                        </div>
-
-                        <div>
-                            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Repurposing Ideas</label>
-                            <textarea
-                                name="repurposingIdeas"
-                                rows={3}
-                                value={formData.repurposingIdeas}
-                                onChange={handleChange}
-                                className="w-full px-3 py-2 border border-gray-300 dark:border-gray-700 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition-colors bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100"
-                            />
                         </div>
 
                         {/* File Upload Section (New) */}

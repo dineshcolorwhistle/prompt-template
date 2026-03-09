@@ -79,6 +79,8 @@ exports.getTemplates = async (req, res) => {
             .populate('llm', 'name icon')
             .populate('industry', 'name')
             .populate('category', 'name')
+            .populate('tone', 'name')
+            .populate('outputFormat', 'name')
             .populate('user', 'name')
             .sort({ createdAt: -1 })
             .skip(skip)
@@ -147,6 +149,8 @@ exports.getMyTemplates = async (req, res) => {
             .populate('llm', 'name icon')
             .populate('industry', 'name')
             .populate('category', 'name')
+            .populate('tone', 'name')
+            .populate('outputFormat', 'name')
             .sort({ createdAt: -1 });
         res.json(templates);
     } catch (error) {
@@ -161,8 +165,7 @@ exports.createTemplate = async (req, res, next) => {
     try {
         const {
             title, description, llm, industry, category, status,
-            useCase, tone, outputFormat, structuralInstruction, basePromptText,
-            repurposingIdeas
+            basePromptText
         } = req.body;
 
         let variables = [];
@@ -173,6 +176,15 @@ exports.createTemplate = async (req, res, next) => {
                 console.error("Error parsing variables:", e);
                 variables = []; // or handle error
             }
+        }
+
+        let tone = [];
+        if (req.body.tone) {
+            try { tone = typeof req.body.tone === 'string' ? JSON.parse(req.body.tone) : req.body.tone; } catch (e) { tone = req.body.tone; }
+        }
+        let outputFormat = [];
+        if (req.body.outputFormat) {
+            try { outputFormat = typeof req.body.outputFormat === 'string' ? JSON.parse(req.body.outputFormat) : req.body.outputFormat; } catch (e) { outputFormat = req.body.outputFormat; }
         }
 
         // --- VALIDATION START ---
@@ -215,14 +227,11 @@ exports.createTemplate = async (req, res, next) => {
             industry,
             category,
             status: status || 'Draft',
-            useCase,
             tone,
             outputFormat,
-            structuralInstruction,
             basePromptText,
             variables,
-            sampleOutput: tempPaths, // temporary
-            repurposingIdeas
+            sampleOutput: tempPaths // temporary
         });
 
         // Move files from temp to uploads/templates/{templateId}/
@@ -233,7 +242,9 @@ exports.createTemplate = async (req, res, next) => {
         const populatedTemplate = await Template.findById(template._id)
             .populate('llm', 'name icon')
             .populate('industry', 'name')
-            .populate('category', 'name');
+            .populate('category', 'name')
+            .populate('tone', 'name')
+            .populate('outputFormat', 'name');
 
         res.status(201).json(populatedTemplate);
     } catch (error) {
@@ -249,8 +260,7 @@ exports.updateTemplate = async (req, res, next) => {
     try {
         const {
             title, description, llm, industry, category, status,
-            useCase, tone, outputFormat, structuralInstruction, basePromptText,
-            repurposingIdeas
+            basePromptText
         } = req.body;
 
         const template = await Template.findById(req.params.id);
@@ -270,12 +280,14 @@ exports.updateTemplate = async (req, res, next) => {
         if (industry) template.industry = industry;
         if (category) template.category = category;
         if (status) template.status = status;
-        if (useCase) template.useCase = useCase;
-        if (tone) template.tone = tone;
-        if (outputFormat) template.outputFormat = outputFormat;
-        if (structuralInstruction) template.structuralInstruction = structuralInstruction;
         if (basePromptText) template.basePromptText = basePromptText;
-        if (repurposingIdeas) template.repurposingIdeas = repurposingIdeas;
+
+        if (req.body.tone) {
+            try { template.tone = typeof req.body.tone === 'string' ? JSON.parse(req.body.tone) : req.body.tone; } catch (e) { template.tone = req.body.tone; }
+        }
+        if (req.body.outputFormat) {
+            try { template.outputFormat = typeof req.body.outputFormat === 'string' ? JSON.parse(req.body.outputFormat) : req.body.outputFormat; } catch (e) { template.outputFormat = req.body.outputFormat; }
+        }
 
         if (req.body.variables) {
             try {
@@ -395,7 +407,9 @@ exports.updateTemplate = async (req, res, next) => {
         const updatedTemplate = await Template.findById(template._id)
             .populate('llm', 'name icon')
             .populate('industry', 'name')
-            .populate('category', 'name');
+            .populate('category', 'name')
+            .populate('tone', 'name')
+            .populate('outputFormat', 'name');
 
         res.json(updatedTemplate);
     } catch (error) {
@@ -486,6 +500,8 @@ exports.getTemplateById = async (req, res) => {
             .populate('llm', 'name icon')
             .populate('industry', 'name')
             .populate('category', 'name')
+            .populate('tone', 'name')
+            .populate('outputFormat', 'name')
             .populate('user', 'name');
 
         if (!template) {
@@ -554,7 +570,9 @@ exports.getTemplateStats = async (req, res) => {
             .limit(5)
             .select('title status createdAt category industry')
             .populate('category', 'name')
-            .populate('industry', 'name');
+            .populate('industry', 'name')
+            .populate('tone', 'name')
+            .populate('outputFormat', 'name');
 
         formattedStats.recentTemplates = recentTemplates;
 

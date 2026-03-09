@@ -1479,7 +1479,6 @@ function TemplateInfoCard({ template, isLoggedIn }) {
 
     const tabs = [
         { key: 'details', label: 'Details', icon: Info },
-        { key: 'usecase', label: 'Use Case', icon: Layers },
         { key: 'more', label: 'More', icon: Lightbulb },
     ];
 
@@ -1533,24 +1532,24 @@ function TemplateInfoCard({ template, isLoggedIn }) {
                             className="space-y-4"
                         >
                             {/* Output Format – card with CollapsibleText */}
-                            {template.outputFormat && (
+                            {template.outputFormat && template.outputFormat.length > 0 && (
                                 <div className="p-4 rounded-xl bg-gradient-to-br from-indigo-50/80 to-blue-50/40 dark:from-indigo-900/20 dark:to-blue-900/10 border border-indigo-100 dark:border-indigo-800">
                                     <div className="flex items-center gap-2 mb-2.5">
                                         <Layout className="w-4 h-4 text-indigo-600 dark:text-indigo-400" />
                                         <span className="text-sm font-bold text-indigo-900 dark:text-indigo-300">Output Format</span>
                                     </div>
-                                    <CollapsibleText text={template.outputFormat} clampLines={3} />
+                                    <CollapsibleText text={Array.isArray(template.outputFormat) ? template.outputFormat.map(o => typeof o === 'object' ? o.name : o).join(', ') : template.outputFormat} clampLines={3} />
                                 </div>
                             )}
 
                             {/* Tone – card with CollapsibleText */}
-                            {template.tone && (
+                            {template.tone && template.tone.length > 0 && (
                                 <div className="p-4 rounded-xl bg-gradient-to-br from-amber-50/80 to-yellow-50/40 dark:from-amber-900/20 dark:to-yellow-900/10 border border-amber-100 dark:border-amber-800">
                                     <div className="flex items-center gap-2 mb-2.5">
                                         <Palette className="w-4 h-4 text-amber-600 dark:text-amber-400" />
                                         <span className="text-sm font-bold text-amber-900 dark:text-amber-300">Tone</span>
                                     </div>
-                                    <CollapsibleText text={template.tone} clampLines={3} />
+                                    <CollapsibleText text={Array.isArray(template.tone) ? template.tone.map(t => typeof t === 'object' ? t.name : t).join(', ') : template.tone} clampLines={3} />
                                 </div>
                             )}
 
@@ -1585,43 +1584,7 @@ function TemplateInfoCard({ template, isLoggedIn }) {
                         </motion.div>
                     )}
 
-                    {activeTab === 'usecase' && (
-                        <motion.div
-                            key="usecase"
-                            initial={{ opacity: 0, y: 8 }}
-                            animate={{ opacity: 1, y: 0 }}
-                            exit={{ opacity: 0, y: -8 }}
-                            transition={{ duration: 0.2 }}
-                            className="space-y-4"
-                        >
-                            {template.useCase ? (
-                                <div className="p-4 rounded-xl bg-gradient-to-br from-blue-50/80 to-indigo-50/40 dark:from-blue-900/20 dark:to-indigo-900/10 border border-blue-100 dark:border-blue-800">
-                                    <div className="flex items-center gap-2 mb-2.5">
-                                        <Layers className="w-4 h-4 text-blue-600 dark:text-blue-400" />
-                                        <span className="text-sm font-bold text-blue-900 dark:text-blue-300">Use Case</span>
-                                    </div>
-                                    <CollapsibleText text={template.useCase} clampLines={3} />
-                                </div>
-                            ) : (
-                                <div className="flex flex-col items-center justify-center py-8 text-center">
-                                    <div className="p-3 bg-gray-100 dark:bg-gray-800 rounded-full mb-3">
-                                        <Layers className="w-5 h-5 text-gray-400 dark:text-gray-500" />
-                                    </div>
-                                    <p className="text-sm text-gray-400 dark:text-gray-500">No use case documented</p>
-                                </div>
-                            )}
 
-                            {template.structuralInstruction && (
-                                <div className="p-4 rounded-xl bg-gradient-to-br from-violet-50/80 to-purple-50/40 dark:from-violet-900/20 dark:to-purple-900/10 border border-violet-100 dark:border-violet-800">
-                                    <div className="flex items-center gap-2 mb-2.5">
-                                        <FileText className="w-4 h-4 text-violet-600 dark:text-violet-400" />
-                                        <span className="text-sm font-bold text-violet-900 dark:text-violet-300">Structural Instruction</span>
-                                    </div>
-                                    <CollapsibleText text={template.structuralInstruction} clampLines={3} />
-                                </div>
-                            )}
-                        </motion.div>
-                    )}
 
                     {activeTab === 'more' && (
                         <motion.div
@@ -1632,22 +1595,6 @@ function TemplateInfoCard({ template, isLoggedIn }) {
                             transition={{ duration: 0.2 }}
                             className="space-y-4"
                         >
-                            {template.repurposingIdeas ? (
-                                <div className="p-4 rounded-xl bg-gradient-to-br from-amber-50/80 to-orange-50/40 dark:from-amber-900/20 dark:to-orange-900/10 border border-amber-100 dark:border-amber-800">
-                                    <div className="flex items-center gap-2 mb-2.5">
-                                        <Lightbulb className="w-4 h-4 text-amber-600 dark:text-amber-400" />
-                                        <span className="text-sm font-bold text-amber-900 dark:text-amber-300">Repurposing Ideas</span>
-                                    </div>
-                                    <CollapsibleText text={template.repurposingIdeas} clampLines={3} />
-                                </div>
-                            ) : (
-                                <div className="flex flex-col items-center justify-center py-8 text-center">
-                                    <div className="p-3 bg-gray-100 dark:bg-gray-800 rounded-full mb-3">
-                                        <Lightbulb className="w-5 h-5 text-gray-400 dark:text-gray-500" />
-                                    </div>
-                                    <p className="text-sm text-gray-400 dark:text-gray-500">No additional info available</p>
-                                </div>
-                            )}
 
                             {/* Created / Updated meta */}
                             <div className="grid grid-cols-2 gap-3">

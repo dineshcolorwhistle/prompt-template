@@ -368,7 +368,6 @@ Edit `seeder.js` to change the default admin name, email, and password before ru
 | basePromptText | String | Required, contains `{{variable}}` placeholders |
 | variables | Array | `[{ name, description, defaultValue, required }]` |
 | sampleOutput | [String] | Up to 5 image paths |
-| repurposingIdeas | String | Suggestions for alternative uses |
 | status | Enum | `Draft`, `Pending`, `Approved`, `Rejected` |
 
 ### Rating

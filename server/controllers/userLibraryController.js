@@ -81,6 +81,8 @@ exports.getSavedTemplates = async (req, res) => {
                     { path: 'llm', select: 'name icon' },
                     { path: 'industry', select: 'name' },
                     { path: 'category', select: 'name' },
+                    { path: 'tone', select: 'name' },
+                    { path: 'outputFormat', select: 'name' },
                     { path: 'user', select: 'name' },
                 ],
             });
@@ -146,6 +148,8 @@ exports.getRatedTemplates = async (req, res) => {
                     { path: 'llm', select: 'name icon' },
                     { path: 'industry', select: 'name' },
                     { path: 'category', select: 'name' },
+                    { path: 'tone', select: 'name' },
+                    { path: 'outputFormat', select: 'name' },
                     { path: 'user', select: 'name' },
                 ],
             });
@@ -250,6 +254,8 @@ exports.getCopyHistory = async (req, res) => {
                     .populate('llm', 'name icon')
                     .populate('industry', 'name')
                     .populate('category', 'name')
+                    .populate('tone', 'name')
+                    .populate('outputFormat', 'name')
                     .populate('user', 'name');
 
                 if (!template) return null;

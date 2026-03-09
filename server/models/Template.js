@@ -30,18 +30,14 @@ const templateSchema = new mongoose.Schema({
         ref: 'Category',
         required: [true, 'Please select a category'],
     },
-    useCase: {
-        type: String,
-    },
-    tone: {
-        type: String, // Locked tone
-    },
-    outputFormat: {
-        type: String, // Locked output format
-    },
-    structuralInstruction: {
-        type: String, // Locked structural instruction
-    },
+    tone: [{
+        type: mongoose.Schema.Types.ObjectId,
+        ref: 'Tone',
+    }],
+    outputFormat: [{
+        type: mongoose.Schema.Types.ObjectId,
+        ref: 'OutputFormat',
+    }],
     basePromptText: {
         type: String, // BasePromptText
         required: [true, 'Please add base prompt text'],
@@ -71,9 +67,6 @@ const templateSchema = new mongoose.Schema({
             },
             message: 'A template can have a maximum of 5 sample output images.'
         }
-    },
-    repurposingIdeas: {
-        type: String,
     },
     status: {
         type: String,
