@@ -5,7 +5,7 @@ import { pageVariants, pageTransition } from '../animations';
 import {
     Menu, LogOut, LayoutDashboard, FileText, Users, Settings,
     FileCheck, Briefcase, Tags, MessageSquare, BarChart2, User,
-    BadgeCheck, Braces, Bot, Sun, Moon
+    BadgeCheck, Braces, Bot, Sun, Moon, Mic, FileCode
 } from 'lucide-react';
 import { Link, Outlet, useLocation, useNavigate } from 'react-router-dom';
 import useDarkMode from '../hooks/useDarkMode';
@@ -38,6 +38,8 @@ const DashboardLayout = () => {
             { icon: Bot, label: 'LLMs', path: '/dashboard/llms' },
             { icon: Briefcase, label: 'Industries', path: '/dashboard/industries' },
             { icon: Tags, label: 'Categories', path: '/dashboard/categories' },
+            { icon: Mic, label: 'Tones', path: '/dashboard/tones' },
+            { icon: FileCode, label: 'Output Formats', path: '/dashboard/output-formats' },
             { icon: FileCheck, label: 'Templates', path: '/dashboard/templates' },
             { icon: MessageSquare, label: 'Moderate Comments', path: '/dashboard/comments' },
             { icon: BarChart2, label: 'Analytics', path: '/dashboard/analytics' },
@@ -94,15 +96,15 @@ const DashboardLayout = () => {
                             <Sun
                                 size={20}
                                 className={`absolute inset-0 transform transition-all duration-300 ${theme === 'dark'
-                                        ? 'rotate-0 scale-100 opacity-100 text-amber-400'
-                                        : 'rotate-90 scale-0 opacity-0'
+                                    ? 'rotate-0 scale-100 opacity-100 text-amber-400'
+                                    : 'rotate-90 scale-0 opacity-0'
                                     }`}
                             />
                             <Moon
                                 size={20}
                                 className={`absolute inset-0 transform transition-all duration-300 ${theme === 'dark'
-                                        ? '-rotate-90 scale-0 opacity-0'
-                                        : 'rotate-0 scale-100 opacity-100 text-gray-500'
+                                    ? '-rotate-90 scale-0 opacity-0'
+                                    : 'rotate-0 scale-100 opacity-100 text-gray-500'
                                     }`}
                             />
                         </div>

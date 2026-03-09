@@ -16,6 +16,8 @@ import Users from './pages/Users';
 import MyTemplates from './pages/MyTemplates';
 import LLMs from './pages/LLMs';
 import MyLibrary from './pages/MyLibrary';
+import Tones from './pages/Tones';
+import OutputFormats from './pages/OutputFormats';
 
 import Templates from './pages/Templates';
 import PlaceholderPage from './components/PlaceholderPage';
@@ -65,6 +67,8 @@ function App() {
             <Route path="industries" element={<Industries />} />
             <Route path="categories" element={<Categories />} />
             <Route path="llms" element={<LLMs />} />
+            <Route path="tones" element={<Tones />} />
+            <Route path="output-formats" element={<OutputFormats />} />
             <Route path="comments" element={<PlaceholderPage title="Moderate Comments" />} />
             <Route path="analytics" element={<PlaceholderPage title="Analytics" />} />
             <Route path="settings" element={<PlaceholderPage title="Settings" />} />

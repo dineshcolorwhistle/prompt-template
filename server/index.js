@@ -59,6 +59,12 @@ app.use('/api/categories', categoryRoutes);
 const templateRoutes = require('./routes/templateRoutes');
 app.use('/api/templates', templateRoutes);
 
+const toneRoutes = require('./routes/toneRoutes');
+app.use('/api/tones', toneRoutes);
+
+const outputFormatRoutes = require('./routes/outputFormatRoutes');
+app.use('/api/output-formats', outputFormatRoutes);
+
 const commentRoutes = require('./routes/commentRoutes');
 app.use('/api/comments', commentRoutes);
 
