@@ -61,10 +61,36 @@ export const AuthProvider = ({ children }) => {
         setUserInfo(null);
     };
 
+    const loginWithGoogle = async (token) => {
+        try {
+            const response = await fetch(`${import.meta.env.VITE_API_URL}/api/users/google-login`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({ token }),
+            });
+
+            const data = await response.json();
+
+            if (response.ok) {
+                localStorage.setItem('userInfo', JSON.stringify(data));
+                setUserInfo(data);
+                return data;
+            } else {
+                throw new Error(data.message || 'Error logging in with Google');
+            }
+        } catch (error) {
+            console.error('Google login error:', error);
+            throw error;
+        }
+    };
+
     const value = {
         userInfo,
         login,
         logout,
+        loginWithGoogle,
         loading
     };
 

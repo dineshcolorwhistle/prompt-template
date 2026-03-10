@@ -2,8 +2,10 @@
 import React, { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
-import { User, Mail, Loader2, CheckCircle } from 'lucide-react';
+import { User as UserIcon, Mail, Loader2, CheckCircle } from 'lucide-react';
 import { toast } from 'react-hot-toast';
+import { GoogleLogin } from '@react-oauth/google';
+import { useAuth } from '../context/AuthContext';
 
 const Signup = () => {
     const [formData, setFormData] = useState({
@@ -13,6 +15,8 @@ const Signup = () => {
 
     const [loading, setLoading] = useState(false);
     const [success, setSuccess] = useState(false);
+    const navigate = useNavigate();
+    const { loginWithGoogle } = useAuth();
 
     const { name, email } = formData;
 
@@ -46,6 +50,23 @@ const Signup = () => {
         } finally {
             setLoading(false);
         }
+    };
+
+    const handleGoogleSuccess = async (credentialResponse) => {
+        try {
+            setLoading(true);
+            await loginWithGoogle(credentialResponse.credential);
+            toast.success("Successfully registered and logged in with Google");
+            navigate('/');
+        } catch (err) {
+            toast.error(err.message || 'Error signing up with Google');
+        } finally {
+            setLoading(false);
+        }
+    };
+
+    const handleGoogleError = () => {
+        toast.error('Google Sign Up Failed');
     };
 
     if (success) {
@@ -113,7 +134,7 @@ const Signup = () => {
                             </label>
                             <div className="mt-1 relative rounded-md shadow-sm">
                                 <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                                    <User className="h-5 w-5 text-gray-400" />
+                                    <UserIcon className="h-5 w-5 text-gray-400" />
                                 </div>
                                 <input
                                     id="name"
@@ -165,6 +186,28 @@ const Signup = () => {
                             </button>
                         </div>
                     </form>
+
+                    <div className="mt-6">
+                        <div className="relative">
+                            <div className="absolute inset-0 flex items-center">
+                                <div className="w-full border-t border-gray-300" />
+                            </div>
+                            <div className="relative flex justify-center text-sm">
+                                <span className="px-2 bg-white text-gray-500">
+                                    Or sign up with
+                                </span>
+                            </div>
+                        </div>
+
+                        <div className="mt-6 flex justify-center">
+                            <GoogleLogin
+                                onSuccess={handleGoogleSuccess}
+                                onError={handleGoogleError}
+                                theme="outline"
+                                size="large"
+                            />
+                        </div>
+                    </div>
 
                     <div className="mt-6">
                         <div className="relative">
