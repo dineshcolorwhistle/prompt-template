@@ -5,7 +5,7 @@ import { pageVariants, pageTransition } from '../animations';
 import {
     Menu, LogOut, LayoutDashboard, FileText, Users, Settings,
     FileCheck, Briefcase, Tags, MessageSquare, BarChart2, User,
-    BadgeCheck, Braces, Bot, Sun, Moon, Mic, FileCode
+    BadgeCheck, Braces, Bot, Sun, Moon, Mic, FileCode, Home
 } from 'lucide-react';
 import { Link, Outlet, useLocation, useNavigate } from 'react-router-dom';
 import useDarkMode from '../hooks/useDarkMode';
@@ -83,7 +83,19 @@ const DashboardLayout = () => {
                     ))}
                 </div>
 
-                <div className="p-4 border-t border-gray-100 dark:border-gray-800 flex-shrink-0 space-y-3">
+                <div className="p-4 border-t border-gray-200 dark:border-gray-800 flex-shrink-0 space-y-3 bg-gray-50 dark:bg-gray-800/50">
+                    {/* Back to Prompts */}
+                    <Link
+                        to="/?view=all"
+                        className={`flex items-center w-full px-3 py-2 text-left text-sm font-medium rounded-lg transition-all duration-200 group
+                            text-indigo-600 dark:text-indigo-400 hover:bg-indigo-50 dark:hover:bg-indigo-500/10
+                            ${!isSidebarOpen && 'justify-center'}`}
+                        title="Back to Prompts"
+                    >
+                        <Home size={20} className="flex-shrink-0" />
+                        {isSidebarOpen && <span className="ml-3">Back to Prompts</span>}
+                    </Link>
+
                     {/* Theme Toggle */}
                     <button
                         onClick={toggleTheme}

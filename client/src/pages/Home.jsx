@@ -4,7 +4,7 @@ import TemplateCard from '../components/TemplateCard';
 import Pagination from '../components/Pagination';
 import { motion } from 'framer-motion';
 import { listVariants, itemVariants } from '../animations';
-import { Search, Sparkles, Zap, Target, ArrowRight, ChevronDown, X, Bot, Filter, Layers } from 'lucide-react';
+import { Search, Sparkles, Zap, Target, ArrowRight, ChevronDown, X, Bot, Layers } from 'lucide-react';
 
 export default function Home() {
     const [searchParams, setSearchParams] = useSearchParams();
@@ -16,8 +16,6 @@ export default function Home() {
     const [selectedLLMData, setSelectedLLMData] = useState(null);
 
     // Filter states for the prompt listing
-    const [industries, setIndustries] = useState([]);
-    const [categories, setCategories] = useState([]);
     const [searchTerm, setSearchTerm] = useState('');
     const debounceRef = useRef(null);
     const promptListingRef = useRef(null);
@@ -31,16 +29,17 @@ export default function Home() {
     const sortBy = searchParams.get('sort') || 'newest';
 
     // Determine if we should show the landing page or prompt listing
-    const showPromptListing = !!llm;
+    const viewAll = searchParams.get('view') === 'all';
+    const showPromptListing = viewAll || !!llm || !!industry || !!category;
 
     // Sync search term from URL
     useEffect(() => {
         setSearchTerm(search);
     }, [search]);
 
-    // Fetch templates only when LLM is selected
+    // Fetch templates when filter is selected or view=all
     useEffect(() => {
-        if (!llm) {
+        if (!showPromptListing) {
             setTemplates([]);
             setLoading(false);
             return;
@@ -83,7 +82,7 @@ export default function Home() {
         };
 
         fetchTemplates();
-    }, [page, llm, industry, category, search, sortBy]);
+    }, [page, llm, industry, category, search, sortBy, showPromptListing]);
 
     // Fetch LLM info when selected
     useEffect(() => {
@@ -105,54 +104,14 @@ export default function Home() {
         fetchLLMInfo();
     }, [llm]);
 
-    // Fetch industries when LLM is selected
+    // Scroll to prompt listing when it becomes visible
     useEffect(() => {
-        const fetchIndustries = async () => {
-            if (!llm) {
-                setIndustries([]);
-                return;
-            }
-            try {
-                const response = await fetch(`${import.meta.env.VITE_API_URL}/api/industries?limit=100&status=active&llm=${llm}`);
-                const data = await response.json();
-                if (response.ok && data.result) {
-                    setIndustries(data.result);
-                }
-            } catch (error) {
-                console.error('Failed to fetch industries:', error);
-            }
-        };
-        fetchIndustries();
-    }, [llm]);
-
-    // Fetch categories when industry is selected
-    useEffect(() => {
-        const fetchCategories = async () => {
-            if (!industry) {
-                setCategories([]);
-                return;
-            }
-            try {
-                const response = await fetch(`${import.meta.env.VITE_API_URL}/api/categories?industry=${industry}&limit=100&status=active`);
-                const data = await response.json();
-                if (response.ok && data.result) {
-                    setCategories(data.result);
-                }
-            } catch (error) {
-                console.error('Failed to fetch categories:', error);
-            }
-        };
-        fetchCategories();
-    }, [industry]);
-
-    // Scroll to prompt listing when LLM is selected
-    useEffect(() => {
-        if (llm && promptListingRef.current) {
+        if (showPromptListing && promptListingRef.current) {
             setTimeout(() => {
                 promptListingRef.current.scrollIntoView({ behavior: 'smooth', block: 'start' });
             }, 100);
         }
-    }, [llm]);
+    }, [showPromptListing, llm]);
 
     const handlePageChange = (newPage) => {
         setSearchParams(prev => {
@@ -179,19 +138,6 @@ export default function Home() {
         }, 400);
     };
 
-    const handleIndustryChange = (e) => {
-        const val = e.target.value;
-        const params = new URLSearchParams(searchParams);
-        if (val) {
-            params.set('industry', val);
-        } else {
-            params.delete('industry');
-        }
-        params.delete('category');
-        params.delete('page');
-        navigate(`/?${params.toString()}`);
-    };
-
     const handleSortChange = (e) => {
         const val = e.target.value;
         const params = new URLSearchParams(searchParams);
@@ -204,24 +150,10 @@ export default function Home() {
         navigate(`/?${params.toString()}`);
     };
 
-    const handleCategoryChange = (e) => {
-        const val = e.target.value;
-        const params = new URLSearchParams(searchParams);
-        if (val) {
-            params.set('category', val);
-        } else {
-            params.delete('category');
-        }
-        params.delete('page');
-        navigate(`/?${params.toString()}`);
-    };
-
     const clearFilters = () => {
         if (debounceRef.current) clearTimeout(debounceRef.current);
         setSearchTerm('');
-        const params = new URLSearchParams();
-        if (llm) params.set('llm', llm);
-        navigate(`/?${params.toString()}`);
+        navigate(`/?view=all`);
     };
 
     const hasActiveFilters = industry || category || search;
@@ -547,42 +479,6 @@ export default function Home() {
                                         onChange={(e) => handleSearchChange(e.target.value)}
                                         className="w-full pl-10 pr-4 py-2.5 text-sm bg-gray-50 dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-xl focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent text-gray-900 dark:text-gray-100 placeholder-gray-400 dark:placeholder-gray-500 transition-all"
                                     />
-                                </div>
-
-                                {/* Industry Filter */}
-                                <div className="relative min-w-[170px]">
-                                    <Filter className="absolute left-3 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-gray-400 pointer-events-none" />
-                                    <select
-                                        value={industry}
-                                        onChange={handleIndustryChange}
-                                        className="w-full appearance-none pl-8 pr-9 py-2.5 text-sm bg-gray-50 dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-xl focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent text-gray-700 dark:text-gray-300 font-medium cursor-pointer hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors"
-                                    >
-                                        <option value="">All Industries</option>
-                                        {industries.map(ind => (
-                                            <option key={ind._id} value={ind._id}>{ind.name}</option>
-                                        ))}
-                                    </select>
-                                    <ChevronDown className="absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400 pointer-events-none" />
-                                </div>
-
-                                {/* Category Filter */}
-                                <div className="relative min-w-[170px]">
-                                    <Layers className="absolute left-3 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-gray-400 pointer-events-none" />
-                                    <select
-                                        value={category}
-                                        onChange={handleCategoryChange}
-                                        disabled={!industry}
-                                        className={`w-full appearance-none pl-8 pr-9 py-2.5 text-sm border rounded-xl focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent font-medium transition-colors ${!industry
-                                            ? 'bg-gray-100 dark:bg-gray-800/50 text-gray-400 dark:text-gray-600 cursor-not-allowed border-gray-200 dark:border-gray-700'
-                                            : 'bg-gray-50 dark:bg-gray-800 text-gray-700 dark:text-gray-300 cursor-pointer hover:bg-gray-100 dark:hover:bg-gray-700 border-gray-200 dark:border-gray-700'
-                                            }`}
-                                    >
-                                        <option value="">All Categories</option>
-                                        {categories.map(cat => (
-                                            <option key={cat._id} value={cat._id}>{cat.name}</option>
-                                        ))}
-                                    </select>
-                                    <ChevronDown className="absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400 pointer-events-none" />
                                 </div>
                             </div>
                         </div>

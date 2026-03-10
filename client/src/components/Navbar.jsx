@@ -2,7 +2,7 @@ import React, { useState, useEffect, useRef } from 'react';
 import { Link, useNavigate, useSearchParams } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import { dropdownVariants } from '../animations';
-import { Menu, X, User, LogOut, LayoutDashboard, ChevronDown, CheckCircle, BadgeCheck, Bot, Bookmark, Sun, Moon } from 'lucide-react';
+import { Menu, X, User, LogOut, LayoutDashboard, ChevronDown, CheckCircle, BadgeCheck, Bot, Bookmark, Sun, Moon, Target, Layers, Filter } from 'lucide-react';
 
 import { useAuth } from '../context/AuthContext';
 import RequestExpertModal from './RequestExpertModal';
@@ -12,43 +12,63 @@ export default function Navbar() {
     const [isMenuOpen, setIsMenuOpen] = useState(false);
     const [isProfileOpen, setIsProfileOpen] = useState(false);
     const [isLLMDropdownOpen, setIsLLMDropdownOpen] = useState(false);
+    const [isIndustryDropdownOpen, setIsIndustryDropdownOpen] = useState(false);
+    const [isCategoryDropdownOpen, setIsCategoryDropdownOpen] = useState(false);
     const [isRequestModalOpen, setIsRequestModalOpen] = useState(false);
     const { userInfo, logout } = useAuth();
     const [theme, setTheme] = useDarkMode();
     const toggleTheme = () => setTheme(theme === 'dark' ? 'light' : 'dark');
     const profileRef = useRef(null);
     const llmDropdownRef = useRef(null);
+    const industryDropdownRef = useRef(null);
+    const categoryDropdownRef = useRef(null);
     const navigate = useNavigate();
     const [searchParams] = useSearchParams();
 
-    // LLM State
+    // Filter State
     const [llms, setLLMs] = useState([]);
-    const selectedLLM = searchParams.get('llm') || '';
+    const [industries, setIndustries] = useState([]);
+    const [categories, setCategories] = useState([]);
 
-    // Fetch LLMs on mount
+    const selectedLLM = searchParams.get('llm') || '';
+    const selectedIndustry = searchParams.get('industry') || '';
+    const selectedCategory = searchParams.get('category') || '';
+
+    // Fetch data on mount
     useEffect(() => {
-        const fetchLLMs = async () => {
+        const fetchData = async () => {
             try {
-                const response = await fetch(`${import.meta.env.VITE_API_URL}/api/llms?limit=100&status=active`);
-                const data = await response.json();
-                if (response.ok && data.result) {
-                    setLLMs(data.result);
+                const [llmRes, indRes, catRes] = await Promise.all([
+                    fetch(`${import.meta.env.VITE_API_URL}/api/llms?limit=100&status=active`),
+                    fetch(`${import.meta.env.VITE_API_URL}/api/industries?limit=100&status=active`),
+                    fetch(`${import.meta.env.VITE_API_URL}/api/categories?limit=100&status=active`)
+                ]);
+
+                if (llmRes.ok) {
+                    const data = await llmRes.json();
+                    setLLMs(data.result || []);
+                }
+                if (indRes.ok) {
+                    const data = await indRes.json();
+                    setIndustries(data.result || []);
+                }
+                if (catRes.ok) {
+                    const data = await catRes.json();
+                    setCategories(data.result || []);
                 }
             } catch (error) {
-                console.error('Failed to fetch LLMs:', error);
+                console.error('Failed to fetch navbar filter data:', error);
             }
         };
-        fetchLLMs();
+        fetchData();
     }, []);
 
     useEffect(() => {
         const handleClickOutside = (event) => {
-            if (profileRef.current && !profileRef.current.contains(event.target)) {
-                setIsProfileOpen(false);
-            }
-            if (llmDropdownRef.current && !llmDropdownRef.current.contains(event.target)) {
-                setIsLLMDropdownOpen(false);
-            }
+            if (profileRef.current && !profileRef.current.contains(event.target)) setIsProfileOpen(false);
+            if (llmDropdownRef.current && !llmDropdownRef.current.contains(event.target)) setIsLLMDropdownOpen(false);
+            if (industryDropdownRef.current && !industryDropdownRef.current.contains(event.target)) setIsIndustryDropdownOpen(false);
+            if (categoryDropdownRef.current && !categoryDropdownRef.current.contains(event.target)) setIsCategoryDropdownOpen(false);
         };
 
         document.addEventListener('mousedown', handleClickOutside);
@@ -63,19 +83,63 @@ export default function Navbar() {
     };
 
     const handleLLMSelect = (llmId) => {
-        const params = new URLSearchParams();
+        const params = new URLSearchParams(searchParams);
         if (llmId) {
             params.set('llm', llmId);
+            params.delete('view');
+        } else {
+            params.delete('llm');
+            params.set('view', 'all');
         }
         navigate(`/?${params.toString()}`);
         setIsLLMDropdownOpen(false);
         setIsMenuOpen(false);
     };
 
+    const handleIndustrySelect = (indId) => {
+        const params = new URLSearchParams(searchParams);
+        if (indId) {
+            params.set('industry', indId);
+            params.delete('view');
+        } else {
+            params.delete('industry');
+            params.set('view', 'all');
+        }
+        navigate(`/?${params.toString()}`);
+        setIsIndustryDropdownOpen(false);
+        setIsMenuOpen(false);
+    };
+
+    const handleCategorySelect = (catId) => {
+        const params = new URLSearchParams(searchParams);
+        if (catId) {
+            params.set('category', catId);
+            params.delete('view');
+        } else {
+            params.delete('category');
+            params.set('view', 'all');
+        }
+        navigate(`/?${params.toString()}`);
+        setIsCategoryDropdownOpen(false);
+        setIsMenuOpen(false);
+    };
+
     const getSelectedLLMName = () => {
-        if (!selectedLLM) return 'Select LLM';
+        if (!selectedLLM) return 'LLM';
         const found = llms.find(l => l._id === selectedLLM);
-        return found ? found.name : 'Select LLM';
+        return found ? found.name : 'LLM';
+    };
+
+    const getSelectedIndustryName = () => {
+        if (!selectedIndustry) return 'Industry';
+        const found = industries.find(i => i._id === selectedIndustry);
+        return found ? found.name : 'Industry';
+    };
+
+    const getSelectedCategoryName = () => {
+        if (!selectedCategory) return 'Category';
+        const found = categories.find(c => c._id === selectedCategory);
+        return found ? found.name : 'Category';
     };
 
     const getSelectedLLMIcon = () => {
@@ -83,6 +147,90 @@ export default function Navbar() {
         const found = llms.find(l => l._id === selectedLLM);
         return found?.icon || null;
     };
+
+    const renderFilterDropdown = (
+        isOpen, setIsOpen, dropdownRef,
+        selectedValue, items, title,
+        handleSelect, getSelectedName,
+        getIconComponent, allLabel
+    ) => (
+        <div className="relative" ref={dropdownRef}>
+            <button
+                onClick={() => setIsOpen(!isOpen)}
+                className={`flex items-center gap-2 px-3 py-2 text-sm font-medium rounded-xl border transition-all duration-200 ${selectedValue
+                        ? 'bg-gradient-to-r from-purple-50 to-indigo-50 dark:from-purple-900/30 dark:to-indigo-900/30 border-purple-200 dark:border-purple-800 text-purple-700 dark:text-purple-300 shadow-sm'
+                        : 'bg-gray-50 dark:bg-gray-800 border-gray-200 dark:border-gray-700 text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700'
+                    }`}
+            >
+                {getIconComponent ? getIconComponent() : <Target size={16} />}
+                <span className="max-w-[100px] truncate">{getSelectedName()}</span>
+                <ChevronDown size={14} className={`transform transition-transform duration-200 ${isOpen ? 'rotate-180' : ''}`} />
+            </button>
+
+            <AnimatePresence>
+                {isOpen && (
+                    <motion.div
+                        variants={dropdownVariants}
+                        initial="initial"
+                        animate="animate"
+                        exit="exit"
+                        className="absolute right-0 mt-2 w-64 bg-white dark:bg-gray-900 rounded-xl shadow-2xl border border-gray-100 dark:border-gray-800 py-2 origin-top-right z-50 overflow-hidden"
+                    >
+                        <div className="px-3 py-2 border-b border-gray-100 dark:border-gray-800">
+                            <p className="text-xs font-semibold text-gray-400 dark:text-gray-500 uppercase tracking-wider">{title}</p>
+                        </div>
+                        <div className="max-h-72 overflow-y-auto scrollbar-thin py-1">
+                            <button
+                                onClick={() => handleSelect('')}
+                                className={`w-full text-left px-4 py-2.5 text-sm flex items-center gap-3 transition-colors ${!selectedValue
+                                        ? 'bg-indigo-50 dark:bg-indigo-900/30 text-indigo-700 dark:text-indigo-300 font-medium'
+                                        : 'text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-800'
+                                    }`}
+                            >
+                                <div className="w-7 h-7 rounded-lg bg-gray-100 dark:bg-gray-800 flex items-center justify-center">
+                                    <Bot size={14} className="text-gray-500 dark:text-gray-400 opacity-0" />
+                                    <span className="absolute text-[10px] font-bold text-gray-500">ALL</span>
+                                </div>
+                                <span>{allLabel}</span>
+                                {!selectedValue && (
+                                    <div className="ml-auto w-2 h-2 bg-indigo-500 rounded-full"></div>
+                                )}
+                            </button>
+                            {items.map(item => (
+                                <button
+                                    key={item._id}
+                                    onClick={() => handleSelect(item._id)}
+                                    className={`w-full text-left px-4 py-2.5 text-sm flex items-center gap-3 transition-colors ${selectedValue === item._id
+                                            ? 'bg-indigo-50 dark:bg-indigo-900/30 text-indigo-700 dark:text-indigo-300 font-medium'
+                                            : 'text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-800'
+                                        }`}
+                                >
+                                    <div className="w-7 h-7 rounded-lg bg-gray-100 dark:bg-gray-800 flex items-center justify-center overflow-hidden flex-shrink-0">
+                                        {item.icon ? (
+                                            <img
+                                                src={item.icon.startsWith('http') ? item.icon : `${import.meta.env.VITE_API_URL}/${item.icon.replace(/\\/g, '/')}`}
+                                                alt={item.name}
+                                                className="w-5 h-5 object-contain"
+                                                onError={(e) => { e.target.parentElement.innerHTML = `<svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="text-gray-400"><path d="M12 8V4H8"/><rect width="16" height="12" x="4" y="8" rx="2"/><path d="M2 14h2"/><path d="M20 14h2"/><path d="M15 13v2"/><path d="M9 13v2"/></svg>`; }}
+                                            />
+                                        ) : (
+                                            title.includes('LLM') ? <Bot size={14} className="text-gray-400 dark:text-gray-500" /> :
+                                                title.includes('Industry') ? <Target size={14} className="text-gray-400 dark:text-gray-500" /> :
+                                                    <Layers size={14} className="text-gray-400 dark:text-gray-500" />
+                                        )}
+                                    </div>
+                                    <span className="truncate">{item.name}</span>
+                                    {selectedValue === item._id && (
+                                        <div className="ml-auto w-2 h-2 bg-indigo-500 rounded-full flex-shrink-0"></div>
+                                    )}
+                                </button>
+                            ))}
+                        </div>
+                    </motion.div>
+                )}
+            </AnimatePresence>
+        </div>
+    );
 
     return (
         <>
@@ -102,94 +250,32 @@ export default function Navbar() {
                             </span>
                         </Link>
 
-                        {/* Right Section: LLM Dropdown + Theme Toggle + User */}
-                        <div className="hidden md:flex items-center gap-2">
-                            {/* LLM Dropdown */}
-                            <div className="relative" ref={llmDropdownRef}>
-                                <button
-                                    onClick={() => setIsLLMDropdownOpen(!isLLMDropdownOpen)}
-                                    className={`flex items-center gap-2 px-4 py-2 text-sm font-medium rounded-xl border transition-all duration-200 ${
-                                        selectedLLM
-                                            ? 'bg-gradient-to-r from-purple-50 to-indigo-50 dark:from-purple-900/30 dark:to-indigo-900/30 border-purple-200 dark:border-purple-800 text-purple-700 dark:text-purple-300 shadow-sm'
-                                            : 'bg-gray-50 dark:bg-gray-800 border-gray-200 dark:border-gray-700 text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700'
-                                    }`}
-                                >
-                                    {getSelectedLLMIcon() ? (
-                                        <img
-                                            src={getSelectedLLMIcon().startsWith('http') ? getSelectedLLMIcon() : `${import.meta.env.VITE_API_URL}/${getSelectedLLMIcon().replace(/\\/g, '/')}`}
-                                            alt=""
-                                            className="w-5 h-5 object-contain rounded"
-                                            onError={(e) => { e.target.style.display = 'none'; }}
-                                        />
-                                    ) : (
-                                        <Bot size={16} />
-                                    )}
-                                    <span className="max-w-[120px] truncate">{getSelectedLLMName()}</span>
-                                    <ChevronDown size={14} className={`transform transition-transform duration-200 ${isLLMDropdownOpen ? 'rotate-180' : ''}`} />
-                                </button>
-
-                                <AnimatePresence>
-                                    {isLLMDropdownOpen && (
-                                        <motion.div
-                                            variants={dropdownVariants}
-                                            initial="initial"
-                                            animate="animate"
-                                            exit="exit"
-                                            className="absolute right-0 mt-2 w-64 bg-white dark:bg-gray-900 rounded-xl shadow-2xl border border-gray-100 dark:border-gray-800 py-2 origin-top-right z-50 overflow-hidden"
-                                        >
-                                            <div className="px-3 py-2 border-b border-gray-100 dark:border-gray-800">
-                                                <p className="text-xs font-semibold text-gray-400 dark:text-gray-500 uppercase tracking-wider">Choose an LLM</p>
-                                            </div>
-                                            <div className="max-h-72 overflow-y-auto scrollbar-thin py-1">
-                                                <button
-                                                    onClick={() => handleLLMSelect('')}
-                                                    className={`w-full text-left px-4 py-2.5 text-sm flex items-center gap-3 transition-colors ${
-                                                        !selectedLLM
-                                                            ? 'bg-indigo-50 dark:bg-indigo-900/30 text-indigo-700 dark:text-indigo-300 font-medium'
-                                                            : 'text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-800'
-                                                    }`}
-                                                >
-                                                    <div className="w-7 h-7 rounded-lg bg-gray-100 dark:bg-gray-800 flex items-center justify-center">
-                                                        <Bot size={14} className="text-gray-500 dark:text-gray-400" />
-                                                    </div>
-                                                    <span>All LLMs</span>
-                                                    {!selectedLLM && (
-                                                        <div className="ml-auto w-2 h-2 bg-indigo-500 rounded-full"></div>
-                                                    )}
-                                                </button>
-                                                {llms.map(llm => (
-                                                    <button
-                                                        key={llm._id}
-                                                        onClick={() => handleLLMSelect(llm._id)}
-                                                        className={`w-full text-left px-4 py-2.5 text-sm flex items-center gap-3 transition-colors ${
-                                                            selectedLLM === llm._id
-                                                                ? 'bg-indigo-50 dark:bg-indigo-900/30 text-indigo-700 dark:text-indigo-300 font-medium'
-                                                                : 'text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-800'
-                                                        }`}
-                                                    >
-                                                        <div className="w-7 h-7 rounded-lg bg-gray-100 dark:bg-gray-800 flex items-center justify-center overflow-hidden flex-shrink-0">
-                                                            {llm.icon ? (
-                                                                <img
-                                                                    src={llm.icon.startsWith('http') ? llm.icon : `${import.meta.env.VITE_API_URL}/${llm.icon.replace(/\\/g, '/')}`}
-                                                                    alt={llm.name}
-                                                                    className="w-5 h-5 object-contain"
-                                                                    onError={(e) => { e.target.parentElement.innerHTML = `<svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="text-gray-400"><path d="M12 8V4H8"/><rect width="16" height="12" x="4" y="8" rx="2"/><path d="M2 14h2"/><path d="M20 14h2"/><path d="M15 13v2"/><path d="M9 13v2"/></svg>`; }}
-                                                                />
-                                                            ) : (
-                                                                <Bot size={14} className="text-gray-400 dark:text-gray-500" />
-                                                            )}
-                                                        </div>
-                                                        <span className="truncate">{llm.name}</span>
-                                                        {selectedLLM === llm._id && (
-                                                            <div className="ml-auto w-2 h-2 bg-indigo-500 rounded-full flex-shrink-0"></div>
-                                                        )}
-                                                    </button>
-                                                ))}
-                                            </div>
-                                        </motion.div>
-                                    )}
-                                </AnimatePresence>
-                            </div>
+                        {/* Right Section: Dropdowns + Theme Toggle + User */}
+                        <div className="hidden lg:flex items-center gap-2">
+                            {/* Filter Dropdowns */}
+                            {renderFilterDropdown(
+                                isLLMDropdownOpen, setIsLLMDropdownOpen, llmDropdownRef,
+                                selectedLLM, llms, 'Choose an LLM', handleLLMSelect,
+                                getSelectedLLMName,
+                                () => getSelectedLLMIcon() ? (
+                                    <img src={getSelectedLLMIcon().startsWith('http') ? getSelectedLLMIcon() : `${import.meta.env.VITE_API_URL}/${getSelectedLLMIcon().replace(/\\/g, '/')}`} alt="" className="w-5 h-5 object-contain rounded" onError={(e) => { e.target.style.display = 'none'; }} />
+                                ) : <Bot size={16} />,
+                                'All LLMs'
+                            )}
+                            {renderFilterDropdown(
+                                isIndustryDropdownOpen, setIsIndustryDropdownOpen, industryDropdownRef,
+                                selectedIndustry, industries, 'Choose an Industry', handleIndustrySelect,
+                                getSelectedIndustryName,
+                                () => <Target size={16} />,
+                                'All Industries'
+                            )}
+                            {renderFilterDropdown(
+                                isCategoryDropdownOpen, setIsCategoryDropdownOpen, categoryDropdownRef,
+                                selectedCategory, categories, 'Choose a Category', handleCategorySelect,
+                                getSelectedCategoryName,
+                                () => <Layers size={16} />,
+                                'All Categories'
+                            )}
 
                             {/* Divider */}
                             <div className="w-px h-6 bg-gray-200 dark:bg-gray-700 mx-1"></div>
@@ -203,19 +289,17 @@ export default function Navbar() {
                                 <div className="relative w-5 h-5">
                                     <Sun
                                         size={20}
-                                        className={`absolute inset-0 transform transition-all duration-300 ${
-                                            theme === 'dark'
+                                        className={`absolute inset-0 transform transition-all duration-300 ${theme === 'dark'
                                                 ? 'rotate-0 scale-100 opacity-100'
                                                 : 'rotate-90 scale-0 opacity-0'
-                                        }`}
+                                            }`}
                                     />
                                     <Moon
                                         size={20}
-                                        className={`absolute inset-0 transform transition-all duration-300 ${
-                                            theme === 'dark'
+                                        className={`absolute inset-0 transform transition-all duration-300 ${theme === 'dark'
                                                 ? '-rotate-90 scale-0 opacity-0'
                                                 : 'rotate-0 scale-100 opacity-100'
-                                        }`}
+                                            }`}
                                     />
                                 </div>
                             </button>
@@ -369,44 +453,60 @@ export default function Navbar() {
                             transition={{ duration: 0.2 }}
                         >
                             <div className="p-4 flex flex-col space-y-4">
-                                {/* Mobile LLM Selection */}
-                                <div className="space-y-2">
-                                    <label className="text-xs font-semibold text-gray-400 dark:text-gray-500 uppercase tracking-wider">Select LLM</label>
-                                    <div className="grid grid-cols-2 gap-2">
-                                        <button
-                                            onClick={() => handleLLMSelect('')}
-                                            className={`px-3 py-2.5 text-sm rounded-xl border font-medium transition-all flex items-center gap-2 ${
-                                                !selectedLLM
-                                                    ? 'bg-indigo-50 dark:bg-indigo-900/30 border-indigo-200 dark:border-indigo-800 text-indigo-700 dark:text-indigo-300'
-                                                    : 'bg-gray-50 dark:bg-gray-800 border-gray-200 dark:border-gray-700 text-gray-600 dark:text-gray-400'
-                                            }`}
-                                        >
-                                            <Bot size={14} />
-                                            All LLMs
-                                        </button>
-                                        {llms.map(llm => (
-                                            <button
-                                                key={llm._id}
-                                                onClick={() => handleLLMSelect(llm._id)}
-                                                className={`px-3 py-2.5 text-sm rounded-xl border font-medium transition-all flex items-center gap-2 truncate ${
-                                                    selectedLLM === llm._id
-                                                        ? 'bg-indigo-50 dark:bg-indigo-900/30 border-indigo-200 dark:border-indigo-800 text-indigo-700 dark:text-indigo-300'
-                                                        : 'bg-gray-50 dark:bg-gray-800 border-gray-200 dark:border-gray-700 text-gray-600 dark:text-gray-400'
-                                                }`}
+                                {/* Mobile Filter Selection */}
+                                <div className="space-y-4">
+                                    <div className="space-y-2">
+                                        <label className="text-xs font-semibold text-gray-400 dark:text-gray-500 uppercase tracking-wider">Select LLM</label>
+                                        <div className="relative">
+                                            <Bot className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400 pointer-events-none" />
+                                            <select
+                                                value={selectedLLM}
+                                                onChange={(e) => handleLLMSelect(e.target.value)}
+                                                className="w-full appearance-none pl-9 pr-9 py-2.5 text-sm bg-gray-50 dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-xl focus:outline-none focus:ring-2 focus:ring-indigo-500 text-gray-700 dark:text-gray-300 font-medium"
                                             >
-                                                {llm.icon ? (
-                                                    <img
-                                                        src={llm.icon.startsWith('http') ? llm.icon : `${import.meta.env.VITE_API_URL}/${llm.icon.replace(/\\/g, '/')}`}
-                                                        alt=""
-                                                        className="w-4 h-4 object-contain rounded flex-shrink-0"
-                                                        onError={(e) => { e.target.style.display = 'none'; }}
-                                                    />
-                                                ) : (
-                                                    <Bot size={14} className="flex-shrink-0" />
-                                                )}
-                                                <span className="truncate">{llm.name}</span>
-                                            </button>
-                                        ))}
+                                                <option value="">All LLMs</option>
+                                                {llms.map(llm => (
+                                                    <option key={llm._id} value={llm._id}>{llm.name}</option>
+                                                ))}
+                                            </select>
+                                            <ChevronDown className="absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400 pointer-events-none" />
+                                        </div>
+                                    </div>
+
+                                    <div className="space-y-2">
+                                        <label className="text-xs font-semibold text-gray-400 dark:text-gray-500 uppercase tracking-wider">Select Industry</label>
+                                        <div className="relative">
+                                            <Target className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400 pointer-events-none" />
+                                            <select
+                                                value={selectedIndustry}
+                                                onChange={(e) => handleIndustrySelect(e.target.value)}
+                                                className="w-full appearance-none pl-9 pr-9 py-2.5 text-sm bg-gray-50 dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-xl focus:outline-none focus:ring-2 focus:ring-indigo-500 text-gray-700 dark:text-gray-300 font-medium"
+                                            >
+                                                <option value="">All Industries</option>
+                                                {industries.map(i => (
+                                                    <option key={i._id} value={i._id}>{i.name}</option>
+                                                ))}
+                                            </select>
+                                            <ChevronDown className="absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400 pointer-events-none" />
+                                        </div>
+                                    </div>
+
+                                    <div className="space-y-2">
+                                        <label className="text-xs font-semibold text-gray-400 dark:text-gray-500 uppercase tracking-wider">Select Category</label>
+                                        <div className="relative">
+                                            <Layers className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400 pointer-events-none" />
+                                            <select
+                                                value={selectedCategory}
+                                                onChange={(e) => handleCategorySelect(e.target.value)}
+                                                className="w-full appearance-none pl-9 pr-9 py-2.5 text-sm bg-gray-50 dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-xl focus:outline-none focus:ring-2 focus:ring-indigo-500 text-gray-700 dark:text-gray-300 font-medium"
+                                            >
+                                                <option value="">All Categories</option>
+                                                {categories.map(c => (
+                                                    <option key={c._id} value={c._id}>{c.name}</option>
+                                                ))}
+                                            </select>
+                                            <ChevronDown className="absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400 pointer-events-none" />
+                                        </div>
                                     </div>
                                 </div>
 

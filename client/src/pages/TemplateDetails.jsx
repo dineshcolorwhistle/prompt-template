@@ -6,7 +6,7 @@ import {
     MessageSquare, Send, Reply, Shield, Award, Clock, User, Image as ImageIcon,
     ZoomIn, ChevronLeft, ChevronRight, Eye, Variable, FileText, Sparkles, Layers,
     ThumbsUp, BarChart3, TrendingUp, Bookmark, Palette, Layout, Lightbulb, Info, Tag,
-    AlertTriangle, Zap, Star, ClipboardCheck, Rocket
+    AlertTriangle, Zap, Star, ClipboardCheck, Rocket, Briefcase
 } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 import toast from 'react-hot-toast';
@@ -1531,25 +1531,37 @@ function TemplateInfoCard({ template, isLoggedIn }) {
                             transition={{ duration: 0.2 }}
                             className="space-y-4"
                         >
-                            {/* Output Format – card with CollapsibleText */}
+                            {/* Output Format – card with badged list */}
                             {template.outputFormat && template.outputFormat.length > 0 && (
                                 <div className="p-4 rounded-xl bg-gradient-to-br from-indigo-50/80 to-blue-50/40 dark:from-indigo-900/20 dark:to-blue-900/10 border border-indigo-100 dark:border-indigo-800">
-                                    <div className="flex items-center gap-2 mb-2.5">
+                                    <div className="flex items-center gap-2 mb-3">
                                         <Layout className="w-4 h-4 text-indigo-600 dark:text-indigo-400" />
                                         <span className="text-sm font-bold text-indigo-900 dark:text-indigo-300">Output Format</span>
                                     </div>
-                                    <CollapsibleText text={Array.isArray(template.outputFormat) ? template.outputFormat.map(o => typeof o === 'object' ? o.name : o).join(', ') : template.outputFormat} clampLines={3} />
+                                    <div className="flex flex-wrap gap-2">
+                                        {(Array.isArray(template.outputFormat) ? template.outputFormat : [template.outputFormat]).map((item, idx) => (
+                                            <span key={idx} className="inline-flex items-center px-2.5 py-1 rounded-md text-xs font-semibold bg-indigo-100/60 text-indigo-800 dark:bg-indigo-900/40 dark:text-indigo-300 border border-indigo-200/60 dark:border-indigo-800/60 shadow-sm">
+                                                {typeof item === 'object' ? item.name : item}
+                                            </span>
+                                        ))}
+                                    </div>
                                 </div>
                             )}
 
-                            {/* Tone – card with CollapsibleText */}
+                            {/* Tone – card with badged list */}
                             {template.tone && template.tone.length > 0 && (
                                 <div className="p-4 rounded-xl bg-gradient-to-br from-amber-50/80 to-yellow-50/40 dark:from-amber-900/20 dark:to-yellow-900/10 border border-amber-100 dark:border-amber-800">
-                                    <div className="flex items-center gap-2 mb-2.5">
+                                    <div className="flex items-center gap-2 mb-3">
                                         <Palette className="w-4 h-4 text-amber-600 dark:text-amber-400" />
                                         <span className="text-sm font-bold text-amber-900 dark:text-amber-300">Tone</span>
                                     </div>
-                                    <CollapsibleText text={Array.isArray(template.tone) ? template.tone.map(t => typeof t === 'object' ? t.name : t).join(', ') : template.tone} clampLines={3} />
+                                    <div className="flex flex-wrap gap-2">
+                                        {(Array.isArray(template.tone) ? template.tone : [template.tone]).map((item, idx) => (
+                                            <span key={idx} className="inline-flex items-center px-2.5 py-1 rounded-md text-xs font-semibold bg-amber-100/60 text-amber-800 dark:bg-amber-900/40 dark:text-amber-300 border border-amber-200/60 dark:border-amber-800/60 shadow-sm">
+                                                {typeof item === 'object' ? item.name : item}
+                                            </span>
+                                        ))}
+                                    </div>
                                 </div>
                             )}
 
@@ -1746,7 +1758,7 @@ export default function TemplateDetails() {
                         animate={{ opacity: 1, y: 0 }}
                         className="mb-6"
                     >
-                        <Link to="/" className="inline-flex items-center gap-2 text-sm text-white/70 hover:text-white transition-colors group">
+                        <Link to="/?view=all" className="inline-flex items-center gap-2 text-sm text-white/70 hover:text-white transition-colors group">
                             <ArrowLeft className="w-4 h-4 group-hover:-translate-x-1 transition-transform" />
                             Back to Templates
                         </Link>
@@ -1759,15 +1771,23 @@ export default function TemplateDetails() {
                             transition={{ duration: 0.5, delay: 0.1 }}
                         >
                             {/* Tags */}
-                            <div className="flex flex-wrap items-center gap-2 mb-4">
-                                <span className="px-3 py-1 text-xs font-bold bg-white/15 text-white rounded-full backdrop-blur-sm border border-white/10">
-                                    {template.industry?.name || 'General'}
-                                </span>
+                            <div className="flex flex-wrap items-center gap-3 mb-4">
+                                {template.llm && (
+                                    <span className="flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold bg-white/15 text-white rounded-full backdrop-blur-sm border border-white/20 shadow-sm">
+                                        <Layers className="w-3.5 h-3.5 opacity-80" />
+                                        {template.llm.name}
+                                    </span>
+                                )}
                                 {template.category && (
-                                    <span className="px-3 py-1 text-xs font-medium bg-white/10 text-white/90 rounded-full backdrop-blur-sm border border-white/10">
+                                    <span className="flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold bg-white/15 text-white rounded-full backdrop-blur-sm border border-white/20 shadow-sm">
+                                        <Tag className="w-3.5 h-3.5 opacity-80" />
                                         {template.category.name}
                                     </span>
                                 )}
+                                <span className="flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold bg-white/15 text-white rounded-full backdrop-blur-sm border border-white/20 shadow-sm">
+                                    <Briefcase className="w-3.5 h-3.5 opacity-80" />
+                                    {template.industry?.name || 'General'}
+                                </span>
                             </div>
 
                             {/* Title */}
