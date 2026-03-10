@@ -158,8 +158,8 @@ export default function Navbar() {
             <button
                 onClick={() => setIsOpen(!isOpen)}
                 className={`flex items-center gap-2 px-3 py-2 text-sm font-medium rounded-xl border transition-all duration-200 ${selectedValue
-                        ? 'bg-gradient-to-r from-purple-50 to-indigo-50 dark:from-purple-900/30 dark:to-indigo-900/30 border-purple-200 dark:border-purple-800 text-purple-700 dark:text-purple-300 shadow-sm'
-                        : 'bg-gray-50 dark:bg-gray-800 border-gray-200 dark:border-gray-700 text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700'
+                    ? 'bg-gradient-to-r from-purple-50 to-indigo-50 dark:from-purple-900/30 dark:to-indigo-900/30 border-purple-200 dark:border-purple-800 text-purple-700 dark:text-purple-300 shadow-sm'
+                    : 'bg-gray-50 dark:bg-gray-800 border-gray-200 dark:border-gray-700 text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700'
                     }`}
             >
                 {getIconComponent ? getIconComponent() : <Target size={16} />}
@@ -183,8 +183,8 @@ export default function Navbar() {
                             <button
                                 onClick={() => handleSelect('')}
                                 className={`w-full text-left px-4 py-2.5 text-sm flex items-center gap-3 transition-colors ${!selectedValue
-                                        ? 'bg-indigo-50 dark:bg-indigo-900/30 text-indigo-700 dark:text-indigo-300 font-medium'
-                                        : 'text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-800'
+                                    ? 'bg-indigo-50 dark:bg-indigo-900/30 text-indigo-700 dark:text-indigo-300 font-medium'
+                                    : 'text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-800'
                                     }`}
                             >
                                 <div className="w-7 h-7 rounded-lg bg-gray-100 dark:bg-gray-800 flex items-center justify-center">
@@ -201,8 +201,8 @@ export default function Navbar() {
                                     key={item._id}
                                     onClick={() => handleSelect(item._id)}
                                     className={`w-full text-left px-4 py-2.5 text-sm flex items-center gap-3 transition-colors ${selectedValue === item._id
-                                            ? 'bg-indigo-50 dark:bg-indigo-900/30 text-indigo-700 dark:text-indigo-300 font-medium'
-                                            : 'text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-800'
+                                        ? 'bg-indigo-50 dark:bg-indigo-900/30 text-indigo-700 dark:text-indigo-300 font-medium'
+                                        : 'text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-800'
                                         }`}
                                 >
                                     <div className="w-7 h-7 rounded-lg bg-gray-100 dark:bg-gray-800 flex items-center justify-center overflow-hidden flex-shrink-0">
@@ -290,15 +290,15 @@ export default function Navbar() {
                                     <Sun
                                         size={20}
                                         className={`absolute inset-0 transform transition-all duration-300 ${theme === 'dark'
-                                                ? 'rotate-0 scale-100 opacity-100'
-                                                : 'rotate-90 scale-0 opacity-0'
+                                            ? 'rotate-0 scale-100 opacity-100'
+                                            : 'rotate-90 scale-0 opacity-0'
                                             }`}
                                     />
                                     <Moon
                                         size={20}
                                         className={`absolute inset-0 transform transition-all duration-300 ${theme === 'dark'
-                                                ? '-rotate-90 scale-0 opacity-0'
-                                                : 'rotate-0 scale-100 opacity-100'
+                                            ? '-rotate-90 scale-0 opacity-0'
+                                            : 'rotate-0 scale-100 opacity-100'
                                             }`}
                                     />
                                 </div>
@@ -388,14 +388,6 @@ export default function Navbar() {
                                                         My Library
                                                     </Link>
 
-                                                    <Link
-                                                        to="/profile"
-                                                        className="px-4 py-2.5 text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-800 hover:text-indigo-600 dark:hover:text-indigo-400 flex items-center gap-3 transition-colors"
-                                                        onClick={() => setIsProfileOpen(false)}
-                                                    >
-                                                        <User size={16} />
-                                                        Profile
-                                                    </Link>
                                                 </div>
 
                                                 <div className="border-t border-gray-100 dark:border-gray-800 pt-1 pb-1">
@@ -542,10 +534,6 @@ export default function Navbar() {
                                         <Link to="/my-library" onClick={() => setIsMenuOpen(false)} className="text-gray-600 dark:text-gray-300 font-medium py-2.5 flex items-center gap-3 hover:text-indigo-600 dark:hover:text-indigo-400 transition-colors">
                                             <Bookmark size={18} />
                                             My Library
-                                        </Link>
-                                        <Link to="/profile" onClick={() => setIsMenuOpen(false)} className="text-gray-600 dark:text-gray-300 font-medium py-2.5 flex items-center gap-3 hover:text-indigo-600 dark:hover:text-indigo-400 transition-colors">
-                                            <User size={18} />
-                                            Profile
                                         </Link>
                                         <button
                                             onClick={handleLogout}

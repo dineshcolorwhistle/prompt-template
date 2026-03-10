@@ -40,10 +40,7 @@ const DashboardLayout = () => {
             { icon: Tags, label: 'Categories', path: '/dashboard/categories' },
             { icon: Mic, label: 'Tones', path: '/dashboard/tones' },
             { icon: FileCode, label: 'Output Formats', path: '/dashboard/output-formats' },
-            { icon: FileCheck, label: 'Templates', path: '/dashboard/templates' },
-            { icon: MessageSquare, label: 'Moderate Comments', path: '/dashboard/comments' },
-            { icon: BarChart2, label: 'Analytics', path: '/dashboard/analytics' },
-            { icon: Settings, label: 'Settings', path: '/dashboard/settings' }
+            { icon: FileCheck, label: 'Templates', path: '/dashboard/templates' }
         ] : []),
         ...(userInfo.role === 'Expert' ? [
             { icon: FileText, label: 'Template Management', path: '/dashboard/models' }
