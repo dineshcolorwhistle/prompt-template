@@ -1,10 +1,10 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { useSearchParams, useNavigate } from 'react-router-dom';
+import { useSearchParams, useNavigate, Link } from 'react-router-dom';
 import TemplateCard from '../components/TemplateCard';
 import Pagination from '../components/Pagination';
 import { motion } from 'framer-motion';
 import { listVariants, itemVariants } from '../animations';
-import { Search, Sparkles, Zap, Target, ArrowRight, ChevronDown, X, Bot, Layers } from 'lucide-react';
+import { Search, Sparkles, Zap, Target, ArrowRight, ChevronDown, X, Bot, Layers, Code, Briefcase, FileText, Star } from 'lucide-react';
 
 export default function Home() {
     const [searchParams, setSearchParams] = useSearchParams();
@@ -184,226 +184,282 @@ export default function Home() {
     ];
 
     return (
-        <div className="min-h-screen bg-gray-50 dark:bg-gray-950 transition-colors duration-200">
-            {/* ========== LANDING PAGE SECTIONS ========== */}
+        <div className="min-h-screen bg-white dark:bg-[#0b0f19] transition-colors duration-200">
+                        {/* ========== LANDING PAGE SECTIONS ========== */}
             {!showPromptListing && (
                 <>
                     {/* Hero Banner */}
-                    <section className="relative overflow-hidden bg-indigo-950">
-                        {/* Light mode gradient */}
-                        <div className="absolute inset-0 bg-gradient-to-br from-indigo-600 via-purple-600 to-indigo-800 transition-opacity duration-300 ease-in-out opacity-100 dark:opacity-0"></div>
-                        {/* Dark mode gradient */}
-                        <div className="absolute inset-0 bg-gradient-to-br from-indigo-900 via-purple-900 to-indigo-950 transition-opacity duration-300 ease-in-out opacity-0 dark:opacity-100"></div>
-
-                        {/* Background decorative elements */}
-                        <div className="absolute inset-0">
-                            <div className="absolute top-0 left-1/4 w-96 h-96 bg-purple-500/20 rounded-full blur-3xl"></div>
-                            <div className="absolute bottom-0 right-1/4 w-80 h-80 bg-indigo-400/20 rounded-full blur-3xl"></div>
-                            <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[600px] h-[600px] bg-gradient-to-r from-purple-500/10 to-indigo-500/10 rounded-full blur-3xl"></div>
-                            {/* Subtle grid pattern */}
-                            <div className="absolute inset-0 opacity-[0.02]" style={{
-                                backgroundImage: 'radial-gradient(circle, white 1px, transparent 1px)',
-                                backgroundSize: '40px 40px'
-                            }}></div>
+                    <section className="relative px-4 pt-20 pb-20 sm:pt-32 sm:pb-24 overflow-hidden bg-white dark:bg-[#0b0f19] transition-colors duration-200">
+                        <div className="max-w-7xl mx-auto flex flex-col items-center text-center relative z-10">
+                            {/* Pill */}
+                            <motion.div 
+                                initial={{ opacity: 0, y: 20 }}
+                                animate={{ opacity: 1, y: 0 }}
+                                transition={{ duration: 0.6 }}
+                            >
+                                <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-[#fdf2f6] dark:bg-[#fdf2f6]/10 text-[#ea2e6d] text-sm font-semibold mb-8 border border-[#ea2e6d]/10">
+                                    <Sparkles size={16} fill="currentColor" />
+                                    <span>AI-Powered Prompt Templates</span>
+                                </div>
+                            </motion.div>
+                            
+                            {/* Headline */}
+                            <motion.h1 
+                                initial={{ opacity: 0, y: 20 }}
+                                animate={{ opacity: 1, y: 0 }}
+                                transition={{ duration: 0.6, delay: 0.1 }}
+                                className="text-5xl sm:text-6xl lg:text-7xl font-extrabold text-[#111827] dark:text-white leading-[1.15] mb-6 tracking-tight"
+                            >
+                                Discover & Use the Best<br/>
+                                <span className="bg-clip-text text-transparent bg-gradient-to-r from-[#0e1c81] to-[#ea2e6d]">AI Prompt Templates</span>
+                            </motion.h1>
+                            
+                            {/* Typing Effect */}
+                            <motion.div 
+                                initial={{ opacity: 0, y: 20 }}
+                                animate={{ opacity: 1, y: 0 }}
+                                transition={{ duration: 0.6, delay: 0.2 }}
+                                className="text-lg sm:text-lg text-gray-500 dark:text-gray-400 mb-10 flex items-center justify-center gap-2 font-medium"
+                            >
+                                <span className="text-[#ea2e6d] font-bold">&gt;</span>
+                                <span>Draft a cold outreach email for B2B SaaS...</span>
+                                <span className="animate-pulse w-0.5 h-6 bg-[#ea2e6d]"></span>
+                            </motion.div>
+                            
+                            {/* Buttons */}
+                            <motion.div 
+                                initial={{ opacity: 0, y: 20 }}
+                                animate={{ opacity: 1, y: 0 }}
+                                transition={{ duration: 0.6, delay: 0.3 }}
+                                className="flex flex-col sm:flex-row items-center justify-center gap-4"
+                            >
+                                <a href="#about" className="px-8 py-3.5 bg-[#ea2e6d] text-white font-bold rounded-full hover:bg-[#d42560] transition-all flex items-center gap-2 text-sm sm:text-base shadow-lg shadow-[#ea2e6d]/20 hover:shadow-[#ea2e6d]/40">
+                                    Get Started <ArrowRight size={18} />
+                                </a>
+                                <Link to="/?view=all" className="px-8 py-3.5 bg-transparent border-2 border-gray-100 dark:border-[#1a1f33] text-gray-900 dark:text-white font-bold rounded-full hover:bg-[#0e1c81] hover:border-[#0e1c81] hover:text-white transition-all text-sm sm:text-base">
+                                    Explore Prompts
+                                </Link>
+                            </motion.div>
+                            
+                            {/* Stats */}
+                            <motion.div 
+                                initial={{ opacity: 0 }}
+                                animate={{ opacity: 1 }}
+                                transition={{ duration: 0.8, delay: 0.5 }}
+                                className="mt-20 flex justify-center gap-12 sm:gap-24"
+                            >
+                                <div className="text-center">
+                                    <p className="text-4xl sm:text-5xl font-extrabold bg-clip-text text-transparent bg-gradient-to-r from-[#0e1c81] to-[#ea2e6d]">500+</p>
+                                    <p className="text-[11px] sm:text-xs text-gray-400 border-gray-200 dark:text-gray-500 mt-2 font-bold uppercase tracking-[0.2em]">Templates</p>
+                                </div>
+                                <div className="text-center">
+                                    <p className="text-4xl sm:text-5xl font-extrabold bg-clip-text text-transparent bg-gradient-to-r from-[#0e1c81] to-[#ea2e6d]">10+</p>
+                                    <p className="text-[11px] sm:text-xs text-gray-400 dark:text-gray-500 mt-2 font-bold uppercase tracking-[0.2em]">LLMs</p>
+                                </div>
+                                <div className="text-center">
+                                    <p className="text-4xl sm:text-5xl font-extrabold bg-clip-text text-transparent bg-gradient-to-r from-[#0e1c81] to-[#ea2e6d]">20+</p>
+                                    <p className="text-[11px] sm:text-xs text-gray-400 dark:text-gray-500 mt-2 font-bold uppercase tracking-[0.2em]">Industries</p>
+                                </div>
+                            </motion.div>
                         </div>
+                    </section>
 
-                        <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-20 sm:py-28 lg:py-36">
-                            <div className="text-center max-w-4xl mx-auto">
-                                <motion.div
+                    {/* See It In Action */}
+                    <section className="py-24 bg-white dark:bg-[#0b0f19] transition-colors duration-200">
+                        <div className="max-w-4xl mx-auto px-4 sm:px-6 text-center">
+                            <motion.div
+                                initial={{ opacity: 0, y: 20 }}
+                                whileInView={{ opacity: 1, y: 0 }}
+                                viewport={{ once: true }}
+                                className="mb-16"
+                            >
+                                <p className="text-[#ea2e6d] text-[11px] font-bold tracking-[0.15em] uppercase mb-4">See It In Action</p>
+                                <h2 className="text-3xl sm:text-4xl font-extrabold text-[#111827] dark:text-white tracking-tight">
+                                    From Prompt to Perfection
+                                </h2>
+                            </motion.div>
+                            
+                            <div className="space-y-6 text-left relative z-10 w-full max-w-[800px] mx-auto">
+                                {/* Terminal Window 1 */}
+                                <motion.div 
                                     initial={{ opacity: 0, y: 20 }}
-                                    animate={{ opacity: 1, y: 0 }}
-                                    transition={{ duration: 0.6 }}
+                                    whileInView={{ opacity: 1, y: 0 }}
+                                    viewport={{ once: true }}
+                                    className="bg-[#f9fafb] dark:bg-[#11131e] rounded-xl border border-gray-100 dark:border-[#1a1f33] shadow-[0_8px_30px_rgb(0,0,0,0.04)] dark:shadow-[0_8px_30px_rgb(0,0,0,0.2)] overflow-hidden"
                                 >
-                                    <div className="inline-flex items-center gap-2 px-4 py-2 bg-white/10 backdrop-blur-sm rounded-full text-white/90 text-sm font-medium mb-8 border border-white/10">
-                                        <Sparkles size={14} className="text-amber-300" />
-                                        <span>AI-Powered Prompt Templates</span>
+                                    <div className="flex items-center px-4 py-3 bg-[#f3f4f6] dark:bg-[#151825] border-b border-gray-200 dark:border-[#1e2336] rounded-t-xl">
+                                        <div className="flex gap-1.5">
+                                            <div className="w-2.5 h-2.5 rounded-full bg-[#ff5f56]"></div>
+                                            <div className="w-2.5 h-2.5 rounded-full bg-[#ffbd2e]"></div>
+                                            <div className="w-2.5 h-2.5 rounded-full bg-[#27c93f]"></div>
+                                        </div>
+                                        <div className="mx-auto text-[11px] text-gray-400 dark:text-gray-500 font-medium font-mono">prompt-terminal</div>
+                                    </div>
+                                    <div className="p-6 sm:p-8 text-sm">
+                                        <div className="flex text-[#ea2e6d] mb-4 font-mono">
+                                            <span className="mr-3 font-bold">&gt;</span>
+                                            <span className="text-gray-600 dark:text-[#a0a8be]">Write a product launch email for a SaaS tool</span>
+                                        </div>
+                                        <div className="text-gray-500 dark:text-[#8890a8] leading-relaxed sm:pl-5 border-l-2 border-gray-100 dark:border-[#1e2336] pl-4 py-1">
+                                            Subject: Introducing [Product] — The smartest way to [solve problem].<br/><br/>
+                                            Dear [Name],<br/>
+                                            We're thrilled to announce...
+                                        </div>
                                     </div>
                                 </motion.div>
-
-                                <motion.h1
+                                
+                                {/* Terminal Window 2 */}
+                                <motion.div 
                                     initial={{ opacity: 0, y: 20 }}
-                                    animate={{ opacity: 1, y: 0 }}
-                                    transition={{ duration: 0.6, delay: 0.1 }}
-                                    className="text-4xl sm:text-5xl lg:text-6xl font-extrabold text-white leading-tight mb-6"
+                                    whileInView={{ opacity: 1, y: 0 }}
+                                    viewport={{ once: true }}
+                                    transition={{ delay: 0.1 }}
+                                    className="bg-[#f9fafb] dark:bg-[#11131e] rounded-xl border border-gray-100 dark:border-[#1a1f33] shadow-[0_8px_30px_rgb(0,0,0,0.04)] dark:shadow-[0_8px_30px_rgb(0,0,0,0.2)] overflow-hidden"
                                 >
-                                    Discover & Use the Best
-                                    <span className="block mt-2 bg-gradient-to-r from-amber-200 via-yellow-200 to-amber-300 bg-clip-text text-transparent">
-                                        AI Prompt Templates
-                                    </span>
-                                </motion.h1>
-
-                                <motion.p
-                                    initial={{ opacity: 0, y: 20 }}
-                                    animate={{ opacity: 1, y: 0 }}
-                                    transition={{ duration: 0.6, delay: 0.2 }}
-                                    className="text-lg sm:text-xl text-indigo-100/80 max-w-2xl mx-auto mb-10 leading-relaxed"
-                                >
-                                    Browse expert-crafted prompts for every LLM. Boost your productivity with templates designed for content creation, coding, business strategy, and more.
-                                </motion.p>
-
-                                <motion.div
-                                    initial={{ opacity: 0, y: 20 }}
-                                    animate={{ opacity: 1, y: 0 }}
-                                    transition={{ duration: 0.6, delay: 0.3 }}
-                                    className="flex flex-col sm:flex-row items-center justify-center gap-4"
-                                >
-                                    <a
-                                        href="#about"
-                                        className="group px-8 py-3.5 bg-white text-indigo-700 font-bold rounded-xl shadow-xl shadow-indigo-900/30 hover:shadow-indigo-900/50 hover:bg-gray-50 transition-all duration-200 flex items-center gap-2 text-sm sm:text-base"
-                                    >
-                                        Get Started
-                                        <ArrowRight size={18} className="group-hover:translate-x-1 transition-transform" />
-                                    </a>
-                                    <a
-                                        href="#featured"
-                                        className="px-8 py-3.5 bg-white/10 backdrop-blur-sm text-white font-semibold rounded-xl border border-white/20 hover:bg-white/20 transition-all duration-200 text-sm sm:text-base"
-                                    >
-                                        Explore Prompts
-                                    </a>
-                                </motion.div>
-
-                                {/* Stats */}
-                                <motion.div
-                                    initial={{ opacity: 0 }}
-                                    animate={{ opacity: 1 }}
-                                    transition={{ duration: 0.8, delay: 0.5 }}
-                                    className="mt-16 grid grid-cols-3 gap-8 max-w-md mx-auto"
-                                >
-                                    {[
-                                        { label: 'Templates', value: '500+' },
-                                        { label: 'LLMs', value: '10+' },
-                                        { label: 'Industries', value: '20+' },
-                                    ].map((stat, i) => (
-                                        <div key={i} className="text-center">
-                                            <p className="text-2xl sm:text-3xl font-extrabold text-white">{stat.value}</p>
-                                            <p className="text-sm text-indigo-200/70 mt-1">{stat.label}</p>
+                                    <div className="flex items-center px-4 py-3 bg-[#f3f4f6] dark:bg-[#151825] border-b border-gray-200 dark:border-[#1e2336] rounded-t-xl">
+                                        <div className="flex gap-1.5">
+                                            <div className="w-2.5 h-2.5 rounded-full bg-[#ff5f56]"></div>
+                                            <div className="w-2.5 h-2.5 rounded-full bg-[#ffbd2e]"></div>
+                                            <div className="w-2.5 h-2.5 rounded-full bg-[#27c93f]"></div>
                                         </div>
-                                    ))}
+                                        <div className="mx-auto text-[11px] text-gray-400 dark:text-gray-500 font-medium font-mono">prompt-terminal</div>
+                                    </div>
+                                    <div className="p-6 sm:p-8 text-sm">
+                                        <div className="flex text-[#ea2e6d] mb-4 font-mono">
+                                            <span className="mr-3 font-bold">&gt;</span>
+                                            <span className="text-gray-600 dark:text-[#a0a8be]">Debug this React component's infinite re-render</span>
+                                        </div>
+                                        <div className="text-gray-500 dark:text-[#8890a8] leading-relaxed sm:pl-5 border-l-2 border-gray-100 dark:border-[#1e2336] pl-4 py-1">
+                                            The issue is a missing dependency in useEffect. Add the state variable to the dependency array or use useCallback...
+                                        </div>
+                                    </div>
                                 </motion.div>
                             </div>
-                        </div>
-
-                        {/* Bottom wave transition */}
-                        <div className="absolute bottom-0 left-0 right-0 w-full overflow-hidden leading-none z-10 pointer-events-none">
-                            <svg viewBox="0 0 1440 150" fill="none" xmlns="http://www.w3.org/2000/svg" className="w-full block relative" preserveAspectRatio="none" style={{ height: '120px' }}>
-                                {/* Shadow wave for depth */}
-                                <path d="M0 151V90C160 120 320 50 520 70C720 90 920 130 1120 80C1220 55 1340 40 1440 50V151H0Z" className="fill-black/10 dark:fill-black/30 transition-colors duration-300" />
-                                {/* Main solid wave */}
-                                <path d="M0 151V110C200 70 400 120 720 90C1040 60 1280 100 1440 80V151H0Z" className="fill-gray-50 dark:fill-gray-950 transition-colors duration-300" />
-                            </svg>
                         </div>
                     </section>
 
                     {/* About Section */}
-                    <section id="about" className="py-20 sm:py-28">
+                    <section id="about" className="py-24 bg-white dark:bg-[#0b0f19] transition-colors duration-200">
                         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-                            <motion.div
-                                initial={{ opacity: 0, y: 30 }}
-                                whileInView={{ opacity: 1, y: 0 }}
-                                viewport={{ once: true, margin: "-100px" }}
-                                transition={{ duration: 0.6 }}
-                                className="text-center max-w-3xl mx-auto mb-16"
-                            >
-                                <div className="inline-flex items-center gap-2 px-3 py-1 bg-indigo-50 dark:bg-indigo-900/30 rounded-full text-indigo-600 dark:text-indigo-400 text-xs font-semibold tracking-wider uppercase mb-4">
-                                    About the Product
+                            <div className="grid grid-cols-1 lg:grid-cols-2 gap-16 items-center">
+                                {/* Left side text */}
+                                <motion.div 
+                                    initial={{ opacity: 0, x: -30 }}
+                                    whileInView={{ opacity: 1, x: 0 }}
+                                    viewport={{ once: true }}
+                                >
+                                    <p className="text-[#ea2e6d] text-[11px] font-bold tracking-[0.15em] uppercase mb-4">About The Product</p>
+                                    <h2 className="text-3xl sm:text-4xl font-extrabold text-[#111827] dark:text-white mb-6 leading-tight">
+                                        Your Ultimate Prompt Library
+                                    </h2>
+                                    <p className="text-lg text-gray-500 dark:text-[#a0a8be] leading-relaxed">
+                                        PromptMarket is the premier marketplace for AI prompt templates. We curate expert-crafted prompts across every major LLM — from ChatGPT to Claude, Gemini, and more. Whether you're a developer, marketer, or entrepreneur, find the perfect prompt to supercharge your workflow.
+                                    </p>
+                                </motion.div>
+                                
+                                {/* Right side cards */}
+                                <div className="space-y-4">
+                                    {[
+                                        {
+                                            icon: <Bot size={20} />,
+                                            title: "Multi-LLM Support",
+                                            description: "Prompts tailored for every major AI model. Select your preferred LLM and get perfectly optimized templates."
+                                        },
+                                        {
+                                            icon: <Target size={20} />,
+                                            title: "Industry Focused",
+                                            description: "Organized by industry and category. Quickly find prompts relevant to your specific domain and use case."
+                                        },
+                                        {
+                                            icon: <Star size={20} />,
+                                            title: "Expert Curated",
+                                            description: "Every prompt is crafted and verified by domain experts. Rate, review, and save your favorites."
+                                        }
+                                    ].map((feature, i) => (
+                                        <motion.div 
+                                            key={i}
+                                            initial={{ opacity: 0, x: 30 }}
+                                            whileInView={{ opacity: 1, x: 0 }}
+                                            viewport={{ once: true }}
+                                            transition={{ delay: i * 0.1 }}
+                                            className="relative group rounded-2xl shadow-sm hover:shadow-md transition-all duration-300 bg-white dark:bg-[#11131e] p-6 flex gap-5 items-start z-0"
+                                        >
+                                            <div 
+                                                className="absolute inset-0 rounded-2xl p-[1px] bg-gradient-to-r from-[#0e1c81]/30 to-[#ea2e6d]/30 group-hover:from-[#0e1c81] group-hover:to-[#ea2e6d] transition-all duration-300 pointer-events-none -z-10"
+                                                style={{
+                                                    WebkitMask: 'linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0)',
+                                                    WebkitMaskComposite: 'xor',
+                                                    maskComposite: 'exclude'
+                                                }}
+                                            ></div>
+                                            <div className="flex-shrink-0 w-12 h-12 rounded-xl bg-[#fdf2f6] dark:bg-[#ea2e6d]/10 flex items-center justify-center text-[#ea2e6d]">
+                                                {feature.icon}
+                                            </div>
+                                            <div>
+                                                <h3 className="text-base font-bold text-gray-900 dark:text-white mb-1">{feature.title}</h3>
+                                                <p className="text-sm text-gray-500 dark:text-[#8890a8] leading-relaxed">{feature.description}</p>
+                                            </div>
+                                        </motion.div>
+                                    ))}
                                 </div>
-                                <h2 className="text-3xl sm:text-4xl font-extrabold text-gray-900 dark:text-white mb-6">
-                                    Your Ultimate{' '}
-                                    <span className="bg-gradient-to-r from-indigo-600 to-purple-600 bg-clip-text text-transparent">
-                                        Prompt Library
-                                    </span>
-                                </h2>
-                                <p className="text-lg text-gray-600 dark:text-gray-400 leading-relaxed">
-                                    PromptMarket is the premier marketplace for AI prompt templates. We curate expert-crafted prompts across every major LLM — from ChatGPT to Claude, Gemini, and more. Whether you're a developer, marketer, or entrepreneur, find the perfect prompt to supercharge your workflow and unlock the full potential of AI.
-                                </p>
-                            </motion.div>
-
-                            <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-                                {[
-                                    {
-                                        icon: <Layers className="w-6 h-6" />,
-                                        title: "Multi-LLM Support",
-                                        description: "Prompts tailored for every major AI model. Select your preferred LLM and get perfectly optimized templates.",
-                                        iconClass: "text-indigo-600 bg-indigo-100 dark:text-indigo-400 dark:bg-indigo-900/30"
-                                    },
-                                    {
-                                        icon: <Target className="w-6 h-6" />,
-                                        title: "Industry Focused",
-                                        description: "Organized by industry and category. Quickly find prompts relevant to your specific domain and use case.",
-                                        iconClass: "text-purple-600 bg-purple-100 dark:text-purple-400 dark:bg-purple-900/30"
-                                    },
-                                    {
-                                        icon: <Sparkles className="w-6 h-6" />,
-                                        title: "Expert Curated",
-                                        description: "Every prompt is crafted and verified by domain experts. Rate, review, and save your favorites to build your library.",
-                                        iconClass: "text-amber-600 bg-amber-100 dark:text-amber-400 dark:bg-amber-900/30"
-                                    }
-                                ].map((feature, i) => (
-                                    <motion.div
-                                        key={i}
-                                        initial={{ opacity: 0, y: 20 }}
-                                        whileInView={{ opacity: 1, y: 0 }}
-                                        viewport={{ once: true, margin: "-50px" }}
-                                        transition={{ duration: 0.5, delay: i * 0.1 }}
-                                        className="group relative bg-white dark:bg-gray-900 rounded-2xl p-8 border border-gray-100 dark:border-gray-800 hover:border-indigo-200 dark:hover:border-indigo-800 hover:shadow-xl hover:shadow-indigo-50 dark:hover:shadow-indigo-900/10 transition-all duration-300"
-                                    >
-                                        <div className={`w-12 h-12 rounded-xl flex items-center justify-center mb-5 group-hover:scale-110 transition-transform duration-300 ${feature.iconClass}`}>
-                                            {feature.icon}
-                                        </div>
-                                        <h3 className="text-xl font-bold text-gray-900 dark:text-white mb-3">{feature.title}</h3>
-                                        <p className="text-gray-600 dark:text-gray-400 leading-relaxed">{feature.description}</p>
-                                    </motion.div>
-                                ))}
                             </div>
                         </div>
                     </section>
 
-                    {/* Featured Prompts */}
-                    <section id="featured" className="py-20 sm:py-28 bg-white dark:bg-gray-900 border-y border-gray-100 dark:border-gray-800 transition-colors duration-200">
+                    {/* Featured Use Cases */}
+                    <section id="featured" className="py-24 bg-white dark:bg-[#0b0f19] transition-colors duration-200">
                         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
                             <motion.div
                                 initial={{ opacity: 0, y: 30 }}
                                 whileInView={{ opacity: 1, y: 0 }}
-                                viewport={{ once: true, margin: "-100px" }}
-                                transition={{ duration: 0.6 }}
+                                viewport={{ once: true }}
                                 className="text-center max-w-3xl mx-auto mb-16"
                             >
-                                <div className="inline-flex items-center gap-2 px-3 py-1 bg-purple-50 dark:bg-purple-900/30 rounded-full text-purple-600 dark:text-purple-400 text-xs font-semibold tracking-wider uppercase mb-4">
-                                    Featured Use Cases
-                                </div>
-                                <h2 className="text-3xl sm:text-4xl font-extrabold text-gray-900 dark:text-white mb-6">
-                                    Prompts for Every{' '}
-                                    <span className="bg-gradient-to-r from-purple-600 to-pink-600 bg-clip-text text-transparent">
-                                        Use Case
-                                    </span>
+                                <p className="text-[#ea2e6d] text-[11px] font-bold tracking-[0.15em] uppercase mb-4">Featured Use Cases</p>
+                                <h2 className="text-3xl sm:text-4xl font-extrabold text-[#111827] dark:text-white mb-6">
+                                    Prompts for Every Use Case
                                 </h2>
-                                <p className="text-lg text-gray-600 dark:text-gray-400 leading-relaxed">
+                                <p className="text-lg text-gray-500 dark:text-[#a0a8be] leading-relaxed">
                                     Explore our most popular prompt categories and start generating amazing results today.
                                 </p>
                             </motion.div>
-
+                            
                             <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-                                {featuredPrompts.map((prompt, i) => (
-                                    <motion.div
+                                {[
+                                    {
+                                        icon: <FileText size={22} />,
+                                        title: "Content Creation",
+                                        description: "Generate compelling blog posts, social media captions, and marketing copy with AI-powered templates."
+                                    },
+                                    {
+                                        icon: <Code size={22} />,
+                                        title: "Code Generation",
+                                        description: "Accelerate development with battle-tested coding prompts for debugging, refactoring, and building."
+                                    },
+                                    {
+                                        icon: <Briefcase size={22} />,
+                                        title: "Business Strategy",
+                                        description: "Unlock insights for market analysis, competitive research, and strategic planning."
+                                    }
+                                ].map((card, i) => (
+                                    <motion.div 
                                         key={i}
                                         initial={{ opacity: 0, y: 20 }}
                                         whileInView={{ opacity: 1, y: 0 }}
-                                        viewport={{ once: true, margin: "-50px" }}
-                                        transition={{ duration: 0.5, delay: i * 0.15 }}
-                                        className={`group relative bg-gradient-to-br ${prompt.bgGradient} rounded-2xl p-8 border border-gray-100 dark:border-gray-800 hover:shadow-xl transition-all duration-300 cursor-pointer overflow-hidden`}
+                                        viewport={{ once: true }}
+                                        transition={{ delay: i * 0.1 }}
+                                        className="bg-white dark:bg-[#11131e] p-8 rounded-3xl border border-gray-100 dark:border-[#1a1f33] shadow-sm flex flex-col items-start transition-all duration-300 group hover:border-[#ea2e6d] hover:shadow-[0_8px_30px_rgba(234,46,109,0.15)]"
                                     >
-                                        {/* Decorative corner glow */}
-                                        <div className={`absolute -top-12 -right-12 w-32 h-32 bg-gradient-to-br ${prompt.gradient} rounded-full opacity-10 group-hover:opacity-20 blur-2xl transition-opacity duration-300`}></div>
-
-                                        <div className={`relative w-14 h-14 rounded-2xl bg-gradient-to-br ${prompt.gradient} flex items-center justify-center text-white mb-6 shadow-lg group-hover:scale-110 transition-transform duration-300`}>
-                                            {prompt.icon}
+                                        <div className="w-12 h-12 rounded-2xl bg-[#fdf2f6] dark:bg-[#ea2e6d]/10 flex items-center justify-center text-[#ea2e6d] mb-6">
+                                            {card.icon}
                                         </div>
-                                        <h3 className="relative text-xl font-bold text-gray-900 dark:text-white mb-3">{prompt.title}</h3>
-                                        <p className="relative text-gray-600 dark:text-gray-400 leading-relaxed mb-6">{prompt.description}</p>
-                                        <div className="relative flex items-center text-sm font-semibold text-indigo-600 dark:text-indigo-400 group-hover:gap-3 gap-2 transition-all duration-200">
-                                            Explore Templates
-                                            <ArrowRight size={16} className="group-hover:translate-x-1 transition-transform" />
-                                        </div>
+                                        <h3 className="text-xl font-bold text-gray-900 dark:text-white mb-3">{card.title}</h3>
+                                        <p className="text-sm text-gray-500 dark:text-[#8890a8] leading-relaxed mb-8 flex-grow">
+                                            {card.description}
+                                        </p>
+                                        <Link to="/?view=all" className="text-[#ea2e6d] text-sm font-bold flex items-center gap-2 group-hover:gap-3 transition-all">
+                                            Explore Templates <ArrowRight size={16} />
+                                        </Link>
                                     </motion.div>
                                 ))}
                             </div>
@@ -411,8 +467,7 @@ export default function Home() {
                     </section>
                 </>
             )}
-
-            {/* ========== PROMPT LISTING (When LLM is selected) ========== */}
+{/* ========== PROMPT LISTING (When LLM is selected) ========== */}
             {showPromptListing && (
                 <div ref={promptListingRef} className="pt-6 pb-16">
                     {/* Professional Filter & Search Bar */}

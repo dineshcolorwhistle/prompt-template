@@ -71,19 +71,19 @@ const Signup = () => {
 
     if (success) {
         return (
-            <div className="min-h-screen bg-gray-50 flex flex-col justify-center py-12 sm:px-6 lg:px-8">
+            <div className="min-h-screen bg-gray-50 dark:bg-slate-900 flex flex-col justify-center py-12 sm:px-6 lg:px-8 transition-colors duration-200">
                 <motion.div
                     initial={{ opacity: 0, scale: 0.95 }}
                     animate={{ opacity: 1, scale: 1 }}
                     className="sm:mx-auto sm:w-full sm:max-w-md"
                 >
-                    <div className="bg-white py-8 px-4 shadow-xl sm:rounded-xl sm:px-10 border border-gray-100 text-center">
-                        <div className="mx-auto flex items-center justify-center h-12 w-12 rounded-full bg-green-100 mb-4">
-                            <CheckCircle className="h-6 w-6 text-green-600" />
+                    <div className="bg-white dark:bg-slate-800 py-8 px-4 shadow-xl sm:rounded-xl sm:px-10 border border-gray-100 dark:border-slate-700 text-center transition-colors duration-200">
+                        <div className="mx-auto flex items-center justify-center h-12 w-12 rounded-full bg-green-100 dark:bg-green-900/30 mb-4">
+                            <CheckCircle className="h-6 w-6 text-green-600 dark:text-green-400" />
                         </div>
-                        <h2 className="text-2xl font-bold text-gray-900 mb-2">Check your email</h2>
-                        <p className="text-gray-600 mb-6">
-                            We've sent a link to <span className="font-semibold text-gray-900">{email}</span>. Please check your inbox to set your password and activate your account.
+                        <h2 className="text-2xl font-bold text-gray-900 dark:text-white mb-2">Check your email</h2>
+                        <p className="text-gray-600 dark:text-gray-400 mb-6">
+                            We've sent a link to <span className="font-semibold text-gray-900 dark:text-white">{email}</span>. Please check your inbox to set your password and activate your account.
                         </p>
                         <Link
                             to="/login"
@@ -98,7 +98,7 @@ const Signup = () => {
     }
 
     return (
-        <div className="min-h-screen bg-gray-50 flex flex-col justify-center py-12 sm:px-6 lg:px-8">
+        <div className="min-h-screen bg-gray-50 dark:bg-slate-900 flex flex-col justify-center py-12 sm:px-6 lg:px-8 transition-colors duration-200">
             <motion.div
                 initial={{ opacity: 0, y: -20 }}
                 animate={{ opacity: 1, y: 0 }}
@@ -107,13 +107,14 @@ const Signup = () => {
             >
                 <div className="flex justify-center">
                     <Link to="/" className="hover:opacity-90 transition-opacity">
-                        <img src="/pm-logo.png" alt="PromptMarket Logo" className="h-16 sm:h-20 w-auto object-contain" />
+                        <img src="/pm-logo.png" alt="PromptMarket Logo" className="h-16 sm:h-20 w-auto object-contain dark:hidden" />
+                        <img src="/pm-white-logo.png" alt="PromptMarket Logo" className="h-16 sm:h-20 w-auto object-contain hidden dark:block" />
                     </Link>
                 </div>
-                <h2 className="mt-6 text-center text-3xl font-extrabold text-gray-900 tracking-tight">
+                <h2 className="mt-6 text-center text-3xl font-extrabold text-gray-900 dark:text-white tracking-tight">
                     Create your account
                 </h2>
-                <p className="mt-2 text-center text-sm text-gray-600">
+                <p className="mt-2 text-center text-sm text-gray-600 dark:text-gray-400">
                     Join thousands of creators using PromptMarket
                 </p>
             </motion.div>
@@ -124,17 +125,17 @@ const Signup = () => {
                 transition={{ duration: 0.5, delay: 0.1 }}
                 className="mt-8 sm:mx-auto sm:w-full sm:max-w-md"
             >
-                <div className="bg-white py-8 px-4 shadow-xl sm:rounded-xl sm:px-10 border border-gray-100">
+                <div className="bg-white dark:bg-slate-800 py-8 px-4 shadow-xl sm:rounded-xl sm:px-10 border border-gray-100 dark:border-slate-700 transition-colors duration-200">
                     <form className="space-y-6" onSubmit={onSubmit}>
 
 
                         <div>
-                            <label htmlFor="name" className="block text-sm font-medium text-gray-700">
+                            <label htmlFor="name" className="block text-sm font-medium text-gray-700 dark:text-gray-300">
                                 Full Name
                             </label>
                             <div className="mt-1 relative rounded-md shadow-sm">
                                 <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                                    <UserIcon className="h-5 w-5 text-gray-400" />
+                                    <UserIcon className="h-5 w-5 text-gray-400 dark:text-gray-500" />
                                 </div>
                                 <input
                                     id="name"
@@ -144,19 +145,19 @@ const Signup = () => {
                                     required
                                     value={name}
                                     onChange={onChange}
-                                    className="block w-full pl-10 sm:text-sm border-gray-300 rounded-lg focus:ring-indigo-500 focus:border-indigo-500 py-3"
+                                    className="block w-full pl-10 sm:text-sm border-gray-300 dark:border-slate-600 dark:bg-slate-900 dark:text-white rounded-lg focus:ring-indigo-500 focus:border-indigo-500 py-3 transition-colors duration-200"
                                     placeholder="John Doe"
                                 />
                             </div>
                         </div>
 
                         <div>
-                            <label htmlFor="email" className="block text-sm font-medium text-gray-700">
+                            <label htmlFor="email" className="block text-sm font-medium text-gray-700 dark:text-gray-300">
                                 Email address
                             </label>
                             <div className="mt-1 relative rounded-md shadow-sm">
                                 <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                                    <Mail className="h-5 w-5 text-gray-400" />
+                                    <Mail className="h-5 w-5 text-gray-400 dark:text-gray-500" />
                                 </div>
                                 <input
                                     id="email"
@@ -166,7 +167,7 @@ const Signup = () => {
                                     required
                                     value={email}
                                     onChange={onChange}
-                                    className="block w-full pl-10 sm:text-sm border-gray-300 rounded-lg focus:ring-indigo-500 focus:border-indigo-500 py-3"
+                                    className="block w-full pl-10 sm:text-sm border-gray-300 dark:border-slate-600 dark:bg-slate-900 dark:text-white rounded-lg focus:ring-indigo-500 focus:border-indigo-500 py-3 transition-colors duration-200"
                                     placeholder="you@example.com"
                                 />
                             </div>
@@ -190,10 +191,10 @@ const Signup = () => {
                     <div className="mt-6">
                         <div className="relative">
                             <div className="absolute inset-0 flex items-center">
-                                <div className="w-full border-t border-gray-300" />
+                                <div className="w-full border-t border-gray-300 dark:border-slate-700 transition-colors" />
                             </div>
                             <div className="relative flex justify-center text-sm">
-                                <span className="px-2 bg-white text-gray-500">
+                                <span className="px-2 bg-white dark:bg-slate-800 text-gray-500 dark:text-gray-400 transition-colors duration-200">
                                     Or sign up with
                                 </span>
                             </div>
@@ -212,10 +213,10 @@ const Signup = () => {
                     <div className="mt-6">
                         <div className="relative">
                             <div className="absolute inset-0 flex items-center">
-                                <div className="w-full border-t border-gray-300" />
+                                <div className="w-full border-t border-gray-300 dark:border-slate-700 transition-colors" />
                             </div>
                             <div className="relative flex justify-center text-sm">
-                                <span className="px-2 bg-white text-gray-500">
+                                <span className="px-2 bg-white dark:bg-slate-800 text-gray-500 dark:text-gray-400 transition-colors duration-200">
                                     Already have an account?
                                 </span>
                             </div>
@@ -224,7 +225,7 @@ const Signup = () => {
                         <div className="mt-6 text-center">
                             <Link
                                 to="/login"
-                                className="font-medium text-indigo-600 hover:text-indigo-500 transition-colors"
+                                className="font-medium text-indigo-600 hover:text-indigo-500 dark:text-indigo-400 dark:hover:text-indigo-300 transition-colors"
                             >
                                 Sign in instead
                             </Link>

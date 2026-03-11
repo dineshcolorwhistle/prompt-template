@@ -96,7 +96,7 @@ const Login = () => {
     };
 
     return (
-        <div className="min-h-screen bg-gray-50 flex flex-col justify-center py-12 sm:px-6 lg:px-8">
+        <div className="min-h-screen bg-gray-50 dark:bg-slate-900 flex flex-col justify-center py-12 sm:px-6 lg:px-8 transition-colors duration-200">
             <motion.div
                 initial={{ opacity: 0, y: -20 }}
                 animate={{ opacity: 1, y: 0 }}
@@ -105,13 +105,14 @@ const Login = () => {
             >
                 <div className="flex justify-center">
                     <Link to="/" className="hover:opacity-90 transition-opacity">
-                        <img src="/pm-logo.png" alt="PromptMarket Logo" className="h-16 sm:h-20 w-auto object-contain" />
+                        <img src="/pm-logo.png" alt="PromptMarket Logo" className="h-16 sm:h-20 w-auto object-contain dark:hidden" />
+                        <img src="/pm-white-logo.png" alt="PromptMarket Logo" className="h-16 sm:h-20 w-auto object-contain hidden dark:block" />
                     </Link>
                 </div>
-                <h2 className="mt-6 text-center text-3xl font-extrabold text-gray-900 tracking-tight">
+                <h2 className="mt-6 text-center text-3xl font-extrabold text-gray-900 dark:text-white tracking-tight">
                     {isForgotPassword ? 'Reset password' : 'Welcome back'}
                 </h2>
-                <p className="mt-2 text-center text-sm text-gray-600">
+                <p className="mt-2 text-center text-sm text-gray-600 dark:text-gray-400">
                     {isForgotPassword ? 'Enter your email to get a reset link' : 'Sign in to your account'}
                 </p>
             </motion.div>
@@ -122,16 +123,16 @@ const Login = () => {
                 transition={{ duration: 0.5, delay: 0.1 }}
                 className="mt-8 sm:mx-auto sm:w-full sm:max-w-md"
             >
-                <div className="bg-white py-8 px-4 shadow-xl sm:rounded-xl sm:px-10 border border-gray-100">
+                <div className="bg-white dark:bg-slate-800 py-8 px-4 shadow-xl sm:rounded-xl sm:px-10 border border-gray-100 dark:border-slate-700 transition-colors duration-200">
                     {isForgotPassword ? (
                         <form className="space-y-6" onSubmit={onForgotPasswordSubmit}>
                             <div>
-                                <label htmlFor="reset-email" className="block text-sm font-medium text-gray-700">
+                                <label htmlFor="reset-email" className="block text-sm font-medium text-gray-700 dark:text-gray-300">
                                     Email address
                                 </label>
                                 <div className="mt-1 relative rounded-md shadow-sm">
                                     <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                                        <Mail className="h-5 w-5 text-gray-400" />
+                                        <Mail className="h-5 w-5 text-gray-400 dark:text-gray-500" />
                                     </div>
                                     <input
                                         id="reset-email"
@@ -140,7 +141,7 @@ const Login = () => {
                                         required
                                         value={email}
                                         onChange={onChange}
-                                        className="block w-full pl-10 sm:text-sm border-gray-300 rounded-lg focus:ring-indigo-500 focus:border-indigo-500 py-3"
+                                        className="block w-full pl-10 sm:text-sm border-gray-300 dark:border-slate-600 dark:bg-slate-900 dark:text-white rounded-lg focus:ring-indigo-500 focus:border-indigo-500 py-3 transition-colors duration-200"
                                         placeholder="you@example.com"
                                     />
                                 </div>
@@ -159,12 +160,12 @@ const Login = () => {
                                     )}
                                 </button>
                             </div>
-                            <div className="text-center mt-4 text-sm text-gray-600">
+                            <div className="text-center mt-4 text-sm text-gray-600 dark:text-gray-400">
                                 Remember your password?{' '}
                                 <button
                                     type="button"
                                     onClick={() => setIsForgotPassword(false)}
-                                    className="font-medium text-indigo-600 hover:text-indigo-500 transition-colors"
+                                    className="font-medium text-indigo-600 hover:text-indigo-500 dark:text-indigo-400 dark:hover:text-indigo-300 transition-colors"
                                 >
                                     Sign in
                                 </button>
@@ -176,12 +177,12 @@ const Login = () => {
 
 
                                 <div>
-                                    <label htmlFor="email" className="block text-sm font-medium text-gray-700">
+                                    <label htmlFor="email" className="block text-sm font-medium text-gray-700 dark:text-gray-300">
                                         Email address
                                     </label>
                                     <div className="mt-1 relative rounded-md shadow-sm">
                                         <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                                            <Mail className="h-5 w-5 text-gray-400" />
+                                            <Mail className="h-5 w-5 text-gray-400 dark:text-gray-500" />
                                         </div>
                                         <input
                                             id="email"
@@ -191,19 +192,19 @@ const Login = () => {
                                             required
                                             value={email}
                                             onChange={onChange}
-                                            className="block w-full pl-10 sm:text-sm border-gray-300 rounded-lg focus:ring-indigo-500 focus:border-indigo-500 py-3"
+                                            className="block w-full pl-10 sm:text-sm border-gray-300 dark:border-slate-600 dark:bg-slate-900 dark:text-white rounded-lg focus:ring-indigo-500 focus:border-indigo-500 py-3 transition-colors duration-200"
                                             placeholder="you@example.com"
                                         />
                                     </div>
                                 </div>
 
                                 <div>
-                                    <label htmlFor="password" className="block text-sm font-medium text-gray-700">
+                                    <label htmlFor="password" className="block text-sm font-medium text-gray-700 dark:text-gray-300">
                                         Password
                                     </label>
                                     <div className="mt-1 relative rounded-md shadow-sm">
                                         <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                                            <Lock className="h-5 w-5 text-gray-400" />
+                                            <Lock className="h-5 w-5 text-gray-400 dark:text-gray-500" />
                                         </div>
                                         <input
                                             id="password"
@@ -213,7 +214,7 @@ const Login = () => {
                                             required
                                             value={password}
                                             onChange={onChange}
-                                            className="block w-full pl-10 sm:text-sm border-gray-300 rounded-lg focus:ring-indigo-500 focus:border-indigo-500 py-3"
+                                            className="block w-full pl-10 sm:text-sm border-gray-300 dark:border-slate-600 dark:bg-slate-900 dark:text-white rounded-lg focus:ring-indigo-500 focus:border-indigo-500 py-3 transition-colors duration-200"
                                             placeholder="••••••••"
                                         />
                                     </div>
@@ -225,9 +226,9 @@ const Login = () => {
                                             id="remember-me"
                                             name="remember-me"
                                             type="checkbox"
-                                            className="h-4 w-4 text-indigo-600 focus:ring-indigo-500 border-gray-300 rounded"
+                                            className="h-4 w-4 text-indigo-600 focus:ring-indigo-500 border-gray-300 dark:border-slate-600 dark:bg-slate-900 rounded transition-colors"
                                         />
-                                        <label htmlFor="remember-me" className="ml-2 block text-sm text-gray-900">
+                                        <label htmlFor="remember-me" className="ml-2 block text-sm text-gray-900 dark:text-gray-300">
                                             Remember me
                                         </label>
                                     </div>
@@ -236,7 +237,7 @@ const Login = () => {
                                         <button
                                             type="button"
                                             onClick={() => setIsForgotPassword(true)}
-                                            className="font-medium text-indigo-600 hover:text-indigo-500 transition-colors"
+                                            className="font-medium text-indigo-600 hover:text-indigo-500 dark:text-indigo-400 dark:hover:text-indigo-300 transition-colors"
                                         >
                                             Forgot your password?
                                         </button>
@@ -261,10 +262,10 @@ const Login = () => {
                             <div className="mt-6">
                                 <div className="relative">
                                     <div className="absolute inset-0 flex items-center">
-                                        <div className="w-full border-t border-gray-300" />
+                                        <div className="w-full border-t border-gray-300 dark:border-slate-700 transition-colors" />
                                     </div>
                                     <div className="relative flex justify-center text-sm">
-                                        <span className="px-2 bg-white text-gray-500">
+                                        <span className="px-2 bg-white dark:bg-slate-800 text-gray-500 dark:text-gray-400 transition-colors duration-200">
                                             Or continue with
                                         </span>
                                     </div>
@@ -283,10 +284,10 @@ const Login = () => {
                             <div className="mt-6">
                                 <div className="relative">
                                     <div className="absolute inset-0 flex items-center">
-                                        <div className="w-full border-t border-gray-300" />
+                                        <div className="w-full border-t border-gray-300 dark:border-slate-700 transition-colors" />
                                     </div>
                                     <div className="relative flex justify-center text-sm">
-                                        <span className="px-2 bg-white text-gray-500">
+                                        <span className="px-2 bg-white dark:bg-slate-800 text-gray-500 dark:text-gray-400 transition-colors duration-200">
                                             Don't have an account?
                                         </span>
                                     </div>
@@ -295,7 +296,7 @@ const Login = () => {
                                 <div className="mt-6 text-center">
                                     <Link
                                         to="/signup"
-                                        className="font-medium text-indigo-600 hover:text-indigo-500 transition-colors"
+                                        className="font-medium text-indigo-600 hover:text-indigo-500 dark:text-indigo-400 dark:hover:text-indigo-300 transition-colors"
                                     >
                                         Sign up for free
                                     </Link>

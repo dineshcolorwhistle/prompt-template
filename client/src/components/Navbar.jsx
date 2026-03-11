@@ -234,7 +234,7 @@ export default function Navbar() {
 
     return (
         <>
-            <nav className="fixed top-0 left-0 right-0 h-20 bg-white/80 dark:bg-gray-900/80 backdrop-blur-xl border-b border-gray-200/50 dark:border-gray-800/50 z-50 transition-all duration-300">
+            <nav className="fixed top-0 left-0 right-0 h-20 bg-white/80 dark:bg-[#0b0f19]/80 backdrop-blur-xl border-b border-gray-200/50 dark:border-[#1a1f33]/50 z-50 transition-all duration-300">
                 <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-full">
                     <div className="flex justify-between items-center h-full">
                         {/* Left Section: Logo + Product Name */}
@@ -398,10 +398,10 @@ export default function Navbar() {
                                 </div>
                             ) : (
                                 <div className="flex items-center gap-2">
-                                    <Link to="/login" className="text-gray-600 dark:text-gray-300 hover:text-gray-900 dark:hover:text-white font-medium text-sm px-4 py-2 rounded-xl hover:bg-gray-100 dark:hover:bg-gray-800 transition-all duration-200">
+                                    <Link to="/login" className="text-gray-600 dark:text-gray-300 hover:text-white font-medium text-sm px-4 py-2 rounded-xl hover:bg-[#0e1c81] transition-all duration-200">
                                         Log in
                                     </Link>
-                                    <Link to="/signup" className="bg-gradient-to-r from-indigo-600 to-purple-600 text-white px-5 py-2 rounded-xl text-sm font-bold hover:from-indigo-700 hover:to-purple-700 transition-all duration-200 shadow-lg shadow-indigo-200/50 dark:shadow-indigo-900/30 hover:shadow-indigo-300/50 transform active:scale-95">
+                                    <Link to="/signup" className="bg-[#ea2e6d] text-white px-5 py-2 rounded-xl text-sm font-bold hover:bg-[#d42560] transition-all duration-200 shadow-lg shadow-[#ea2e6d]/20 hover:shadow-[#ea2e6d]/40 transform active:scale-95">
                                         Sign up
                                     </Link>
                                 </div>
@@ -538,11 +538,11 @@ export default function Navbar() {
                                     </>
                                 ) : (
                                     <div className="flex flex-col gap-2 pt-2">
-                                        <Link to="/login" onClick={() => setIsMenuOpen(false)} className="text-center text-gray-900 dark:text-white font-medium py-3 border border-gray-200 dark:border-gray-700 rounded-xl hover:bg-gray-50 dark:hover:bg-gray-800 bg-white dark:bg-gray-900 transition-colors">
+                                        <Link to="/login" onClick={() => setIsMenuOpen(false)} className="text-center text-gray-900 dark:text-white font-medium py-3 border border-gray-200 dark:border-gray-700 rounded-xl hover:bg-[#0e1c81] hover:border-[#0e1c81] hover:text-white transition-colors">
                                             Log in
                                         </Link>
-                                        <Link to="/signup" onClick={() => setIsMenuOpen(false)} className="text-center bg-gradient-to-r from-indigo-600 to-purple-600 text-white font-bold py-3 rounded-xl shadow-lg shadow-indigo-200/50 dark:shadow-indigo-900/30">
-                                            Sign up for free
+                                        <Link to="/signup" onClick={() => setIsMenuOpen(false)} className="text-center bg-[#ea2e6d] text-white font-bold py-3 rounded-xl shadow-lg shadow-[#ea2e6d]/20 hover:shadow-[#ea2e6d]/40 transition-shadow">
+                                            Sign up
                                         </Link>
                                     </div>
                                 )}
