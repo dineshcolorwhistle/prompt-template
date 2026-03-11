@@ -239,8 +239,8 @@ export default function Navbar() {
                     <div className="flex justify-between items-center h-full">
                         {/* Left Section: Logo + Product Name */}
                         <Link to="/" className="flex items-center gap-3 flex-shrink-0 group hover:opacity-90 transition-opacity">
-                            <img src="/pm-logo.png" alt="PromptMarket Logo" className="h-10 sm:h-16 w-auto object-contain dark:hidden" />
-                            <img src="/pm-white-logo.png" alt="PromptMarket Logo" className="h-10 sm:h-16 w-auto object-contain hidden dark:block" />
+                            <img src="/pm-logo.png" alt="PromptMarket Logo" className="h-10 sm:h-20 w-auto object-contain dark:hidden" />
+                            <img src="/pm-white-logo.png" alt="PromptMarket Logo" className="h-10 sm:h-20 w-auto object-contain hidden dark:block" />
                         </Link>
 
                         {/* Right Section: Dropdowns + Theme Toggle + User */}

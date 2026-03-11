@@ -14,8 +14,8 @@ export default function Layout({ children }) {
             {/* Minimal Footer */}
             <footer className="bg-[#fafafa] dark:bg-[#0b0f19] py-8 border-t border-gray-100 dark:border-gray-800 transition-colors duration-200 flex flex-col items-center justify-center gap-4">
                 <Link to="/" className="flex items-center gap-2 group hover:opacity-90 transition-opacity">
-                    <img src="/pm-logo.png" alt="PromptMarket Logo" className="h-8 w-auto object-contain dark:hidden" />
-                    <img src="/pm-white-logo.png" alt="PromptMarket Logo" className="h-8 w-auto object-contain hidden dark:block" />
+                    <img src="/pm-logo.png" alt="PromptMarket Logo" className="h-20 w-auto object-contain dark:hidden" />
+                    <img src="/pm-white-logo.png" alt="PromptMarket Logo" className="h-20 w-auto object-contain hidden dark:block" />
                 </Link>
                 <div className="max-w-7xl mx-auto px-4 text-center">
                     <p className="text-xs text-gray-500 dark:text-gray-400 font-medium tracking-wide">
