@@ -182,5 +182,63 @@ const googleLogin = async (req, res) => {
         res.status(401).json({ message: 'Invalid Google token' });
     }
 };
+// @desc    Forgot Password
+// @route   POST /api/users/forgotpassword
+// @access  Public
+const forgotPassword = async (req, res) => {
+    const { email } = req.body;
 
-module.exports = { authUser, registerUser, setPassword, googleLogin };
+    try {
+        const user = await User.findOne({ email });
+
+        if (!user) {
+            return res.status(404).json({ message: 'User not found' });
+        }
+
+        // Create reset token
+        const resetToken = crypto.randomBytes(20).toString('hex');
+        const resetTokenHash = crypto
+            .createHash('sha256')
+            .update(resetToken)
+            .digest('hex');
+
+        user.resetPasswordToken = resetTokenHash;
+        user.resetPasswordExpire = Date.now() + 24 * 60 * 60 * 1000; // 24 hours
+
+        await user.save();
+
+        // Create reset URL
+        const resetUrl = `http://localhost:5173/set-password/${resetToken}`;
+
+        const message = `
+            <h1>You have requested to reset your password</h1>
+            <p>Please click the link below to set a new password:</p>
+            <a href="${resetUrl}" clicktracking=off>${resetUrl}</a>
+        `;
+
+        try {
+            await sendEmail({
+                email: user.email,
+                subject: 'Reset Password - Prompt Template Platform',
+                message: `Please copy and paste the following link in your browser to reset your password: ${resetUrl}`,
+                html: message,
+            });
+
+            res.status(200).json({
+                success: true,
+                message: 'Password reset email sent',
+            });
+        } catch (error) {
+            console.error(error);
+            user.resetPasswordToken = undefined;
+            user.resetPasswordExpire = undefined;
+            await user.save({ validateBeforeSave: false });
+
+            return res.status(500).json({ message: 'Email could not be sent' });
+        }
+    } catch (error) {
+        res.status(500).json({ message: error.message });
+    }
+};
+
+module.exports = { authUser, registerUser, setPassword, googleLogin, forgotPassword };
