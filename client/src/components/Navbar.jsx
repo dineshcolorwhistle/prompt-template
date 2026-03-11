@@ -234,20 +234,13 @@ export default function Navbar() {
 
     return (
         <>
-            <nav className="fixed top-0 left-0 right-0 h-16 bg-white/80 dark:bg-gray-900/80 backdrop-blur-xl border-b border-gray-200/50 dark:border-gray-800/50 z-50 transition-all duration-300">
+            <nav className="fixed top-0 left-0 right-0 h-20 bg-white/80 dark:bg-gray-900/80 backdrop-blur-xl border-b border-gray-200/50 dark:border-gray-800/50 z-50 transition-all duration-300">
                 <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-full">
                     <div className="flex justify-between items-center h-full">
                         {/* Left Section: Logo + Product Name */}
-                        <Link to="/" className="flex items-center gap-3 flex-shrink-0 group">
-                            <div className="relative">
-                                <div className="w-9 h-9 bg-gradient-to-br from-indigo-500 to-purple-600 rounded-xl flex items-center justify-center text-white font-bold text-lg shadow-lg shadow-indigo-200 dark:shadow-indigo-900/30 group-hover:shadow-indigo-300 dark:group-hover:shadow-indigo-800/40 transition-all duration-300 group-hover:scale-105">
-                                    P
-                                </div>
-                                <div className="absolute -inset-1 bg-gradient-to-br from-indigo-500 to-purple-600 rounded-xl opacity-0 group-hover:opacity-20 blur transition-opacity duration-300"></div>
-                            </div>
-                            <span className="text-xl font-bold bg-gradient-to-r from-gray-900 to-gray-600 dark:from-white dark:to-gray-300 bg-clip-text text-transparent hidden sm:block">
-                                PromptMarket
-                            </span>
+                        <Link to="/" className="flex items-center gap-3 flex-shrink-0 group hover:opacity-90 transition-opacity">
+                            <img src="/pm-logo.png" alt="PromptMarket Logo" className="h-10 sm:h-16 w-auto object-contain dark:hidden" />
+                            <img src="/pm-white-logo.png" alt="PromptMarket Logo" className="h-10 sm:h-16 w-auto object-contain hidden dark:block" />
                         </Link>
 
                         {/* Right Section: Dropdowns + Theme Toggle + User */}
@@ -441,7 +434,7 @@ export default function Navbar() {
                             initial={{ opacity: 0, height: 0 }}
                             animate={{ opacity: 1, height: 'auto' }}
                             exit={{ opacity: 0, height: 0 }}
-                            className="absolute top-16 left-0 right-0 bg-white dark:bg-gray-900 border-b border-gray-200 dark:border-gray-800 md:hidden shadow-xl overflow-hidden max-h-[85vh] overflow-y-auto z-50"
+                            className="absolute top-20 left-0 right-0 bg-white dark:bg-gray-900 border-b border-gray-200 dark:border-gray-800 md:hidden shadow-xl overflow-hidden max-h-[85vh] overflow-y-auto z-50"
                             transition={{ duration: 0.2 }}
                         >
                             <div className="p-4 flex flex-col space-y-4">

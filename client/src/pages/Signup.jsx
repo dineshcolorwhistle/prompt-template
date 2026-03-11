@@ -106,9 +106,9 @@ const Signup = () => {
                 className="sm:mx-auto sm:w-full sm:max-w-md"
             >
                 <div className="flex justify-center">
-                    <div className="w-12 h-12 bg-indigo-600 rounded-xl flex items-center justify-center text-white font-bold text-2xl shadow-lg">
-                        P
-                    </div>
+                    <Link to="/" className="hover:opacity-90 transition-opacity">
+                        <img src="/pm-logo.png" alt="PromptMarket Logo" className="h-16 sm:h-20 w-auto object-contain" />
+                    </Link>
                 </div>
                 <h2 className="mt-6 text-center text-3xl font-extrabold text-gray-900 tracking-tight">
                     Create your account

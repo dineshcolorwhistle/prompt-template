@@ -7,7 +7,7 @@ export default function Layout({ children }) {
     return (
         <div className="min-h-screen bg-gray-50 dark:bg-gray-950 flex flex-col font-sans transition-colors duration-200">
             <Navbar />
-            <main className="flex-1 pt-16">
+            <main className="flex-1 pt-20">
                 {children}
             </main>
 
@@ -18,11 +18,8 @@ export default function Layout({ children }) {
                     <div className="grid grid-cols-1 md:grid-cols-4 gap-10 md:gap-8">
                         {/* Brand Column */}
                         <div className="md:col-span-1">
-                            <Link to="/" className="flex items-center gap-3 mb-4 group">
-                                <div className="w-9 h-9 bg-gradient-to-br from-indigo-500 to-purple-600 rounded-xl flex items-center justify-center text-white font-bold text-lg shadow-lg shadow-indigo-900/30">
-                                    P
-                                </div>
-                                <span className="text-xl font-bold text-white">PromptMarket</span>
+                            <Link to="/" className="flex items-center gap-3 mb-6 group hover:opacity-90 transition-opacity">
+                                <img src="/pm-white-logo.png" alt="PromptMarket Logo" className="h-20 sm:h-24 scale-110 origin-left w-auto object-contain" />
                             </Link>
                             <p className="text-sm text-gray-400 leading-relaxed mb-6">
                                 The premier marketplace for AI prompt templates. Expert-crafted prompts for every LLM to supercharge your workflow.
