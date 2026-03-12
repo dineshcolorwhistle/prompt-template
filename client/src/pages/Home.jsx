@@ -20,6 +20,43 @@ export default function Home() {
     const debounceRef = useRef(null);
     const promptListingRef = useRef(null);
 
+    // Typewriter effect states
+    const typingStrings = [
+        "Discover top-rated ChatGPT prompts for content creation...",
+        "Find expert Claude templates for code generation...",
+        "Explore premium Gemini prompts for business strategy...",
+        "Unlock battle-tested templates for market analysis..."
+    ];
+    const [currentStringIndex, setCurrentStringIndex] = useState(0);
+    const [currentText, setCurrentText] = useState('');
+    const [isDeleting, setIsDeleting] = useState(false);
+
+    useEffect(() => {
+        let timeout;
+        const fullText = typingStrings[currentStringIndex];
+        
+        if (!isDeleting && currentText !== fullText) {
+            // Typing forward
+            timeout = setTimeout(() => {
+                setCurrentText(fullText.substring(0, currentText.length + 1));
+            }, 80);
+        } else if (isDeleting && currentText !== '') {
+            // Deleting backward
+            timeout = setTimeout(() => {
+                setCurrentText(fullText.substring(0, currentText.length - 1));
+            }, 40);
+        } else if (currentText === fullText) {
+            // Pause at the end before deleting
+            timeout = setTimeout(() => setIsDeleting(true), 2000);
+        } else if (currentText === '' && isDeleting) {
+            // Move to next string and start typing
+            setIsDeleting(false);
+            setCurrentStringIndex((prev) => (prev + 1) % typingStrings.length);
+        }
+        
+        return () => clearTimeout(timeout);
+    }, [currentText, isDeleting, currentStringIndex]);
+
     // Get params from URL
     const page = parseInt(searchParams.get('page') || '1', 10);
     const llm = searchParams.get('llm') || '';
@@ -219,10 +256,10 @@ export default function Home() {
                                 initial={{ opacity: 0, y: 20 }}
                                 animate={{ opacity: 1, y: 0 }}
                                 transition={{ duration: 0.6, delay: 0.2 }}
-                                className="text-lg sm:text-lg text-gray-500 dark:text-gray-400 mb-10 flex items-center justify-center gap-2 font-medium"
+                                className="text-lg sm:text-lg text-gray-500 dark:text-gray-400 mb-10 flex items-center justify-center gap-2 font-medium h-[28px]"
                             >
                                 <span className="text-[#ea2e6d] font-bold">&gt;</span>
-                                <span>Draft a cold outreach email for B2B SaaS...</span>
+                                <span>{currentText}</span>
                                 <span className="animate-pulse w-0.5 h-6 bg-[#ea2e6d]"></span>
                             </motion.div>
                             
