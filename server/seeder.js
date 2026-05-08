@@ -3,7 +3,7 @@ const dotenv = require('dotenv');
 const User = require('./models/User'); // Adjust path as needed
 const bcrypt = require('bcrypt');
 
-dotenv.config();
+dotenv.config({ path: require('path').join(__dirname, '.env') });
 
 const connectDB = async () => {
     try {
