@@ -2,7 +2,7 @@ module.exports = {
     apps: [
         {
             name: "prompt-template",
-            script: "server/src/index.js",
+            script: "server/index.js",
             instances: 1,
             exec_mode: "fork",
             watch: false,
