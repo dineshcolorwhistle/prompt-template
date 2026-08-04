@@ -9,7 +9,7 @@ jobs:
   deploy-staging:
     name: Deploy to Staging
     runs-on: ubuntu-latest
-    environment: staging
+    environment: Agentwhistle-Staging
 
     steps:
       - name: Deploy to Staging
@@ -22,7 +22,7 @@ jobs:
           script: |
             set -e
 
-            cd /home/eduwhistle-prompt-template/htdocs/prompt-template.eduwhistle.com/prompt-template
+            cd /home/agentwhistle-prompt-template/htdocs/prompt-template.agentwhistle.com/prompt-template
 
             git config --global --add safe.directory "$(pwd)"
 
