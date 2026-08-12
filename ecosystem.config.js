@@ -11,7 +11,7 @@ module.exports = {
 
             env_staging: {
                 NODE_ENV: "staging",
-                PORT: 3000
+                PORT: 9000
             }
         }
     ]
