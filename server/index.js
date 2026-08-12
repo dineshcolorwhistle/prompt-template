@@ -86,21 +86,26 @@ const clientBuildPath = fs.existsSync(clientDistPath) ? clientDistPath : clientP
 
 if (fs.existsSync(clientBuildPath)) {
   app.use(express.static(clientBuildPath));
-
-  app.get('*', (req, res) => {
-    if (!req.path.startsWith('/api') && !req.path.startsWith('/uploads')) {
-      const indexPath = path.join(clientBuildPath, 'index.html');
-      if (fs.existsSync(indexPath)) {
-        return res.sendFile(indexPath);
-      }
-    }
-    res.status(404).send('Not Found');
-  });
-} else {
-  app.get('/', (req, res) => {
-    res.send('API is running... (Frontend build directory not found)');
-  });
 }
+
+// Fallback middleware for SPA client routing and unhandled endpoints (Express 5 compatible)
+app.use((req, res, next) => {
+  if (req.method === 'GET' && !req.path.startsWith('/api') && !req.path.startsWith('/uploads')) {
+    const indexPath = path.join(clientBuildPath, 'index.html');
+    if (fs.existsSync(indexPath)) {
+      return res.sendFile(indexPath);
+    }
+    if (req.path === '/') {
+      return res.send('API is running...');
+    }
+  }
+
+  if (req.path.startsWith('/api')) {
+    return res.status(404).json({ message: 'API endpoint not found' });
+  }
+
+  res.status(404).send('Not Found');
+});
 
 app.listen(PORT, () => {
   console.log(`Server running on port ${PORT}`);
