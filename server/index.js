@@ -1,6 +1,7 @@
 const express = require('express');
 const mongoose = require('mongoose');
 const path = require('path');
+const fs = require('fs');
 const dotenv = require('dotenv');
 const cors = require('cors');
 const helmet = require('helmet');
@@ -78,9 +79,28 @@ app.use('/api/user-library', userLibraryRoutes);
 const uploadsDir = path.join(__dirname, 'uploads');
 app.use('/uploads', express.static(uploadsDir));
 
-app.get('/', (req, res) => {
-  res.send('API is running...');
-});
+// Serve React client static assets (built into client/dist or client/public)
+const clientDistPath = path.join(__dirname, '../client/dist');
+const clientPublicPath = path.join(__dirname, '../client/public');
+const clientBuildPath = fs.existsSync(clientDistPath) ? clientDistPath : clientPublicPath;
+
+if (fs.existsSync(clientBuildPath)) {
+  app.use(express.static(clientBuildPath));
+
+  app.get('*', (req, res) => {
+    if (!req.path.startsWith('/api') && !req.path.startsWith('/uploads')) {
+      const indexPath = path.join(clientBuildPath, 'index.html');
+      if (fs.existsSync(indexPath)) {
+        return res.sendFile(indexPath);
+      }
+    }
+    res.status(404).send('Not Found');
+  });
+} else {
+  app.get('/', (req, res) => {
+    res.send('API is running... (Frontend build directory not found)');
+  });
+}
 
 app.listen(PORT, () => {
   console.log(`Server running on port ${PORT}`);
